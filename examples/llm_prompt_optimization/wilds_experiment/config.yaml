@@ -1,0 +1,157 @@
+# Configuration for WILDS Amazon prompt evolution
+# Experiment 1: Office Products sentiment classification
+# Optimized for user-disjoint split and class-stratified sampling
+
+# General settings
+max_iterations: 100  # Can be overridden by command line
+checkpoint_interval: 10  # Save checkpoint every 10 iterations
+log_level: "INFO"
+diff_based_evolution: false  # Full rewrites for prompt evolution
+max_code_length: 10000
+language: "text"
+
+# LLM Configuration for Yandex Cloud
+llm:
+  api_base: "https://llm.api.cloud.yandex.net/v1"
+  models:
+    - name: "gpt://b1gemincl8p7b2uiv5nl/qwen3-235b-a22b-fp8/latest"
+      weight: 1.0
+  
+  temperature: 0.8  # Higher temperature for creative evolution
+  max_tokens: 4096
+  timeout: 60
+  retries: 3
+
+# Prompt Configuration for evolution
+prompt:
+  template_dir: "templates"
+  num_top_programs: 5  # Show top 5 prompts for inspiration
+  num_diverse_programs: 3  # Include 3 diverse prompts
+  include_artifacts: true
+  
+  system_message: |
+    You are an expert at creating effective prompts for sentiment classification.
+    Your goal is to evolve prompts that maximize BOTH train AND validation accuracy in predicting star ratings (1-5) from product reviews.
+    
+    CRITICAL: Pay attention to validation accuracy!
+    - Validation accuracy measures generalization to new users (user-disjoint split)
+    - A prompt with high train accuracy but low validation accuracy is OVERFITTING
+    - Prefer prompts with balanced train and validation performance
+    - If validation accuracy is significantly lower than train (gap > 15%), the prompt may be too specific to training examples
+    - The combined_score already weights validation (40%), so focus on improving both metrics
+    
+    ============================================================================
+    METRICS AND SCORING FORMULAS
+    ============================================================================
+    
+    Your prompts are evaluated using the following metrics:
+    
+    1. ACCURACY: Percentage of correctly predicted ratings (1-5 stars)
+       Formula: accuracy = correct_predictions / total_predictions
+       Range: 0.0 to 1.0 (0% to 100%)
+    
+    2. MAE (Mean Absolute Error): Average absolute difference between predicted and true ratings
+       Formula: mae = mean(|predicted_rating - true_rating|)
+       Range: 0.0 to 4.0 (0 = perfect, 4 = worst possible)
+       Example: If you predict [5, 4, 3] and true is [5, 5, 3], MAE = (0+1+0)/3 = 0.33
+    
+    3. COMBINED_SCORE: The main metric used for optimization
+       Stage 1 formula: combined_score = accuracy * 0.8 * (1 - 0.2 * mae/4.0)
+       Stage 2 formula: 
+         blended_accuracy = 0.6 * train_accuracy + 0.4 * val_accuracy
+         combined_score = blended_accuracy * (1 - 0.2 * avg_mae/4.0)
+       Range: 0.0 to 1.0
+       Note: Stage 2 uses 60% train + 40% validation accuracy, with MAE penalty
+    
+    ============================================================================
+    CRITICAL: FEW-SHOT EXAMPLES ARE AUTOMATICALLY ADDED
+    ============================================================================
+    
+    IMPORTANT: During evaluation, few-shot examples are AUTOMATICALLY added to your prompt
+    before the review text. These examples are:
+    - Selected from the training dataset based on semantic similarity to the current review
+    - Include similarity scores (0.0-1.0) showing how similar each example is
+    - Include both the review text and its rating (1-5 stars)
+    - Minimum 3 examples are always provided, even if similarity is below threshold
+    
+    YOUR PROMPT MUST EXPLICITLY INSTRUCT THE MODEL TO USE THESE EXAMPLES!
+    
+    Example of good instruction to include in your prompt:
+    "Before the review, you will see few-shot examples of similar reviews with their ratings
+    and similarity scores. Use these examples to guide your analysis:
+    - Compare the current review with the examples to understand the sentiment level
+    - Pay attention to similarity scores: higher similarity (closer to 1.0) means the example
+      is more relevant
+    - Use the examples to calibrate your understanding of what constitutes each rating level
+    - Consider the patterns you see in the examples when making your final rating decision"
+    
+    WHY THIS MATTERS:
+    - Few-shot examples significantly improve model performance when used correctly
+    - Without explicit instructions, the model may ignore the examples
+    - Similarity scores help the model weight the relevance of each example
+    - This is a key mechanism for improving generalization to new users
+    
+    ============================================================================
+    PROMPT CREATION GUIDELINES
+    ============================================================================
+    
+    When creating new prompts:
+    1. ALWAYS include explicit instructions on how to use the automatically-added few-shot examples
+    2. Build on successful patterns from the examples
+    3. Be creative but maintain clarity
+    4. Consider different reasoning strategies:
+       - Direct classification
+       - Step-by-step sentiment analysis
+       - Keyword/phrase analysis
+       - Comparison with few-shot examples (RECOMMENDED)
+    5. Consider the specific domain (Office Products):
+       - Functionality, durability, value for money
+       - Build quality, design
+       - Customer service experience
+    6. Handle edge cases: sarcasm, mixed reviews, neutral language
+    7. Avoid overfitting: Don't make prompts too specific to training examples
+    8. Emphasize using few-shot examples for better generalization
+
+# Database Configuration for MAP-Elites
+database:
+  population_size: 50  # Moderate population for balance
+  archive_size: 500
+  num_islands: 4  # Multiple islands for diversity
+  
+  feature_dimensions: ["prompt_length", "reasoning_strategy"]
+  feature_bins: 10
+  
+  elite_selection_ratio: 0.4  # 40% elites
+  exploration_ratio: 0.3  # 30% exploration
+  exploitation_ratio: 0.3  # 30% exploitation
+  
+  migration_interval: 20
+  migration_rate: 0.1
+
+# Evaluator Configuration
+evaluator:
+  timeout: 1800  # 30 minutes timeout for complex evaluations
+  max_retries: 3
+  parallel_evaluations: 4  # Parallel evaluation for speed
+  
+  # Cascade evaluation: Stage 1 -> Stage 2
+  # Stage sample sizes are configured in wilds_prompt_dataset.yaml:
+  #   - stage1: 10 random examples for quick filtering
+  #   - stage2: 20 random examples for detailed evaluation
+  cascade_evaluation: true
+  cascade_thresholds: [0.5]  # Must achieve 50% accuracy in stage 1 to proceed to stage 2
+  
+  # Disable LLM feedback for sentiment (objective metric is sufficient)
+  use_llm_feedback: false
+  llm_feedback_weight: 0.0
+
+# Evolution Trace Configuration - ENABLED for detailed tracking
+evolution_trace:
+  enabled: true  # Enable evolution trace logging
+  format: "jsonl"  # Use JSONL format for streaming writes
+  include_code: true  # Include full prompt code in traces
+  include_prompts: true  # Include prompts and LLM responses
+  output_path: "openevolve_output/evolution_trace.jsonl"  # Output path
+  buffer_size: 10  # Buffer 10 traces before writing
+  compress: false  # Don't compress for easier analysis
+

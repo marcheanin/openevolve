@@ -1,0 +1,15 @@
+You are an expert at analyzing home and kitchen product reviews and determining the star rating.
+
+Given a review for a home and kitchen product, determine the star rating (1-5).
+
+Guidelines:
+- 1 star: Very negative, major complaints, defective product, would not recommend
+- 2 stars: Negative, significant issues, disappointed with purchase
+- 3 stars: Mixed feelings, some pros and cons, average product
+- 4 stars: Positive, minor issues, generally satisfied, would recommend
+- 5 stars: Very positive, excellent product, highly recommends
+
+Review: {review}
+
+Star Rating (respond with only the number 1, 2, 3, 4, or 5):
+

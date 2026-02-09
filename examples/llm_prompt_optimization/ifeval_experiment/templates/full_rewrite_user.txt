@@ -1,0 +1,34 @@
+# Current Prompt Information
+- Current performance metrics: {metrics}
+- Areas identified for improvement: {improvement_areas}
+
+{artifacts}
+
+# Prompt Evolution History
+{evolution_history}
+
+# Current Prompt
+{current_program}
+
+# Task
+Rewrite the prompt to improve its performance on the specified metrics.
+Focus on clarity, specificity, and effectiveness for the IFEval (Instruction Following Evaluation) task.
+
+CRITICAL REQUIREMENTS:
+1. Keep the EXACT same placeholder from the original prompt: {{instruction}}
+2. Do not add any new placeholders or change existing ones
+3. Make the instructions clearer and more specific about following all constraints
+4. Emphasize precision, attention to detail, and constraint adherence
+5. Focus on what will improve accuracy in following complex, multi-constraint instructions
+6. Keep the prompt concise but effective
+
+The prompt should help the model:
+- Carefully read all requirements and constraints in the instruction
+- Pay attention to formatting requirements (word count, sentence count, forbidden words, etc.)
+- Produce responses that precisely match all specified constraints
+- Avoid common mistakes like missing constraints or incorrect formatting
+
+Provide ONLY the complete new prompt text, with no additional commentary:
+
+NEW PROMPT:
+

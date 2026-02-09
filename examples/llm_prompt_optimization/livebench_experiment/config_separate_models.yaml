@@ -1,0 +1,109 @@
+# Configuration for LiveBench IF prompt evolution with SEPARATE models for evolution and evaluation
+# ========================================================================================
+# This configuration allows using different models for:
+# 1. Evolution: Model that generates improved prompt variants (can be cheaper/faster)
+# 2. Evaluation: Model that executes prompts on the dataset (should be high-quality)
+# ========================================================================================
+
+# General settings
+max_iterations: 100  # Can be overridden by command line
+checkpoint_interval: 10  # Save checkpoint every 10 iterations
+log_level: "INFO"
+diff_based_evolution: false  # Full rewrites for prompt evolution
+max_code_length: 10000
+language: "text"
+
+# ========================================================================================
+# LLM Configuration for EVOLUTION (generating improved prompts)
+# ========================================================================================
+# This model is used by OpenEvolve to generate new prompt variants.
+# You can use a cheaper/faster model here to save costs.
+# ========================================================================================
+llm:
+  api_base: "https://llm.api.cloud.yandex.net/v1"
+  models:
+    - name: "gpt://b1gemincl8p7b2uiv5nl/qwen3-235b-a22b-fp8/latest"
+      weight: 1.0
+  
+  temperature: 0.8  # Higher temperature for creative evolution
+  max_tokens: 4096
+  timeout: 60
+  retries: 3
+
+# ========================================================================================
+# LLM Configuration for EVALUATION (executing prompts on dataset)
+# ========================================================================================
+# This model is used by evaluator.py to actually execute prompts on the LiveBench IF dataset.
+# Use your best/high-quality model here for accurate evaluation.
+# ========================================================================================
+evaluation:
+  # Separate API configuration for evaluation model (optional)
+  # If not specified, will use same api_base as evolution model
+  api_base: null  # null = use llm.api_base, or specify different endpoint
+  
+  # Evaluation model configuration
+  model: "gpt://b1gemincl8p7b2uiv5nl/yandexgpt/rc"  # MODEL FOR EVALUATION
+  temperature: 0.1  # Low temperature for consistent evaluation
+  max_tokens: 4096
+  timeout: 120
+  retries: 3
+  
+  # Alternative: You can specify different models for different evaluation stages
+  # stage1_model: "gpt://b1gemincl8p7b2uiv5nl/yandexgpt-lite/latest"  # Fast model for Stage 1
+  # stage2_model: "gpt://b1gemincl8p7b2uiv5nl/yandexgpt/rc"           # Quality model for Stage 2
+
+# Prompt Configuration for evolution
+prompt:
+  template_dir: "templates"
+  num_top_programs: 5  # Show top 5 prompts for inspiration
+  num_diverse_programs: 3  # Include 3 diverse prompts
+  include_artifacts: true
+  
+  system_message: |
+    You are an expert at creating effective prompts for language models.
+    Your goal is to evolve prompts that maximize accuracy on instruction-following tasks.
+    
+    When creating new prompts:
+    1. Build on successful patterns from the examples
+    2. Be creative but maintain clarity
+    3. Consider different reasoning strategies (direct, step-by-step, few-shot)
+    4. Optimize for precise instruction following with format constraints
+
+# Database Configuration for MAP-Elites
+database:
+  population_size: 50  # Moderate population for balance
+  archive_size: 500
+  num_islands: 4  # Multiple islands for diversity
+  
+  feature_dimensions: ["prompt_length", "reasoning_strategy"]
+  feature_bins: 10
+  
+  elite_selection_ratio: 0.4  # 40% elites
+  exploration_ratio: 0.3  # 30% exploration
+  exploitation_ratio: 0.3  # 30% exploitation
+  
+  migration_interval: 20
+  migration_rate: 0.1
+
+# Evaluator Configuration
+evaluator:
+  timeout: 1800  # 30 minutes timeout for complex evaluations
+  max_retries: 3
+  parallel_evaluations: 4  # Parallel evaluation for speed
+  cascade_evaluation: true  # Use cascading to save API calls
+  cascade_thresholds: [0.6]  # Only 2 stages, must achieve 60% in stage 1 to proceed
+  
+  # Disable LLM feedback for LiveBench (using official eval scripts)
+  use_llm_feedback: false
+  llm_feedback_weight: 0.0
+
+# Evolution Trace Configuration - ENABLED for detailed tracking
+evolution_trace:
+  enabled: true  # Enable evolution trace logging
+  format: "jsonl"  # Use JSONL format for streaming writes
+  include_code: true  # Include full prompt code in traces
+  include_prompts: true  # Include prompts and LLM responses
+  output_path: "openevolve_output/evolution_trace.jsonl"  # Output path
+  buffer_size: 10  # Buffer 10 traces before writing
+  compress: false  # Don't compress for easier analysis
+

@@ -1,0 +1,7 @@
+{
+  "best_train_score": 0.8526476449704141,
+  "best_val_accuracy": 0.72,
+  "iteration": 60,
+  "prompt_snippet": "You are an expert at analyzing product reviews and determining star ratings for office products.\n\nBefore the review, you will see few-shot examples of similar reviews with their ratings and similarity...",
+  "timestamp": 1765361268.910303
+}

@@ -1,0 +1,198 @@
+max_iterations: 100
+checkpoint_interval: 10
+log_level: "INFO"
+diff_based_evolution: false
+max_code_length: 10000
+language: "text"
+
+llm:
+  api_base: "https://llm.api.cloud.yandex.net/v1"
+  models:
+    - name: "gpt://b1gemincl8p7b2uiv5nl/qwen3-235b-a22b-fp8/latest"
+      weight: 1.0
+  temperature: 0.8
+  max_tokens: 4096
+  timeout: 60
+  retries: 3
+
+prompt:
+  template_dir: "../../templates"
+  num_top_programs: 5
+  num_diverse_programs: 3
+  include_artifacts: true
+  system_message: |
+    You are an expert at creating effective prompts for sentiment classification.
+    Your goal is to evolve prompts that maximize accuracy for Home and Kitchen
+    product reviews (ratings 1-5).
+
+    ## Task Overview
+    The evaluator receives product reviews and must classify them into star
+    ratings (1-5). Your evolved prompts will be used by an LLM (gpt-oss-120b)
+    to perform this classification task.
+
+    ## How Evaluation Works
+    When your prompt is evaluated:
+    1. The evaluator receives a product review text (example below)
+    2. It replaces the {review} placeholder in your prompt with the actual review text
+    3. It sends the formatted prompt to the LLM
+    4. The LLM responds with a rating (1-5)
+    5. The evaluator compares this prediction to the true gold label
+
+    ### Example Input to Evaluator
+    Here's what the evaluator receives when testing your prompt:
+
+    **Review text example:**
+    "This coffee maker is amazing! Works perfectly, makes great coffee every
+    morning, and looks great in my kitchen. The automatic timer feature is
+    really convenient. I would definitely recommend this to anyone looking for
+    a reliable coffee maker."
+
+    **Gold label (true rating):** 5
+
+    The evaluator would format your prompt like this:
+    ```
+    [Your prompt text here]
+    Review: This coffee maker is amazing! Works perfectly, makes great coffee
+    every morning, and looks great in my kitchen. The automatic timer feature
+    is really convenient. I would definitely recommend this to anyone looking
+    for a reliable coffee maker.
+    Star Rating (respond with only the number 1, 2, 3, 4, or 5):
+    ```
+
+    The LLM should respond with just the number (e.g., "5").
+
+    ## Metrics Explained
+
+    Your prompts are evaluated using the following metrics:
+
+    ### Primary Metrics
+    - **R_global** (Global Accuracy): The overall percentage of correct
+      predictions across all test examples. Range: 0.0 to 1.0. Higher is better.
+      Example: R_global = 0.65 means 65% of predictions are correct.
+
+    - **R_worst** (Worst-User Accuracy): The 10th percentile of per-user
+      accuracy. This measures fairness - how well the prompt works for the
+      worst-performing users. Range: 0.0 to 1.0. Higher is better.
+      Example: R_worst = 0.40 means even the worst-performing users get
+      40% accuracy.
+
+    - **MAE** (Mean Absolute Error): The average absolute difference between
+      predicted and true ratings. Range: 0.0 to 4.0. Lower is better.
+      Example: MAE = 0.8 means predictions are off by 0.8 stars on average.
+      - MAE = 0.0: Perfect predictions
+      - MAE = 1.0: Off by 1 star on average
+      - MAE = 4.0: Maximum error (worst case)
+
+    ### Combined Score Formula
+    The **combined_score** is the primary metric used for evolution.
+    It uses a unified formula that balances accuracy, fairness, and precision:
+
+    ```
+    combined_score = 0.4 * R_global + 0.3 * R_worst + 0.3 * (1 - MAE/4)
+    ```
+
+    Where:
+    - `R_global`: Global accuracy on validation set (40% weight)
+    - `R_worst`: 10th percentile per-user accuracy on validation set (30% weight)
+    - `MAE`: Mean Absolute Error on validation set (30% weight)
+    - `MAE/4` normalizes MAE to 0-1 range (since max MAE = 4.0)
+    - `(1 - MAE/4)` inverts MAE so higher values are better
+
+    **Example calculation:**
+    - Validation: R_global = 0.70, R_worst = 0.50, MAE = 1.2
+    
+    base_score = 0.4 * 0.70 + 0.3 * 0.50 + 0.3 * (1 - 1.2/4)
+               = 0.28 + 0.15 + 0.3 * 0.70
+               = 0.28 + 0.15 + 0.21
+               = 0.64
+
+    **Note:** This unified formula ensures fair comparison with ensemble
+    experiments. It considers both overall accuracy (R_global) and fairness
+    (R_worst), while also penalizing large prediction errors (MAE).
+
+    ## Best Practices
+    1. Use clear, unambiguous instructions
+    2. Provide specific criteria for each rating level (1-5)
+    3. Avoid overfitting to specific review patterns
+    4. Focus on generalization: prompts should work well on both train and validation sets
+    5. Keep prompts concise but informative
+    6. Include examples of reasoning if helpful
+    7. Ensure the prompt explicitly requests only a number (1-5) as output
+
+    ## What Makes a Good Prompt
+    - **Clear rating criteria**: Specific descriptions for each star level
+    - **Balanced focus**: Considers both positive and negative signals
+    - **Robustness**: Works across different review styles and lengths
+    - **Precision**: Minimizes large errors (low MAE is important)
+    - **Generalization**: Similar performance on train and validation sets
+
+    ## MAP-Elites Feature Dimensions
+    The evolution uses MAP-Elites to maintain diversity across two dimensions:
+
+    1. **sentiment_vocabulary_richness** (0.0 - 1.0):
+       - Combined metric measuring both sentiment vocabulary and example richness
+       - Combines: sentiment vocabulary (60% weight) + example richness (40% weight)
+       - Higher = more sentiment words (love, hate, excellent, terrible, etc.) AND more examples
+       - Lower = fewer sentiment words and fewer examples
+       - **Tip**: Include sentiment words like "excellent", "terrible", "satisfied" and examples like "for example", "such as", quoted phrases
+
+    2. **domain_focus** (0.0 - 1.0):
+       - Measures domain specificity for Home & Kitchen products
+       - Higher = more domain-specific keywords (kitchen, appliance, quality, durable, etc.)
+       - Lower = generic sentiment analysis prompt
+       - **Trade-off**: Domain-specific prompts may work better but generalize less
+
+    The algorithm explores diverse prompts across this 2D space, keeping the best
+    prompt for each region. This helps avoid converging to a single local optimum.
+
+database:
+  population_size: 50
+  archive_size: 500
+  num_islands: 4
+  feature_dimensions: ["sentiment_vocabulary_richness", "domain_focus"]
+  feature_bins: 10
+  elite_selection_ratio: 0.4
+  exploration_ratio: 0.3
+  exploitation_ratio: 0.3
+  migration_interval: 20
+  migration_rate: 0.1
+
+evaluator:
+  timeout: 1800
+  max_retries: 3
+  parallel_evaluations: 4
+  cascade_evaluation: false
+
+generalization:
+  gap_threshold: 0.10
+  gap_penalty: 0.50
+
+evolution_trace:
+  enabled: true
+  format: "jsonl"
+  include_code: true
+  include_prompts: true
+  output_path: "openevolve_output/evolution_trace.jsonl"
+  buffer_size: 10
+  compress: false
+
+model:
+  name: "gpt-oss-120b"
+  api_base: "https://llm.api.cloud.yandex.net/v1"
+  temperature: 0.1
+  max_tokens: 64
+  timeout: 60
+  max_retries: 3
+
+dataset:
+  config_path: "dataset.yaml"
+  max_samples: null
+  max_samples_train: null
+  max_samples_val: null
+  max_samples_test: null
+  max_train_users: 10
+  max_val_users: 15  # Set to a number (e.g., 10) for fast validation runs
+
+prompt_path: "initial_prompt.txt"
+output_dir: "results"
+

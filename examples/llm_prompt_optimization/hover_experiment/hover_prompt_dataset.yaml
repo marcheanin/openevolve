@@ -1,0 +1,19 @@
+# HoVer (Fact Extraction and Claim Verification) dataset configuration
+dataset_name: "hover"  # Official HoVer dataset
+input_field: "claim"  # The claim to verify
+target_field: "label"  # 0=SUPPORTED, 1=NOT_SUPPORTED
+split: "train"  # Using train split (validation may not be available in newer datasets versions)
+
+# Supporting facts for multi-hop reasoning
+supporting_facts_field: "supporting_facts"  # Evidence references
+num_hops_field: "num_hops"  # Number of reasoning hops required
+
+# Evaluation parameters
+max_samples: 200  # Number of samples to evaluate during evolution
+full_eval_samples: 8917  # Full validation set size
+
+# Special processing flags
+is_hover: true  # Enable special processing for claim verification
+trust_remote_code: false  # Disabled - dataset scripts no longer supported in newer datasets versions
+streaming: false  # Use non-streaming mode for HoVer
+

@@ -1,0 +1,41 @@
+{
+  "embedding_model": "roberta_sentiment",
+  "classifier_model": "xgb",
+  "task": "classification",
+  "train": {
+    "accuracy": 1.0,
+    "mae": 0.0
+  },
+  "validation": {
+    "accuracy": 0.702928870292887,
+    "mae": 0.3472803347280335
+  },
+  "test": {
+    "accuracy": 0.6639004149377593,
+    "mae": 0.36929460580912865
+  },
+  "config": {
+    "dataset_name": "wilds_amazon",
+    "dataset_type": "wilds",
+    "input_field": "text",
+    "target_field": "label",
+    "category": "Office_Products",
+    "category_id": 14,
+    "data_root": "./data",
+    "train_ratio": 0.7,
+    "validation_ratio": 0.15,
+    "test_ratio": 0.15,
+    "split_seed": 42,
+    "user_disjoint": true,
+    "stratify_by_class": true,
+    "stage1_samples": 10,
+    "stage2_samples": 50,
+    "validation_samples": 100,
+    "validate_every_stage2": true,
+    "val_weight_in_score": 0.4,
+    "is_sentiment": true,
+    "num_classes": 5,
+    "trust_remote_code": false,
+    "streaming": false
+  }
+}

@@ -1,0 +1,6 @@
+matplotlib>=3.5.0
+jsonlines>=3.0.0
+
+# NOTE: For HoVer dataset, you need compatible versions:
+# pip install "datasets==2.14.0" "pyarrow<15.0"
+# This is because HoVer uses dataset scripts which are not supported in datasets 4.0+

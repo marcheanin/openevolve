@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-01-21T10:57:30.492098",
+  "experiments": [
+    {
+      "name": "Exp 1: Single Model Baseline",
+      "setup": "1 model (gpt-oss-120b), no evolution",
+      "split": "test",
+      "R_global": 0.5019157088122606,
+      "R_worst": 0.3076923076923077,
+      "mae": 0.7209450830140486,
+      "combined_score_old": 0.48382302569447505,
+      "num_users": 102,
+      "num_examples": 1566,
+      "mean_kappa": null,
+      "disagreement_rate": null,
+      "combined_score_unified": 0.5390030946065429
+    },
+    {
+      "name": "Exp 2: Single Model + Evolution",
+      "setup": "1 model (gpt-oss-120b), with OpenEvolve",
+      "split": "test",
+      "R_global": 0.5867158671586716,
+      "R_worst": 0.35736842105263156,
+      "mae": 0.5387453874538746,
+      "combined_score_old": 0.5709113437997849,
+      "num_users": 25,
+      "num_examples": 542,
+      "mean_kappa": null,
+      "disagreement_rate": null,
+      "combined_score_unified": 0.6014909691202175
+    },
+    {
+      "name": "Exp 3a: Ensemble Baseline",
+      "setup": "3 models (yandexgpt, gemma3-27b, gpt-oss-120b), majority vote, no evolution",
+      "split": "test",
+      "R_global": 0.6549815498154982,
+      "R_worst": 0.44009324009324013,
+      "mae": 0.35977859778597787,
+      "combined_score_old": 0.3387679233435691,
+      "num_users": 25,
+      "num_examples": 542,
+      "mean_kappa": 0.5114263696527289,
+      "disagreement_rate": 0.503690036900369,
+      "combined_score_unified": 0.7166681934301861
+    },
+    {
+      "name": "Exp 3b: Ensemble + Evolution",
+      "setup": "3 models (yandexgpt, gemma3-27b, gpt-oss-120b), majority vote, with OpenEvolve",
+      "split": "test",
+      "R_global": 0.6752767527675276,
+      "R_worst": 0.4708624708624709,
+      "mae": 0.34317343173431736,
+      "combined_score_old": 0.3831789366844718,
+      "num_users": 25,
+      "num_examples": 542,
+      "mean_kappa": 0.43239666676282873,
+      "disagreement_rate": 0.6236162361623616,
+      "combined_score_unified": 0.7232698113694424
+    }
+  ],
+  "summary": {
+    "total_experiments": 4,
+    "best_r_global": 0.6752767527675276,
+    "best_r_worst": 0.4708624708624709,
+    "best_mae": 0.34317343173431736,
+    "best_combined_unified": 0.7232698113694424
+  }
+}

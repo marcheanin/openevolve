@@ -1,0 +1,27 @@
+# HotpotQA dataset configuration
+dataset_name: "hotpot_qa"  # Using the full dataset
+dataset_config: "distractor"  # Using distractor setting with 10 paragraphs
+input_field: "question"  # The question to answer
+target_field: "answer"  # The correct answer
+split: "validation"  # Using validation split for evaluation (will be split into train/val/test)
+
+# Context handling
+context_field: "context"  # Contains the paragraphs
+supporting_facts_field: "supporting_facts"  # For explainability
+
+# Dataset splitting for proper evaluation
+# Датасет будет автоматически разделен на train/validation/test при загрузке
+train_ratio: 0.7      # 70% для эволюции
+validation_ratio: 0.15  # 15% для контроля переобучения (не используется пока)
+test_ratio: 0.15      # 15% для финальной оценки (не используется во время эволюции)
+split_seed: 42        # Seed для воспроизводимости разделения
+
+# Evaluation parameters
+# Примечание: max_samples игнорируется, используются адаптивные размеры
+max_samples: 200  # Deprecated: используется адаптивный размер выборки
+full_eval_samples: 5447  # Full validation set size (before splitting)
+
+# Special processing flags
+is_hotpotqa: true  # Enable special processing for multi-hop QA
+streaming: false  # Должно быть False для возможности разделения
+

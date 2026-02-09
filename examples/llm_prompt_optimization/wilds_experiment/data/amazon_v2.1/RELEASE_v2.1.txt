@@ -1,0 +1,10 @@
+Release notes for Amazon-WILDS
+
+## v2.1
+Apr 15, 2021: Added unlabeled sets.
+
+## v2.0
+Mar 1, 2021: Reduced the training set.
+
+## v1.0
+Dec 9, 2020: First release.

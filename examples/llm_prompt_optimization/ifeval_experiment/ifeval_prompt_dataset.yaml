@@ -1,0 +1,23 @@
+# IFEval (Instruction Following Evaluation) dataset configuration
+dataset_name: "google/IFEval"
+input_field: "prompt"  # The instruction to satisfy
+target_field: "instruction_id_list"  # Not directly used but kept for completeness
+split: "train"  # IFEval only provides a train split
+
+# Dataset splitting for proper evaluation
+# Датасет будет автоматически разделен на train/validation/test при загрузке
+train_ratio: 0.7      # 70% для эволюции
+validation_ratio: 0.15  # 15% для контроля переобучения (не используется пока)
+test_ratio: 0.15      # 15% для финальной оценки (не используется во время эволюции)
+split_seed: 42        # Seed для воспроизводимости разделения
+
+# Evaluation parameters
+# Примечание: max_samples игнорируется, используются адаптивные размеры
+max_samples: 200        # Deprecated: используется адаптивный размер выборки
+full_eval_samples: 541  # Full dataset size
+
+# Special processing flags
+is_ifeval: true
+trust_remote_code: false
+streaming: false  # Должно быть False для возможности разделения
+

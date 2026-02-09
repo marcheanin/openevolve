@@ -1,0 +1,16 @@
+model:
+  name: "gpt-oss-120b"
+  api_base: "https://llm.api.cloud.yandex.net/v1"
+  temperature: 0.1
+  max_tokens: 64
+  timeout: 60
+  max_retries: 3
+
+dataset:
+  config_path: "dataset.yaml"
+  split: "test"
+  max_samples: null
+
+prompt_path: "initial_prompt.txt"
+output_dir: "results"
+

@@ -1,0 +1,114 @@
+================================================================================
+FINAL EXPERIMENT REPORT: WILDS Amazon Sentiment Classification
+================================================================================
+
+Generated: 2026-01-21 10:57:30
+
+OVERVIEW
+--------------------------------------------------------------------------------
+
+This report summarizes results from three experimental setups:
+  1. Single model baseline (no evolution)
+  2. Single model with prompt evolution
+  3. Ensemble voting (baseline and evolved)
+
+================================================================================
+RESULTS SUMMARY
+================================================================================
+
+Experiment 1: Exp 1: Single Model Baseline
+--------------------------------------------------------------------------------
+Setup: 1 model (gpt-oss-120b), no evolution
+Split: test
+
+Metrics:
+  R_global (Global Accuracy):     50.19%
+  R_worst (10th percentile):      30.77%
+  MAE (Mean Absolute Error):       0.721
+  Combined Score (Unified):        0.539
+  Combined Score (Old):            0.484
+
+Dataset:
+  Users:                          102
+  Examples:                       1566
+
+Experiment 2: Exp 2: Single Model + Evolution
+--------------------------------------------------------------------------------
+Setup: 1 model (gpt-oss-120b), with OpenEvolve
+Split: test
+
+Metrics:
+  R_global (Global Accuracy):     58.67%
+  R_worst (10th percentile):      35.74%
+  MAE (Mean Absolute Error):       0.539
+  Combined Score (Unified):        0.601
+  Combined Score (Old):            0.571
+
+Dataset:
+  Users:                          25
+  Examples:                       542
+
+Experiment 3: Exp 3a: Ensemble Baseline
+--------------------------------------------------------------------------------
+Setup: 3 models (yandexgpt, gemma3-27b, gpt-oss-120b), majority vote, no evolution
+Split: test
+
+Metrics:
+  R_global (Global Accuracy):     65.50%
+  R_worst (10th percentile):      44.01%
+  MAE (Mean Absolute Error):       0.360
+  Combined Score (Unified):        0.717
+  Combined Score (Old):            0.339
+  Mean Kappa (κ):                 0.511
+  Disagreement Rate:              50.37%
+
+Dataset:
+  Users:                          25
+  Examples:                       542
+
+Experiment 4: Exp 3b: Ensemble + Evolution
+--------------------------------------------------------------------------------
+Setup: 3 models (yandexgpt, gemma3-27b, gpt-oss-120b), majority vote, with OpenEvolve
+Split: test
+
+Metrics:
+  R_global (Global Accuracy):     67.53%
+  R_worst (10th percentile):      47.09%
+  MAE (Mean Absolute Error):       0.343
+  Combined Score (Unified):        0.723
+  Combined Score (Old):            0.383
+  Mean Kappa (κ):                 0.432
+  Disagreement Rate:              62.36%
+
+Dataset:
+  Users:                          25
+  Examples:                       542
+
+================================================================================
+ANALYSIS
+================================================================================
+
+Single Model Evolution (Exp 2 vs Exp 1):
+  R_global improvement:            8.48% (50.19% → 58.67%)
+  R_worst improvement:             4.97% (30.77% → 35.74%)
+  MAE improvement:                 0.182 (0.721 → 0.539)
+
+Ensemble vs Single Model Baseline:
+  Ensemble baseline improvement:   15.31% (50.19% → 65.50%)
+  Ensemble evolved improvement:    17.34% (50.19% → 67.53%)
+
+Ensemble Evolution (Exp 3b vs Exp 3a):
+  R_global improvement:            2.03% (65.50% → 67.53%)
+
+================================================================================
+NOTES
+================================================================================
+
+- R_global: Overall accuracy across all test examples
+- R_worst: 10th percentile of per-user accuracy (worst-case performance)
+- MAE: Mean Absolute Error (lower is better, range 0-4)
+- Combined Score (Unified): Weighted metric using unified formula:
+  0.4*R_global + 0.3*R_worst + 0.3*(1-MAE/4) [+ 0.1*(1-D) for ensemble]
+- Combined Score (Old): Original formula (deprecated, kept for reference)
+- κ (kappa): Cohen's kappa for inter-annotator agreement (ensemble only)
+- Disagreement Rate: Fraction of samples where ensemble workers disagree

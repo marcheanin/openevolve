@@ -1,0 +1,47 @@
+# WILDS Amazon Reviews dataset configuration
+# Experiment 1: Office Products category
+dataset_name: "wilds_amazon"
+dataset_type: "wilds"
+input_field: "text"        # Review text
+target_field: "label"      # Star rating (0-4 -> 1-5)
+
+# Category filter - Office Products
+category: "Office_Products"
+category_id: 14  # ID в датасете
+
+# Data path (relative to this file)
+data_root: "./data"
+
+# Dataset splitting for proper evaluation
+# User-disjoint split: отзывы одного пользователя только в одной группе
+train_ratio: 0.7       # 70% пользователей для эволюции
+validation_ratio: 0.15 # 15% пользователей для валидации
+test_ratio: 0.15       # 15% пользователей для финального теста
+split_seed: 42         # Seed для воспроизводимости
+user_disjoint: true    # КРИТИЧНО: разные пользователи в разных сплитах
+
+# Stratification
+stratify_by_class: true  # Стратификация по классам (1-5 звёзд)
+
+# Cascade evaluation parameters
+# Stage 1: быстрая оценка на малой выборке
+stage1_samples: 10       # 10 случайных примеров на Stage 1
+# Stage 2: расширенная оценка при прохождении threshold
+stage2_samples: 50       # 50 примеров на Stage 2 (увеличено с 20)
+# Validation: оценка на валидационном сплите
+validation_samples: 100  # 100 примеров для валидации
+
+# Validation strategy
+validate_every_stage2: true  # Валидировать на каждом Stage 2
+val_weight_in_score: 0.4     # Вес val_accuracy в combined_score (40%)
+
+# Special processing flags
+is_sentiment: true       # Задача sentiment classification
+num_classes: 5           # 5 классов (1-5 звёзд)
+trust_remote_code: false
+streaming: false         # Должно быть False для возможности фильтрации
+
+# Office_Products statistics (из анализа датасета):
+# - Всего отзывов в train: 1,298
+# - Примерное распределение: 1⭐~1%, 2⭐~3%, 3⭐~9%, 4⭐~29%, 5⭐~58%
+

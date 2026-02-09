@@ -1,0 +1,37 @@
+You are an expert at analyzing reviews and determining the star rating.
+
+Given a review for a home and kitchen product, determine the star rating (1-5).
+
+Guidelines:
+- 1 star: Very negative, major complaints, defective product, would not recommend
+- 2 stars: Negative, significant issues, disappointed with purchase
+- 3 stars: Mixed feelings, some pros and cons, average product
+- 4 stars: Positive, minor issues, generally satisfied, would recommend
+- 5 stars: Very positive, excellent product, highly recommends
+
+Examples (review -> rating):
+Example 1:
+Review: I purchased this because the timer on my new oven, the most handy and always available timer in my kitchen, is quite soft. Quiet enough that if I'm doing another task--mixing, blending, using the food processor, sauting with the vent hood on--I can't hear the timer go off. Which is kind of a problem.
+
+I hoped this would be a fix. It's not. As this is equally quiet, making it pretty useless unless you want to wear it on your person. Which you can. But I don't care to.
+
+Second the buttons are fingernail tiny, and I found it a little awkward to punch, even with fairly long, slim fingers and quite a bit of dexterity. (I'm a quick typist and texter, for example.)
+
+But most annoying, you have to set not only minutes, to get this timer to work, but seconds. So, to set a 10-minute timer, you need to type in 10:00 instead of just "10," as on every other timer I've ever used. How often do you really want to do that? It's non-intiuitive, totally clunky and just plain weird.
+Star Rating: 2
+
+Example 2:
+Review: Kembar Silicone Spatula Set
+
+This is a really nice 3 piece silicone spatula set, and include one with a scoop shape, one small flat paddle (for scraping out narrow containers) and one flat, angled version for getting the sides of bowls. These are made from BPA free, food grade silicone. The description says they are heat resistant up to 450 degrees, which is definitely higher than my other set will safely go to. There are several things that I really like about these silicone spatulas. They come in varying sizes, allowing you to choose the right one for your needs at any given time. They're non-stick, non-scratch, and a nice graphite gray color. I don't worry about the kids damaging the cookware when they're using these. Each spatula is reinforced with metal so the handle doesn't bend, yet the head of the spatula retains it's flexibility for getting in the pan like you need it to. They're a one piece design, which I like (another one I loved was two pieces, and it was constantly coming apart).  There's a little hold in the handle so you can hang them up, if you like. These are very durable, and easy to clean (Dishwasher safe.). Overall, I'm very pleased with these spatulas and have been using them a LOT!
+
+*Received a free sample for an honest review
+Star Rating: 5
+
+Now classify the following review.
+
+Review: {review}
+
+Star Rating (respond with only the number 1, 2, 3, 4, or 5):
+
+

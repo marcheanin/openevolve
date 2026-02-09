@@ -190,28 +190,41 @@ class Evaluator:
                     llm_result = await self._llm_evaluate(program_code, program_id=program_id)
                     llm_eval_result = self._process_evaluation_result(llm_result)
 
+<<<<<<< Updated upstream
                     # Combine metrics
                     llm_scores = []
                     for name, value in llm_eval_result.metrics.items():
                         weighted_value = value * self.config.llm_feedback_weight
                         eval_result.metrics[f"llm_{name}"] = weighted_value
                         llm_scores.append(value)  # Use unweighted value for average
+=======
+                    # Combine metrics - use processed result which is always EvaluationResult
+                    if llm_eval_result and llm_eval_result.metrics:
+                        llm_scores = []
+                        for name, value in llm_eval_result.metrics.items():
+                            weighted_value = value * self.config.llm_feedback_weight
+                            eval_result.metrics[f"llm_{name}"] = weighted_value
+                            llm_scores.append(value)  # Use unweighted value for average
+>>>>>>> Stashed changes
 
-                    # Add average of LLM metrics
-                    if llm_scores:
-                        llm_average = sum(llm_scores) / len(llm_scores)
-                        eval_result.metrics["llm_average"] = (
-                            llm_average * self.config.llm_feedback_weight
-                        )
-
-                        # Recalculate combined_score if it exists
-                        if "combined_score" in eval_result.metrics:
-                            # Original combined_score is just accuracy
-                            accuracy = eval_result.metrics["combined_score"]
-                            # Combine with LLM average (70% accuracy, 30% LLM quality)
-                            eval_result.metrics["combined_score"] = (
-                                accuracy * 0.7 + llm_average * 0.3
+                        # Add average of LLM metrics
+                        if llm_scores:
+                            llm_average = sum(llm_scores) / len(llm_scores)
+                            eval_result.metrics["llm_average"] = (
+                                llm_average * self.config.llm_feedback_weight
                             )
+
+                            # Recalculate combined_score if it exists
+                            if "combined_score" in eval_result.metrics:
+                                # Original combined_score is just accuracy
+                                accuracy = eval_result.metrics["combined_score"]
+                                # Combine with LLM average (70% accuracy, 30% LLM quality)
+                                eval_result.metrics["combined_score"] = (
+                                    accuracy * 0.7 + llm_average * 0.3
+                                )
+                    else:
+                        # LLM evaluation failed or returned empty result - skip LLM feedback
+                        logger.debug("LLM evaluation returned empty result, skipping LLM feedback")
 
                 # Store artifacts if enabled and present
                 if (

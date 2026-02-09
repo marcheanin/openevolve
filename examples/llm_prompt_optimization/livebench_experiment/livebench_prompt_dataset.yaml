@@ -1,0 +1,28 @@
+# LiveBench Instruction Following dataset configuration
+dataset_name: "livebench/instruction_following"
+input_field: "turns"  # The instruction turns
+target_field: "instruction_id_list"  # List of instruction IDs to check
+split: "test"  # LiveBench uses test split
+
+# Optional: Filter by LiveBench release date
+# Set to null to use all available data
+# livebench_release: "2024-11-25"  # Use questions up to this release
+livebench_release: null  # Use all available questions
+
+# Dataset splitting for proper evaluation
+# Dataset will be automatically split into train/validation/test
+train_ratio: 0.7      # 70% for evolution
+validation_ratio: 0.15  # 15% for monitoring overfitting
+test_ratio: 0.15      # 15% for final evaluation (not used during evolution)
+split_seed: 42        # Seed for reproducible splitting
+
+# Evaluation parameters
+# Note: max_samples is ignored, adaptive sample sizes are used
+max_samples: 200        # Deprecated: using adaptive sample sizes
+full_eval_samples: 500  # Approximate full dataset size
+
+# Special processing flags
+is_livebench: true
+trust_remote_code: false
+streaming: false  # Must be False for splitting capability
+
