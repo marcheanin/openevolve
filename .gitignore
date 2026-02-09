@@ -56,3 +56,6 @@ htmlcov/
 # For SR
 secrets.yaml
 problems
+*.pkl
+*.pkl
+*.db
