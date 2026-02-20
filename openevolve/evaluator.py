@@ -190,14 +190,6 @@ class Evaluator:
                     llm_result = await self._llm_evaluate(program_code, program_id=program_id)
                     llm_eval_result = self._process_evaluation_result(llm_result)
 
-<<<<<<< Updated upstream
-                    # Combine metrics
-                    llm_scores = []
-                    for name, value in llm_eval_result.metrics.items():
-                        weighted_value = value * self.config.llm_feedback_weight
-                        eval_result.metrics[f"llm_{name}"] = weighted_value
-                        llm_scores.append(value)  # Use unweighted value for average
-=======
                     # Combine metrics - use processed result which is always EvaluationResult
                     if llm_eval_result and llm_eval_result.metrics:
                         llm_scores = []
@@ -205,7 +197,6 @@ class Evaluator:
                             weighted_value = value * self.config.llm_feedback_weight
                             eval_result.metrics[f"llm_{name}"] = weighted_value
                             llm_scores.append(value)  # Use unweighted value for average
->>>>>>> Stashed changes
 
                         # Add average of LLM metrics
                         if llm_scores:

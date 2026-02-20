@@ -1,0 +1,25 @@
+# WILDS Amazon Reviews dataset configuration (Home and Kitchen category)
+dataset_name: "wilds_amazon"
+dataset_type: "wilds"
+input_field: "text"
+target_field: "label"
+
+# Category filter - Home_and_Kitchen
+category: "Home_and_Kitchen"
+category_id: 24
+
+# Data path (relative to wilds_experiment evaluator dir)
+data_root: "./data"
+
+# Dataset splitting
+train_ratio: 0.7
+validation_ratio: 0.15
+test_ratio: 0.15
+split_seed: 42
+user_disjoint: true
+
+# Stratification
+stratify_by_class: true
+
+# Filter: minimum reviews per user (applied within each split)
+min_user_reviews: 10

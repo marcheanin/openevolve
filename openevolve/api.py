@@ -220,7 +220,7 @@ def _prepare_program(
         temp_dir = tempfile.gettempdir()
 
     program_file = os.path.join(temp_dir, f"program_{uuid.uuid4().hex[:8]}.py")
-    with open(program_file, "w") as f:
+    with open(program_file, "w", encoding="utf-8") as f:
         f.write(code)
     temp_files.append(program_file)
 
@@ -267,7 +267,7 @@ def evaluate(program_path):
         temp_dir = tempfile.gettempdir()
 
     eval_file = os.path.join(temp_dir, f"evaluator_{uuid.uuid4().hex[:8]}.py")
-    with open(eval_file, "w") as f:
+    with open(eval_file, "w", encoding="utf-8") as f:
         f.write(evaluator_code)
     temp_files.append(eval_file)
 

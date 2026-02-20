@@ -12,7 +12,7 @@ from tqdm import tqdm
 from datasets import load_dataset
 
 # Read config.yaml to get model settings
-with open(os.path.join(os.path.dirname(__file__), "config.yaml"), "r") as f:
+with open(os.path.join(os.path.dirname(__file__), "config.yaml"), "r", encoding="utf-8", errors="replace") as f:
     config = yaml.safe_load(f)
 
 # Get model settings from config
@@ -135,16 +135,22 @@ def calculate_prompt_features(prompt):
 
 def load_prompt_config(prompt_path):
     """Load the prompt from text file and dataset config from matching _dataset.yaml file."""
-    # Load prompt from text file
-    with open(prompt_path, "r") as f:
-        prompt = f.read().strip()
+    try:
+        # Load prompt from text file
+        with open(prompt_path, "r", encoding="utf-8", errors="replace") as f:
+            prompt = f.read().strip()
+    except (UnicodeDecodeError, FileNotFoundError) as e:
+        raise RuntimeError(f"Failed to load prompt file '{prompt_path}': {str(e)}") from e
 
     # Load the configuration (already determined from environment variable)
     if not os.path.exists(DATASET_CONFIG_PATH):
         raise FileNotFoundError(f"Dataset configuration not found: {DATASET_CONFIG_PATH}")
 
-    with open(DATASET_CONFIG_PATH, "r") as f:
-        config = yaml.safe_load(f)
+    try:
+        with open(DATASET_CONFIG_PATH, "r", encoding="utf-8", errors="replace") as f:
+            config = yaml.safe_load(f)
+    except (UnicodeDecodeError, yaml.YAMLError) as e:
+        raise RuntimeError(f"Failed to load dataset config '{DATASET_CONFIG_PATH}': {str(e)}") from e
 
     return config, prompt
 
@@ -180,7 +186,7 @@ def load_hf_dataset(config):
             dataset = load_dataset(
                 dataset_name, split=split, trust_remote_code=trust_remote_code, streaming=streaming
             )
-    except:
+    except Exception:
         # Fallback to train split if test is not available
         print(f"Split '{split}' not found, falling back to 'train'")
         if dataset_config:
@@ -220,6 +226,14 @@ def evaluate_prompt(prompt, dataset, config, num_samples):
     is_hotpotqa = config.get("is_hotpotqa", False)
     is_ifeval = config.get("is_ifeval", False)
     is_hover = config.get("is_hover", False)
+    
+    # Info for IFEval
+    if is_ifeval:
+        print("\n" + "="*80)
+        print("Using proper IFEval constraint-based evaluation")
+        print("Checking: sentence count, word count, forbidden words/chars, format requirements")
+        print("See ifeval_proper_evaluation.py for details")
+        print("="*80 + "\n")
 
     # Sample from dataset - handle both streaming and non-streaming
     if hasattr(dataset, "take"):
@@ -364,14 +378,44 @@ def evaluate_prompt(prompt, dataset, config, num_samples):
                 continue
 
             elif is_ifeval:
-                # For IFEval, we need more complex evaluation
-                # For now, do basic keyword matching
-                # Note: Full IFEval requires checking multiple constraints
-                output_lower = output_text.lower()
-
-                # Simple heuristic: check if response seems to follow instruction format
-                if len(output_text.strip()) > 10:  # Non-trivial response
-                    correct += 1  # Simplified - real IFEval needs constraint checking
+                # ОБЯЗАТЕЛЬНО использовать только официальный скрипт Google
+                # Если недоступен - выбрасываем ошибку и завершаем
+                import os
+                # Модуль должен быть в той же директории или в PYTHONPATH
+                from ifeval_official_evaluation import evaluate_ifeval_official_only, initialize_official_evaluation
+                
+                # Инициализация при первом использовании (выбросит ошибку если недоступен)
+                if not hasattr(evaluate_ifeval_official_only, '_initialized'):
+                    eval_path = os.environ.get("IFEVAL_EVAL_PATH")
+                    try:
+                        initialize_official_evaluation(eval_path)
+                        evaluate_ifeval_official_only._initialized = True
+                    except RuntimeError as e:
+                        print(str(e))
+                        raise RuntimeError(
+                            "Официальный скрипт оценки IFEval от Google недоступен. "
+                            "Эволюция не может продолжаться. Установите официальный скрипт или используйте другой датасет."
+                        )
+                
+                # Получаем instruction_id_list и kwargs из датасета
+                instruction_id_list = example.get("instruction_id_list", [])
+                kwargs = example.get("kwargs", [])
+                
+                if not instruction_id_list:
+                    raise RuntimeError(
+                        f"instruction_id_list отсутствует в примере датасета. "
+                        f"Невозможно провести официальную оценку. "
+                        f"Пример: {example.keys()}"
+                    )
+                
+                # Выполняем оценку через официальный скрипт
+                eval_path = os.environ.get("IFEVAL_EVAL_PATH")
+                passed, eval_details = evaluate_ifeval_official_only(
+                    output_text, input_text, instruction_id_list, kwargs, eval_path
+                )
+                
+                if passed:
+                    correct += 1
 
                 total += 1
                 continue
@@ -501,17 +545,18 @@ def evaluate_stage1(prompt_path):
         }
 
     except Exception as e:
-        print(f"Stage 1 evaluation failed: {str(e)}")
-        traceback.print_exc()
+        error_msg = str(e)
+        # Краткое сообщение об ошибке без полного traceback
+        print(f"Stage 1 evaluation failed: {error_msg}")
         print("-" * 80)
 
         # Always return feature dimensions, even on failure
         try:
             # Try to calculate features from the failed prompt
-            with open(prompt_path, "r") as f:
+            with open(prompt_path, "r", encoding="utf-8", errors="replace") as f:
                 failed_prompt = f.read().strip()
             prompt_length, reasoning_sophistication = calculate_prompt_features(failed_prompt)
-        except:
+        except Exception:
             # Fallback values if prompt can't be read
             prompt_length, reasoning_sophistication = 0, 0.0
 
@@ -571,17 +616,18 @@ def evaluate_stage2(prompt_path):
         }
 
     except Exception as e:
-        print(f"Stage 2 evaluation failed: {str(e)}")
-        traceback.print_exc()
+        error_msg = str(e)
+        # Краткое сообщение об ошибке без полного traceback
+        print(f"Stage 2 evaluation failed: {error_msg}")
         print("-" * 80)
 
         # Always return feature dimensions, even on failure
         try:
             # Try to calculate features from the failed prompt
-            with open(prompt_path, "r") as f:
+            with open(prompt_path, "r", encoding="utf-8", errors="replace") as f:
                 failed_prompt = f.read().strip()
             prompt_length, reasoning_sophistication = calculate_prompt_features(failed_prompt)
-        except:
+        except Exception:
             # Fallback values if prompt can't be read
             prompt_length, reasoning_sophistication = 0, 0.0
 

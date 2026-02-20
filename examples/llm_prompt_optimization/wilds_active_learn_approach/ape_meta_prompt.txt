@@ -1,0 +1,174 @@
+You are an expert at designing prompts for LLM-based sentiment classification.
+
+Here are 25 representative examples of Amazon Home & Kitchen product reviews with gold labels (1-5 stars):
+
+Example 1:
+Review: Fit perfect into my CHV1210.
+Gold label: 5
+
+Example 2:
+Review: Didn't work. Had to send it back.
+Gold label: 3
+
+Example 3:
+Review: Our water comes from a well, so we do not have the issues associated with city tap water (chlorine taste, etc.). Before reaching our sinks, the water passes through two paper filter systems and an ultra violet light system. Still, the taste of the water varies by season (assuming due to run off) and at times contains sediment that makes the water cloudy or off color. The water from the kitchen sink where the Brita Filter is installed almost always runs clear now and the taste is pretty consisten...
+Gold label: 4
+
+Example 4:
+Review: Bought this on the recommendation of a friend who has been a world traveler for business and swore by it. He even keeps a second one in his car for when his wife is driving. Did not really work for me. Using an airline pillow did just as well and this prevents you from using noise cancelling headphones. Will try in car for long trips but I doubt iy will work any better.
+Gold label: 3
+
+Example 5:
+Review: This thin, rough towels are, as it states in the title, solely for decorative use. They are sorta cute, though pretty gaudy, but aren't at all absorbent, the weave is so wide you can see each thread (and see through the towel itself) and if you try to wash them, they turn into a wrinkled, shrunken, wadded ball of fabric. So, basically, they're useless.
+
+I don't actually ascribe to "decorative" towels, though I do like a holiday theme. I'll stick to my can-acutally-be-used printed dishtowels from...
+Gold label: 2
+
+Example 6:
+Review: The set I received didn't have a battery! After going through all the trouble to get and install a battery they worked. They nice, cute and all that, but you're paying extra for the novelty of the product.
+Gold label: 2
+
+Example 7:
+Review: Just arrived today and I'm so happy with them.  The silicone is NOT hard enough to scratch my mid price range non stick cookware.  All edges are smooth and soft yet the thickness of the silicone provides nice support and stability.  The Handles are very comfortable in your hand.  The three different sizes are so multi-task.  They look sturdy and extremely well made.  I'm expect years of service.  If there's any disappointment I'll come back and let you know.  I think this was an extremely wise p...
+Gold label: 5
+
+Example 8:
+Review: This is a great table cloth. It emphasizes an attractive color, is well made, and holds up to many washes. It is simply a nice table cloth that I would suggest to anyone who wishes to entertain on that special holiday occasion. It is well worth the price that you will be asked to pay for this great item. Get it and entertain better than ever!
+Gold label: 5
+
+Example 9:
+Review: This gets and A for design - it's just the right level of decoration for the upcoming holiday season without being over the top. Unfortunately, the quality is on the low side. This can be washed which is good but plan on wrinkles and crinkles. The fabric feels like low quality sheet fabric - a bit rough and not very refined. Casual cloth at best.
+Gold label: 3
+
+Example 10:
+Review: It's not a good vacuum.  It's hard to pick up dirt and then it will spit it out so you have to go over and over the same area.  I wouldn't buy it again.
+Gold label: 1
+
+Example 11:
+Review: UPDATE
+==================================
+We purchased this Procter-Silex toaster in 2013 and it lasted 3 years.  We were okay with that.
+
+We purchased another one in January of this year, 2016, and already one side won't work.  Less than 2 months is not acceptable.  The new models appear to be junk.
+
+==================================
+
+We've been using various toaster ovens for over a decade now, basically because we'd given up hope in finding a decent toaster.  Not that toaster ovens were a gr...
+Gold label: 1
+
+Example 12:
+Review: these are really nice IF you only use them for bigger items, such as a large roaster pan or anything with large handles.
+they are too think and have very little dexterity in order to use it for smaller items, cookie sheets or anything without handles for anything that has a small lip to pick it up.
+its just too big, thick and bulky to use on such items.
+Gold label: 3
+
+Example 13:
+Review: Arrived broken. :(
+Gold label: 1
+
+Example 14:
+Review: The cushions are okay, but the size was waaaay off for my rocker. I'm still using it though because it is better than nothing.
+Gold label: 3
+
+Example 15:
+Review: There are simply no pre-cut slots for the filter. It's a pain to cut them yourself and get them to gave a nice fit. Beware!
+Gold label: 2
+
+Example 16:
+Review: I'd rate this as pretty good although it doesn't feel quite as heavy duty as the ones we've been using for the past few years...on the positive side, it's a lot lighter and easier to move around. There is a beveled type edge so it remains flat and the pattern is nice enough to leave this in a kitchen or other visible area. Overall I'd rate this as above average although only time will tell how durable it is. Not quite as cushioned but still provides ample comfort.
+Gold label: 4
+
+Example 17:
+Review: Doesn't seem to have any affect. Save your money.
+Gold label: 1
+
+Example 18:
+Review: Very poor quality. Cheap fabric,not as pictured and the color was off. Returned the next day
+Gold label: 1
+
+Example 19:
+Review: The shower rod in my main bathroom is adjustable, so it has a bit of a bump where the two pieces.  My old shower hooks had a terrible time getting past this bump.  It was a hassle to close the curtain on account of this.
+
+Not the case with these roller hooks.  They breeze right past the bump as if it does not exist.  If there was ever a need for a speedy opening or closing of the shower curtain, the addition of these hooks would likely result in taking first place in a speedy opening contest.
+
+I...
+Gold label: 5
+
+Example 20:
+Review: These chairs are a safety hazard. They tilt over very easily. I purchased two and returned them. Poor design.
+Gold label: 1
+
+Example 21:
+Review: Although I have found the tendency of my shower curtain to cling to the liner, I had not thought of a solution for this problem until I can across these Moen shower rings.  They are highly effective keeping the two separate yet still tidy.  I love Moen products.  These are definitely up to their standards being well made and attractive.  They are unobtrusive and look great with my shower curtain.  Thanks Moen!
+Gold label: 4
+
+Example 22:
+Review: Really like the Mr. Coffee k cup. It is really easy to use. Like the 3 cup size settings. My husband is the coffee drinker, but I like the other uses....tea, hot chocolate, etc. It doesn't take up too much counterspace. Just started using it on Christmas day, but so far, so good.
+Gold label: 5
+
+Example 23:
+Review: This is what I have discovered after using them only once:
+PROS:
+1.  Adequate Silcone-covered tongs that offers a good size grip on food. I originally ordered them for use in my non-stick pans. They are great for that purpose!
+2.  They are easy to use, and even have a pull tab on the top that draws the tongs together and keeps them together for drawer or hanging up storage.
+3.  They are perfect size for my use
+4.  The price was good.
+5.  They arrived within reasonable time, in fact, even ahead o...
+Gold label: 4
+
+Example 24:
+Review: Very low visibility, great for the price.  Inadequate for heavy large plates, note there is a taller one available.
+Gold label: 5
+
+Example 25:
+Review: I haven't always been happy with DII products, but their Summer & Picnic Tablecloths go a long way to changing my opinion. These are 100% cotton that feels like thick linen. The stitching is tight and uniform and hems run square with the pattern. Id prefer it if they were not washable in cold water only. Items that come into contact with food need hot water to kill germs is one thing I remember from health classes. These can get wrinkled if not pulled quickly from the dryer, but not horribly bad...
+Gold label: 4
+
+
+Write a detailed System Prompt that teaches another LLM to classify such reviews into 1-5 stars.
+
+IMPORTANT: The prompt MUST use the following XML structure with three sections:
+
+<System>
+    <Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+    
+    <BaseGuidelines>
+        (Static rules that should NOT change during evolution:
+         - Star rating scale: 1-5
+         - Output format: ONLY a number (1, 2, 3, 4, or 5), no explanation
+         - Task: classify sentiment based on review text)
+    </BaseGuidelines>
+
+    <DynamicRules>
+        (Rules that WILL be evolved during active learning:
+         - Criteria for each star level (1=very negative, 5=very positive)
+         - Edge case handling: sarcasm, mixed sentiment, nuanced reviews
+         - Specific patterns and examples)
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+    (Include 5-8 representative examples from the list above, formatted as:
+     Example 1:
+     Review: [text]
+     Rating: [label]
+     
+     Example 2:
+     ...)
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+    
+    Rating:
+</Task>
+
+The prompt MUST:
+- Use the exact XML structure above with <System>, <BaseGuidelines>, <DynamicRules>, <FewShotExamples>, and <Task> sections
+- Put static, unchanging rules in <BaseGuidelines>
+- Put evolvable rules and criteria in <DynamicRules>
+- Include 5-8 few-shot examples in <FewShotExamples>
+- Use {review} as the placeholder in <Task>
+- Request ONLY a number (1, 2, 3, 4, or 5) as output—no explanation
+
+Generate prompt this structure. briefly explain its strengths.

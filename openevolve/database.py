@@ -530,7 +530,7 @@ class ProgramDatabase:
                 old_score = self.programs[old_id].metrics["combined_score"]
                 new_score = self.programs[self.best_program_id].metrics["combined_score"]
                 logger.info(
-                    f"Score change: {old_score:.4f} → {new_score:.4f} ({new_score-old_score:+.4f})"
+                    f"Score change: {old_score:.4f} -> {new_score:.4f} ({new_score-old_score:+.4f})"
                 )
 
         return sorted_programs[0] if sorted_programs else None
@@ -828,8 +828,8 @@ class ProgramDatabase:
             program_dict["prompts"] = prompts
         program_path = os.path.join(programs_dir, f"{program.id}.json")
 
-        with open(program_path, "w") as f:
-            json.dump(program_dict, f)
+        with open(program_path, "w", encoding="utf-8") as f:
+            json.dump(program_dict, f, ensure_ascii=False)
 
     def _calculate_feature_coords(self, program: Program) -> List[int]:
         """
@@ -885,13 +885,20 @@ class ProgramDatabase:
                     bin_idx = max(0, min(num_bins - 1, bin_idx))
                 coords.append(bin_idx)
             else:
-                # Feature not found - this is an error
-                raise ValueError(
-                    f"Feature dimension '{dim}' specified in config but not found in program metrics. "
-                    f"Available metrics: {list(program.metrics.keys())}. "
-                    f"Built-in features: 'complexity', 'diversity', 'score'. "
-                    f"Either remove '{dim}' from feature_dimensions or ensure your evaluator returns it."
-                )
+                # Feature not found - if evaluation failed (timeout/error), use bin 0 so program can still be added
+                if program.metrics.get("timeout") or program.metrics.get("error") is not None:
+                    logger.warning(
+                        "Feature dimension '%s' missing (evaluation timeout or error). Using bin 0.",
+                        dim,
+                    )
+                    coords.append(0)
+                else:
+                    raise ValueError(
+                        f"Feature dimension '{dim}' specified in config but not found in program metrics. "
+                        f"Available metrics: {list(program.metrics.keys())}. "
+                        f"Built-in features: 'complexity', 'diversity', 'score'. "
+                        f"Either remove '{dim}' from feature_dimensions or ensure your evaluator returns it."
+                    )
         # Only log coordinates at debug level for troubleshooting
         logger.debug(
             "MAP-Elites coords: %s",
@@ -1210,7 +1217,7 @@ class ProgramDatabase:
                 new_score = program.metrics["combined_score"]
                 score_diff = new_score - old_score
                 logger.info(
-                    f"New best program {program.id} replaces {old_id} (combined_score: {old_score:.4f} → {new_score:.4f}, +{score_diff:.4f})"
+                    f"New best program {program.id} replaces {old_id} (combined_score: {old_score:.4f} -> {new_score:.4f}, +{score_diff:.4f})"
                 )
             else:
                 logger.info(f"New best program {program.id} replaces {old_id}")
@@ -1260,7 +1267,7 @@ class ProgramDatabase:
                 score_diff = new_score - old_score
                 logger.debug(
                     f"Island {island_idx}: New best program {program.id} replaces {old_id} "
-                    f"(combined_score: {old_score:.4f} → {new_score:.4f}, +{score_diff:.4f})"
+                    f"(combined_score: {old_score:.4f} -> {new_score:.4f}, +{score_diff:.4f})"
                 )
             else:
                 logger.debug(

@@ -650,7 +650,7 @@ class ProcessParallelController:
                         ):
                             avg_score = safe_numeric_average(child_program.metrics)
                             logger.warning(
-                                f"⚠️  No 'combined_score' metric found in evaluation results. "
+                                f"WARNING: No 'combined_score' metric found in evaluation results. "
                                 f"Using average of all numeric metrics ({avg_score:.4f}) for evolution guidance. "
                                 f"For better evolution results, please modify your evaluator to return a 'combined_score' "
                                 f"metric that properly weights different aspects of program performance."
@@ -660,7 +660,7 @@ class ProcessParallelController:
                     # Check for new best
                     if self.database.best_program_id == child_program.id:
                         logger.info(
-                            f"🌟 New best solution found at iteration {completed_iteration}: "
+                            f"New best solution found at iteration {completed_iteration}: "
                             f"{child_program.id}"
                         )
 
@@ -785,11 +785,11 @@ class ProcessParallelController:
 
         # Log completion reason
         if self.early_stopping_triggered:
-            logger.info("✅ Evolution completed - Early stopping triggered due to convergence")
+            logger.info("Evolution completed - Early stopping triggered due to convergence")
         elif self.shutdown_event.is_set():
-            logger.info("✅ Evolution completed - Shutdown requested")
+            logger.info("Evolution completed - Shutdown requested")
         else:
-            logger.info("✅ Evolution completed - Maximum iterations reached")
+            logger.info("Evolution completed - Maximum iterations reached")
 
         return self.database.get_best_program()
 

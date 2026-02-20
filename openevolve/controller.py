@@ -7,6 +7,7 @@ import logging
 import os
 import shutil
 import signal
+import sys
 import time
 import uuid
 from pathlib import Path
@@ -205,8 +206,9 @@ class OpenEvolve:
         )
         root_logger.addHandler(file_handler)
 
-        # Add console handler
-        console_handler = logging.StreamHandler()
+        # Add console handler with UTF-8 encoding support for Windows
+        import io
+        console_handler = logging.StreamHandler(io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace'))
         console_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
         root_logger.addHandler(console_handler)
 
@@ -314,7 +316,7 @@ class OpenEvolve:
                 if numeric_metrics:
                     avg_score = sum(numeric_metrics) / len(numeric_metrics)
                     logger.warning(
-                        f"⚠️  No 'combined_score' metric found in evaluation results. "
+                        f"WARNING: No 'combined_score' metric found in evaluation results. "
                         f"Using average of all numeric metrics ({avg_score:.4f}) for evolution guidance. "
                         f"For better evolution results, please modify your evaluator to return a 'combined_score' "
                         f"metric that properly weights different aspects of program performance."
@@ -465,12 +467,12 @@ class OpenEvolve:
         if best_program:
             # Save the best program at this checkpoint
             best_program_path = os.path.join(checkpoint_path, f"best_program{self.file_extension}")
-            with open(best_program_path, "w") as f:
+            with open(best_program_path, "w", encoding="utf-8") as f:
                 f.write(best_program.code)
 
             # Save metrics
             best_program_info_path = os.path.join(checkpoint_path, "best_program_info.json")
-            with open(best_program_info_path, "w") as f:
+            with open(best_program_info_path, "w", encoding="utf-8") as f:
                 import json
 
                 json.dump(
@@ -557,12 +559,12 @@ class OpenEvolve:
         filename = f"best_program{self.file_extension}"
         code_path = os.path.join(best_dir, filename)
 
-        with open(code_path, "w") as f:
+        with open(code_path, "w", encoding="utf-8") as f:
             f.write(program.code)
 
         # Save complete program info including metrics
         info_path = os.path.join(best_dir, "best_program_info.json")
-        with open(info_path, "w") as f:
+        with open(info_path, "w", encoding="utf-8") as f:
             import json
 
             json.dump(

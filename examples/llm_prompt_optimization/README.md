@@ -38,6 +38,7 @@ OpenEvolve automatically:
 - **Metric**: Binary success on instruction adherence
 - **Results**: 95.01% → 97.41% (+2.40%)
 - **Config**: `ifeval_prompt_dataset.yaml`
+- ⚠️ **CRITICAL WARNING**: Results are **artificially inflated** due to simplified evaluation (length check only). Proper evaluation would likely show 60-80% accuracy. See `ifeval_experiment/IFEVAL_CRITICAL_ANALYSIS.md` for details.
 
 #### HoVer (Claim Verification)
 - **Task**: Verify claims as SUPPORTED or NOT_SUPPORTED

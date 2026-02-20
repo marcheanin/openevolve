@@ -34,7 +34,7 @@ def load_prompt(dataset_name, prompt_type="baseline"):
     if not os.path.exists(prompt_path):
         raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
 
-    with open(prompt_path, "r") as f:
+    with open(prompt_path, "r", encoding="utf-8", errors="replace") as f:
         return f.read().strip()
 
 
@@ -42,13 +42,23 @@ def load_dataset_config(dataset_name):
     """Load dataset configuration."""
     config_path = f"{dataset_name}_prompt_dataset.yaml"
 
-    with open(config_path, "r") as f:
+    with open(config_path, "r", encoding="utf-8", errors="replace") as f:
         return yaml.safe_load(f)
 
 
 def evaluate_ifeval(client, prompt_template, num_samples, model):
-    """Evaluate IFEval dataset."""
+    """Evaluate IFEval dataset with proper constraint checking.
+    
+    Uses ifeval_proper_evaluation.py to check instruction constraints like:
+    - Exact sentence/word count requirements
+    - Forbidden words/characters
+    - Required words/phrases
+    - Format requirements (lists, commas, etc.)
+    
+    Falls back to simplified length check if proper evaluation module is unavailable.
+    """
     print("\nLoading IFEval dataset...")
+    print("Using proper constraint-based evaluation (ifeval_proper_evaluation.py)")
 
     # Try test split first, then train
     try:
@@ -79,6 +89,7 @@ def evaluate_ifeval(client, prompt_template, num_samples, model):
         if num_samples is not None and i >= samples_to_process:
             break
         instruction = example["prompt"]
+        instruction_id_list = example.get("instruction_id_list", [])  # For official evaluation
 
         try:
             formatted_prompt = prompt_template.format(instruction=instruction)
@@ -109,8 +120,44 @@ def evaluate_ifeval(client, prompt_template, num_samples, model):
         if not output_text or not output_text.strip():
             empty_responses += 1
         else:
-            # Simple evaluation: response has reasonable length
-            if len(output_text.strip()) > 20:
+            # ОБЯЗАТЕЛЬНО использовать только официальный скрипт Google
+            import sys
+            import os
+            
+            # СНАЧАЛА добавляем директорию в путь
+            eval_dir = os.path.dirname(os.path.abspath(__file__))
+            if eval_dir not in sys.path:
+                sys.path.insert(0, eval_dir)
+            
+            # ПОТОМ импортируем модуль
+            from ifeval_official_evaluation import evaluate_ifeval_official_only, initialize_official_evaluation
+            
+            # Инициализация (выбросит ошибку если недоступен)
+            eval_path = os.environ.get("IFEVAL_EVAL_PATH")
+            try:
+                initialize_official_evaluation(eval_path)
+            except RuntimeError as e:
+                print(str(e))
+                raise RuntimeError(
+                    "Официальный скрипт оценки IFEval от Google недоступен. "
+                    "Оценка не может продолжаться. Установите официальный скрипт."
+                )
+            
+            if not instruction_id_list:
+                raise RuntimeError(
+                    f"instruction_id_list отсутствует в примере датасета. "
+                    f"Невозможно провести официальную оценку."
+                )
+            
+            # Получаем kwargs из датасета
+            kwargs = example.get("kwargs", [])
+            
+            # Выполняем оценку через официальный скрипт
+            passed, eval_details = evaluate_ifeval_official_only(
+                output_text, instruction, instruction_id_list, kwargs, eval_path
+            )
+            
+            if passed:
                 correct += 1
 
         total += 1
@@ -344,7 +391,7 @@ def main():
     # Load baseline results for comparison
     baseline_results = {}
     if os.path.exists("baseline_results_50samples.json"):
-        with open("baseline_results_50samples.json", "r") as f:
+        with open("baseline_results_50samples.json", "r", encoding="utf-8", errors="replace") as f:
             baseline_data = json.load(f)
             for result in baseline_data.get("results", []):
                 baseline_results[result["dataset"]] = result["accuracy"]
@@ -447,7 +494,7 @@ def main():
             "datasets_evaluated": len(valid_results),
         }
 
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(final_results, f, indent=2)
 
     # Print summary

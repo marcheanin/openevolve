@@ -1,0 +1,139 @@
+max_iterations: 100
+checkpoint_interval: 10
+log_level: "WARNING"
+diff_based_evolution: false
+max_code_length: 10000
+language: "text"
+
+# OpenRouter: Evolution model (DeepSeek R1 for reasoning)
+llm:
+  api_base: "https://openrouter.ai/api/v1"
+  models:
+    - name: "deepseek/deepseek-r1"
+      weight: 1.0
+  temperature: 0.8
+  max_tokens: 8192
+  timeout: 240
+  retries: 3
+
+prompt:
+  template_dir: "../wilds_experiment/templates"
+  num_top_programs: 5
+  num_diverse_programs: 3
+  include_artifacts: true
+  system_message: |
+    You are an expert at creating effective prompts for ensemble sentiment classification.
+    Your goal is to evolve prompts that maximize accuracy for Home and Kitchen
+    product reviews (ratings 1-5) when using a 3-model voting ensemble.
+
+    ## Task Overview
+    Your evolved prompts are sent to three LLM workers (DeepSeek V3, Gemma3-27B,
+    GPT-4o-mini). Each worker classifies a product review into 1-5 stars.
+    The majority vote is the final prediction.
+
+    ## What You Can Modify
+    1. <DynamicRules>: Add, edit, or remove classification rules.
+       - Analyze error patterns from the Evaluation Artifacts and formulate
+         generalizing rules (not rules for one specific review).
+    2. <FewShotExamples>: Replace or reorder examples.
+       - Include examples for ALL 5 rating levels (1 through 5).
+       - Prioritize commonly confused rating pairs (e.g., 4 vs 5, 2 vs 3).
+       - You may use misclassified reviews from the artifacts as few-shot
+         demonstrations if they are instructive.
+    3. Do NOT change <BaseGuidelines> or <Task>. These sections are frozen.
+
+    ## Error Feedback (Evaluation Artifacts)
+    Each evaluation provides concrete examples in the Evaluation Artifacts section:
+    - ERROR DISTRIBUTION: which gold->predicted pairs are most frequent.
+    - MISCLASSIFIED EXAMPLES: review text, gold rating, predicted rating,
+      per-worker votes, and disagreement score.
+    - BORDERLINE EXAMPLES: correct prediction but workers disagreed.
+    Use these to identify systematic failure patterns and craft targeted rules
+    or select better few-shot examples.
+
+    ## How Evaluation Works
+    1. The {review} placeholder is replaced with the actual review text.
+    2. The prompt is sent to each of the 3 worker models.
+    3. Each worker responds with a rating (1-5).
+    4. The majority vote becomes the final prediction.
+
+    ## Fitness Function
+      fitness = 0.5 * Acc_Hard + 0.3 * Acc_Anchor + 0.2 * kappa_Hard - length_penalty
+    - Acc_Hard: accuracy on Hard examples (misclassified or disagreed).
+    - Acc_Anchor: accuracy on Anchor examples (correct and unanimous).
+    - kappa_Hard: quadratic weighted Cohen's Kappa among workers on Hard set.
+    - length_penalty: 0.01 per 100 extra tokens above 2000 estimated tokens.
+
+    ## Best Practices
+    1. Modify <DynamicRules> and <FewShotExamples>; keep <BaseGuidelines> and <Task> unchanged.
+    2. Use clear, generalizing rules; keep the prompt concise.
+    3. Ensure few-shot examples cover all 5 rating levels with diverse review styles.
+    4. Preserve logic that correctly handles easy (Anchor) examples to avoid regression.
+
+database:
+  population_size: 30
+  archive_size: 500
+  num_islands: 4
+  feature_dimensions: ["prompt_length", "Acc_Hard"]
+  feature_bins: 5
+  elite_selection_ratio: 0.4
+  exploration_ratio: 0.3
+  exploitation_ratio: 0.3
+  migration_interval: 20
+  migration_rate: 0.1
+
+evaluator:
+  timeout: 1800
+  max_retries: 3
+  parallel_evaluations: 4
+  cascade_evaluation: false
+
+generalization:
+  gap_threshold: 0.10
+  gap_penalty: 0.50
+
+evolution_trace:
+  enabled: true
+  format: "jsonl"
+  include_code: true
+  include_prompts: true
+  output_path: "openevolve_output/evolution_trace.jsonl"
+  buffer_size: 10
+  compress: false
+
+# OpenRouter workers for ensemble evaluation
+worker_defaults:
+  api_base: "https://openrouter.ai/api/v1"
+  temperature: 0.1
+  max_tokens: 64
+  timeout: 60
+  max_retries: 3
+
+workers:
+  - name: "deepseek-chat-v3"
+  - name: "gemma3-27b"
+  - name: "gpt-4o-mini"
+
+# Active learning pool management.
+# uncertainty_threshold: disagreement_score threshold for Hard classification.
+#   0.0 = any disagreement counts; 0.25 = at least ~1 star average spread.
+# batch_size: size of the active batch used for evolution.
+# hard_ratio: fraction of batch reserved for Hard examples.
+# expansion_trigger: when Hard count drops to this or below, expand pool from Unseen.
+active_learning:
+  uncertainty_threshold: 0.0
+  batch_size: 80
+  hard_ratio: 0.7
+  expansion_trigger: 5
+
+dataset:
+  config_path: "dataset.yaml"
+  max_samples: null
+  max_samples_train: null
+  max_samples_val: null
+  max_samples_test: null
+  max_train_users: 25
+  max_val_users: 15
+
+prompt_path: "initial_prompt.txt"
+output_dir: "results"
