@@ -15,7 +15,7 @@ from openai import OpenAI
 # OpenRouter API key: set here or via environment variable OPENROUTER_API_KEY
 # Get a key at https://openrouter.ai/keys
 # ---------------------------------------------------------------------------
-OPENROUTER_API_KEY = "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"  # <-- insert key here or set env OPENROUTER_API_KEY
+OPENROUTER_API_KEY = ""  # <-- insert key here or set env OPENROUTER_API_KEY
 
 if not OPENROUTER_API_KEY:
     OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY") or os.environ.get("OPENAI_API_KEY")
