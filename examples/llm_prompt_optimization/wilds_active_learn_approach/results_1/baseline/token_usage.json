@@ -1,0 +1,22 @@
+{
+  "by_model": {
+    "deepseek-chat-v3": {
+      "input_tokens": 925256,
+      "output_tokens": 1449,
+      "total_tokens": 926705
+    },
+    "gemma3-27b": {
+      "input_tokens": 969645,
+      "output_tokens": 2048,
+      "total_tokens": 971693
+    },
+    "gpt-4o-mini": {
+      "input_tokens": 910434,
+      "output_tokens": 902,
+      "total_tokens": 911336
+    }
+  },
+  "total_input_tokens": 2805335,
+  "total_output_tokens": 4399,
+  "total_tokens": 2809734
+}

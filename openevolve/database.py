@@ -2374,6 +2374,8 @@ class ProgramDatabase:
         if small_artifacts:
             program.artifacts_json = json.dumps(small_artifacts, default=self._artifact_serializer)
             logger.debug(f"Stored {len(small_artifacts)} small artifacts for program {program_id}")
+            if self.config.db_path:
+                self._save_program(program)
 
         # Store large artifacts to disk
         if large_artifacts:

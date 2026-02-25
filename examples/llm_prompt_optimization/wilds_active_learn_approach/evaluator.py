@@ -12,7 +12,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import yaml
@@ -20,16 +20,24 @@ import yaml
 SCRIPT_DIR = Path(__file__).resolve().parent
 WILDS_EXPERIMENT = SCRIPT_DIR.parent / "wilds_experiment"
 EXPERIMENTS_ROOT = WILDS_EXPERIMENT / "experiments"
+OPENEVOLVE_PKG_ROOT = SCRIPT_DIR.parent.parent.parent
+
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
 if str(WILDS_EXPERIMENT) not in sys.path:
     sys.path.insert(0, str(WILDS_EXPERIMENT))
 if str(EXPERIMENTS_ROOT) not in sys.path:
     sys.path.insert(0, str(EXPERIMENTS_ROOT))
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
+if str(OPENEVOLVE_PKG_ROOT) not in sys.path:
+    sys.path.append(str(OPENEVOLVE_PKG_ROOT))
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from workers import LLMWorker
 from collections import Counter
 from experiments.metrics import compute_metrics, compute_combined_score_unified
+from openevolve.evaluation_result import EvaluationResult
+
+DEFAULT_MAX_PARALLEL = 15
 
 # Fitness weights (from plan)
 W1_ACC_HARD = 0.5
@@ -139,6 +147,44 @@ def _build_workers(config: dict) -> List[LLMWorker]:
     return workers
 
 
+def _parallel_predict(
+    workers: List[LLMWorker],
+    texts: List[str],
+    prompt_template: str,
+    max_parallel: int = DEFAULT_MAX_PARALLEL,
+) -> Tuple[List[int], List[List[int]]]:
+    """
+    Run all (text, worker) predictions in parallel using ThreadPoolExecutor.
+    Returns (ensemble_predictions, worker_preds) where worker_preds[w][i] is
+    the prediction of worker w on text i.
+    """
+    n_texts = len(texts)
+    n_workers = len(workers)
+    results_grid = [[3] * n_texts for _ in range(n_workers)]
+    aggregator = MajorityVoteAggregator()
+
+    def _call(w_idx: int, t_idx: int) -> Tuple[int, int, int]:
+        pred = workers[w_idx].predict(texts[t_idx], prompt_template)
+        return w_idx, t_idx, pred
+
+    with ThreadPoolExecutor(max_workers=max_parallel) as pool:
+        futures = []
+        for t_idx in range(n_texts):
+            for w_idx in range(n_workers):
+                futures.append(pool.submit(_call, w_idx, t_idx))
+
+        for future in as_completed(futures):
+            w_idx, t_idx, pred = future.result()
+            results_grid[w_idx][t_idx] = pred
+
+    predictions = []
+    for t_idx in range(n_texts):
+        sample = [results_grid[w][t_idx] for w in range(n_workers)]
+        predictions.append(aggregator.aggregate(sample))
+
+    return predictions, results_grid
+
+
 def _run_evaluation(
     prompt_template: str,
     texts: List[str],
@@ -148,18 +194,9 @@ def _run_evaluation(
 ) -> Tuple[np.ndarray, List[List[int]], Dict[str, Any]]:
     """Run ensemble evaluation, return predictions, worker_predictions, metrics."""
     workers = _build_workers(config)
-    aggregator = MajorityVoteAggregator()
+    max_parallel = config.get("worker_defaults", {}).get("max_parallel", DEFAULT_MAX_PARALLEL)
 
-    predictions = []
-    worker_preds = [[] for _ in workers]
-    for text in texts:
-        sample_preds = []
-        for w in workers:
-            p = w.predict(text, prompt_template)
-            sample_preds.append(p)
-        for i, p in enumerate(sample_preds):
-            worker_preds[i].append(p)
-        predictions.append(aggregator.aggregate(sample_preds))
+    predictions, worker_preds = _parallel_predict(workers, texts, prompt_template, max_parallel)
 
     pred_arr = np.array(predictions)
     wp_arr = [np.array(wp) for wp in worker_preds]
@@ -276,11 +313,49 @@ def evaluate_full(
     return metrics
 
 
+def _analyze_rule_coverage(prompt_text: str) -> str:
+    """Check which rating categories (1-5) have rules in DynamicRules."""
+    import re
+    dr_match = re.search(r"<DynamicRules>(.*?)</DynamicRules>", prompt_text, re.DOTALL)
+    if not dr_match:
+        return "RULE COVERAGE WARNING: <DynamicRules> section not found! All categories MISSING."
+
+    dr_text = dr_match.group(1).lower()
+    category_keywords = {
+        1: ["1 star", "1★", "very negative", "defective", "failure", "returned", "terrible"],
+        2: ["2 star", "2★", "negative", "poor quality", "disappointing", "workaround"],
+        3: ["3 star", "3★", "neutral", "mixed", "average", "okay", "mismatch"],
+        4: ["4 star", "4★", "positive", "minor", "pretty good", "limitation", "recommend with"],
+        5: ["5 star", "5★", "very positive", "excellent", "perfect", "love", "exceeded"],
+    }
+
+    covered = {}
+    for level, keywords in category_keywords.items():
+        covered[level] = any(kw in dr_text for kw in keywords)
+
+    lines = ["RULE COVERAGE:"]
+    missing = []
+    for level in range(1, 6):
+        status = "OK" if covered[level] else "MISSING"
+        lines.append(f"  {level} star: {status}")
+        if not covered[level]:
+            missing.append(str(level))
+
+    if missing:
+        lines.append(f"\n  *** WARNING: Categories {', '.join(missing)} have NO rules in <DynamicRules>! ***")
+        lines.append("  *** You MUST add at least 2 rules for each missing category. ***")
+    else:
+        lines.append("  All categories covered.")
+
+    return "\n".join(lines)
+
+
 def _format_error_artifacts(
     predictions: list,
     gold_labels: list,
     worker_predictions: list,
     texts: list,
+    prompt_text: str = "",
     max_errors: int = 7,
     max_borderline: int = 3,
     max_text_len: int = 250,
@@ -306,6 +381,11 @@ def _format_error_artifacts(
     borderline.sort(key=lambda x: -x[4])
 
     lines = []
+
+    # Rule coverage analysis
+    if prompt_text:
+        lines.append(_analyze_rule_coverage(prompt_text))
+        lines.append("")
 
     if errors:
         confusion = _Counter()
@@ -336,7 +416,7 @@ def _format_error_artifacts(
     return "\n".join(lines)
 
 
-def evaluate(prompt_path: Optional[str] = None) -> Any:
+def evaluate(prompt_path: Optional[str] = None) -> Union[Dict[str, Any], EvaluationResult]:
     """
     Main entry point for OpenEvolve.
     If active_batch.json exists, uses evaluate_fast. Otherwise evaluate_full.
@@ -382,14 +462,11 @@ def evaluate(prompt_path: Optional[str] = None) -> Any:
             result["gold_labels"],
             result["worker_predictions"],
             batch_texts,
+            prompt_text=prompt_template,
         )
 
         if error_text:
-            try:
-                from openevolve.evaluation_result import EvaluationResult
-                return EvaluationResult(metrics=metrics, artifacts={"error_examples": error_text})
-            except ImportError:
-                pass
+            return EvaluationResult(metrics=metrics, artifacts={"error_examples": error_text})
         return metrics
 
     # No active batch: full validation

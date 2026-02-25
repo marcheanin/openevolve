@@ -1,6 +1,6 @@
 max_iterations: 100
 checkpoint_interval: 10
-log_level: "WARNING"
+log_level: "INFO"
 diff_based_evolution: false
 max_code_length: 10000
 language: "text"
@@ -32,24 +32,50 @@ prompt:
     The majority vote is the final prediction.
 
     ## What You Can Modify
-    1. <DynamicRules>: Add, edit, or remove classification rules.
-       - Analyze error patterns from the Evaluation Artifacts and formulate
-         generalizing rules (not rules for one specific review).
-    2. <FewShotExamples>: Replace or reorder examples.
-       - Include examples for ALL 5 rating levels (1 through 5).
-       - Prioritize commonly confused rating pairs (e.g., 4 vs 5, 2 vs 3).
-       - You may use misclassified reviews from the artifacts as few-shot
-         demonstrations if they are instructive.
+    1. <DynamicRules>: ADD new rules or REFINE existing rule wording.
+    2. <FewShotExamples>: ADD, replace, or reorder examples.
     3. Do NOT change <BaseGuidelines> or <Task>. These sections are frozen.
 
+    ## CRITICAL: Active Learning Rule Management
+    This is an ACTIVE LEARNING system. The rule set must GROW over cycles,
+    not shrink. Follow these principles strictly:
+
+    **NEVER DELETE existing rules.** If a rule exists, it was added because it
+    solved a real classification problem. Deleting it will cause regression on
+    those examples in future cycles. You may only:
+    - ADD a new rule to address a new error pattern
+    - REFINE the wording of an existing rule to make it clearer
+    - MERGE two very similar rules into one that covers both cases
+
+    **MANDATORY: cover ALL 5 rating categories.** The <DynamicRules> section
+    MUST contain at least 2 rules for EACH star level (1, 2, 3, 4, 5).
+    If the RULE COVERAGE WARNING in the artifacts shows missing categories,
+    your PRIMARY task is to add rules for those categories BEFORE doing
+    anything else.
+
+    **Prioritize error patterns.** When the Evaluation Artifacts show
+    systematic errors (e.g., gold=3 predicted as 4), add a SPECIFIC new
+    rule that disambiguates this boundary. Do NOT replace existing rules —
+    add the new rule alongside them.
+
     ## Error Feedback (Evaluation Artifacts)
-    Each evaluation provides concrete examples in the Evaluation Artifacts section:
+    Each evaluation provides concrete examples:
     - ERROR DISTRIBUTION: which gold->predicted pairs are most frequent.
     - MISCLASSIFIED EXAMPLES: review text, gold rating, predicted rating,
       per-worker votes, and disagreement score.
     - BORDERLINE EXAMPLES: correct prediction but workers disagreed.
-    Use these to identify systematic failure patterns and craft targeted rules
-    or select better few-shot examples.
+    - RULE COVERAGE: which rating categories have rules in DynamicRules
+      and which are MISSING — add rules for missing categories first.
+    Use these to identify systematic failure patterns and craft targeted
+    new rules or select better few-shot examples.
+
+    ## FewShotExamples Management
+    - MUST include at least one example for EACH rating level (1-5).
+    - Do NOT remove an example if it is the only one for its rating level.
+    - Prioritize commonly confused rating pairs (4 vs 5, 2 vs 3).
+    - You may use misclassified reviews from the artifacts as new few-shot
+      demonstrations if they are instructive.
+    - Aim for 7-10 diverse examples total.
 
     ## How Evaluation Works
     1. The {review} placeholder is replaced with the actual review text.
@@ -65,27 +91,27 @@ prompt:
     - length_penalty: 0.01 per 100 extra tokens above 2000 estimated tokens.
 
     ## Best Practices
-    1. Modify <DynamicRules> and <FewShotExamples>; keep <BaseGuidelines> and <Task> unchanged.
-    2. Use clear, generalizing rules; keep the prompt concise.
-    3. Ensure few-shot examples cover all 5 rating levels with diverse review styles.
-    4. Preserve logic that correctly handles easy (Anchor) examples to avoid regression.
+    1. GROW the rule set: add new rules based on error artifacts; never delete working rules.
+    2. Use clear, generalizing rules (not rules for one specific review).
+    3. Ensure DynamicRules covers ALL 5 rating levels with at least 2 rules each.
+    4. Ensure FewShotExamples covers ALL 5 rating levels with diverse review styles.
+    5. Preserve logic that correctly handles easy (Anchor) examples to avoid regression.
+    6. When in doubt, ADD a new rule rather than modifying or removing an existing one.
 
 database:
   population_size: 30
   archive_size: 500
-  num_islands: 4
+  num_islands: 1
   feature_dimensions: ["prompt_length", "Acc_Hard"]
   feature_bins: 5
   elite_selection_ratio: 0.4
   exploration_ratio: 0.3
   exploitation_ratio: 0.3
-  migration_interval: 20
-  migration_rate: 0.1
 
 evaluator:
   timeout: 1800
   max_retries: 3
-  parallel_evaluations: 4
+  parallel_evaluations: 1
   cascade_evaluation: false
 
 generalization:
@@ -97,8 +123,8 @@ evolution_trace:
   format: "jsonl"
   include_code: true
   include_prompts: true
-  output_path: "openevolve_output/evolution_trace.jsonl"
-  buffer_size: 10
+  output_path: ""
+  buffer_size: 1
   compress: false
 
 # OpenRouter workers for ensemble evaluation
@@ -108,6 +134,7 @@ worker_defaults:
   max_tokens: 64
   timeout: 60
   max_retries: 3
+  max_parallel: 15
 
 workers:
   - name: "deepseek-chat-v3"
@@ -124,7 +151,7 @@ active_learning:
   uncertainty_threshold: 0.0
   batch_size: 80
   hard_ratio: 0.7
-  expansion_trigger: 5
+  expansion_trigger: 15
 
 dataset:
   config_path: "dataset.yaml"

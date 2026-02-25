@@ -5,16 +5,17 @@
 в results/token_usage.json (active_loop) и results/baseline/token_usage.json (run_baseline).
 """
 
+import threading
 from pathlib import Path
 from typing import Dict, Any
 
 
 class TokenTracker:
-    """Накопительный учёт токенов по имени модели."""
+    """Накопительный учёт токенов по имени модели (потокобезопасный)."""
 
     def __init__(self) -> None:
-        # model_name -> { "input_tokens", "output_tokens", "total_tokens" }
         self._by_model: Dict[str, Dict[str, int]] = {}
+        self._lock = threading.Lock()
 
     def record(
         self,
@@ -24,18 +25,19 @@ class TokenTracker:
         total_tokens: int | None = None,
     ) -> None:
         """Учесть использование токенов для модели."""
-        if model_name not in self._by_model:
-            self._by_model[model_name] = {
-                "input_tokens": 0,
-                "output_tokens": 0,
-                "total_tokens": 0,
-            }
-        self._by_model[model_name]["input_tokens"] += input_tokens
-        self._by_model[model_name]["output_tokens"] += output_tokens
-        if total_tokens is not None:
-            self._by_model[model_name]["total_tokens"] += total_tokens
-        else:
-            self._by_model[model_name]["total_tokens"] += input_tokens + output_tokens
+        with self._lock:
+            if model_name not in self._by_model:
+                self._by_model[model_name] = {
+                    "input_tokens": 0,
+                    "output_tokens": 0,
+                    "total_tokens": 0,
+                }
+            self._by_model[model_name]["input_tokens"] += input_tokens
+            self._by_model[model_name]["output_tokens"] += output_tokens
+            if total_tokens is not None:
+                self._by_model[model_name]["total_tokens"] += total_tokens
+            else:
+                self._by_model[model_name]["total_tokens"] += input_tokens + output_tokens
 
     def get_usage(self) -> Dict[str, Any]:
         """Возвращает сводку: по моделям и общие суммы."""
