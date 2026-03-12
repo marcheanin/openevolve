@@ -217,15 +217,55 @@ class DataManager:
     ) -> Tuple[List[int], List[int]]:
         """
         Reclassify examples within the current batch after evolution.
+        Preserves out-of-batch Hard/Anchor indices so they are not lost.
 
-        Returns updated (hard_indices, anchor_indices) within the batch.
+        Returns updated (hard_indices, anchor_indices) for the full Seen pool.
+        """
+        uncertainty_threshold = self.config.get("active_learning", {}).get(
+            "uncertainty_threshold", 0.0
+        )
+        batch_set = set(batch_indices)
+
+        # Preserve indices that were NOT in this batch
+        remaining_hard = [i for i in self.hard_indices if i not in batch_set]
+        remaining_anchor = [i for i in self.anchor_indices if i not in batch_set]
+
+        new_hard = []
+        new_anchor = []
+        for j, idx in enumerate(batch_indices):
+            pred = predictions[j]
+            gold = gold_labels[j]
+            wp = [int(w[j]) for w in worker_predictions]
+            correct = pred == gold
+            d_score = disagreement_score(wp, rating_min=1, rating_max=5)
+            if (not correct) or (d_score > uncertainty_threshold):
+                new_hard.append(idx)
+            else:
+                new_anchor.append(idx)
+
+        self.hard_indices = remaining_hard + new_hard
+        self.anchor_indices = remaining_anchor + new_anchor
+        return self.hard_indices, self.anchor_indices
+
+    def reclassify_seen(
+        self,
+        predictions: List[int],
+        gold_labels: List[int],
+        worker_predictions: List[List[int]],
+        seen_indices: List[int],
+    ) -> Tuple[List[int], List[int]]:
+        """
+        Full re-evaluation of all Seen examples. Replaces Hard/Anchor lists entirely.
+        `seen_indices` must match the order of predictions/gold_labels/worker_predictions.
+
+        Returns updated (hard_indices, anchor_indices).
         """
         uncertainty_threshold = self.config.get("active_learning", {}).get(
             "uncertainty_threshold", 0.0
         )
         hard = []
         anchor = []
-        for j, idx in enumerate(batch_indices):
+        for j, idx in enumerate(seen_indices):
             pred = predictions[j]
             gold = gold_labels[j]
             wp = [int(w[j]) for w in worker_predictions]
@@ -309,12 +349,65 @@ class DataManager:
 
         Returns (batch_indices, hard_in_batch, anchor_in_batch).
         """
-        n_hard = int(batch_size * hard_ratio)
-        n_anchor = batch_size - n_hard
+        n_hard_target = int(batch_size * hard_ratio)
+        n_anchor_target = batch_size - n_hard_target
 
-        hard_batch = self._select_diverse(self.hard_indices, n_hard, seed)
-        anchor_batch = self._select_stratified(self.anchor_indices, n_anchor, seed)
-        batch = list(dict.fromkeys(hard_batch + anchor_batch))[:batch_size]
+        # Первичный отбор Hard/Anchor по целевым квотам
+        hard_batch = self._select_diverse(self.hard_indices, n_hard_target, seed)
+        anchor_batch = self._select_stratified(self.anchor_indices, n_anchor_target, seed)
+
+        batch = list(dict.fromkeys(hard_batch + anchor_batch))
+
+        # Если после отбора батч меньше batch_size, добираем из Seen, чтобы эволюция
+        # всегда работала на фиксированном размере батча.
+        if len(batch) < batch_size:
+            rng = np.random.default_rng(seed + 999)
+            used = set(batch)
+            # В приоритете остальные Anchor, затем Hard, затем любые Seen
+            remaining_anchor = [i for i in self.anchor_indices if i not in used]
+            remaining_hard = [i for i in self.hard_indices if i not in used]
+            remaining_seen = [i for i in self.seen_indices if i not in used
+                              and i not in set(self.hard_indices)
+                              and i not in set(self.anchor_indices)]
+
+            def _take(src: List[int], needed: int) -> List[int]:
+                if not src or needed <= 0:
+                    return []
+                if len(src) <= needed:
+                    return list(src)
+                return rng.choice(src, size=needed, replace=False).tolist()
+
+            shortfall = batch_size - len(batch)
+            extra_anchor = _take(remaining_anchor, shortfall)
+            batch.extend(extra_anchor)
+            used.update(extra_anchor)
+
+            shortfall = batch_size - len(batch)
+            if shortfall > 0:
+                extra_hard = _take(remaining_hard, shortfall)
+                batch.extend(extra_hard)
+                used.update(extra_hard)
+
+            shortfall = batch_size - len(batch)
+            if shortfall > 0 and remaining_seen:
+                extra_seen = _take(remaining_seen, shortfall)
+                batch.extend(extra_seen)
+                used.update(extra_seen)
+
+            # Last resort: promote from Unseen to meet batch_size
+            shortfall = batch_size - len(batch)
+            if shortfall > 0 and self.unseen_indices:
+                import warnings
+                warnings.warn(
+                    f"build_active_batch: Seen pool too small, promoting {shortfall} from Unseen"
+                )
+                unseen_list = list(self.unseen_indices)
+                extra_unseen = _take(unseen_list, shortfall)
+                self._move_to_seen(extra_unseen)
+                self.hard_indices.extend(extra_unseen)  # new examples go to Hard
+                batch.extend(extra_unseen)
+
+        batch = batch[:batch_size]
 
         hard_set = set(self.hard_indices)
         hard_in = [i for i in batch if i in hard_set]

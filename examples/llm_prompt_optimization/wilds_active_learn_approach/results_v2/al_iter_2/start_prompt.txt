@@ -1,3 +1,4 @@
+# EVOLVE-BLOCK-START
 <System>
 <Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
 <BaseGuidelines>
@@ -43,6 +44,9 @@
     - Requires usage habit changes to maintain satisfaction
     - Explicit recommendations with reservations ("would recommend with caveats")
     - Eco-friendly/safety praise outweighing minor functional limitations
+    - Cost-effective superiority over alternatives despite minor functional compromises
+    - Significant comfort/convenience trade-offs (heat retention, difficult cleaning)
+    - Explicit comparisons showing better value than alternatives despite key drawbacks
 
     5 Stars (Very Positive):
     - Unqualified enthusiasm and strong recommendation
@@ -55,6 +59,9 @@
     - Emotional praise ("love," "best ever") despite inherent trade-offs
     - Explicit self-rating statements ("I give 5 stars") override minor criticisms
     - Specific attribute excellence (color vibrancy, perfect fit) without compromise
+    - Long-term satisfaction updates where initial issues became irrelevant
+    - Positive outcomes achieved after correcting user's initial setup errors
+    - Short positive reviews without negative modifiers (e.g., "Perfect size!")
 
     EDGE CASE HANDLING:
     - Time-weighted evaluation: Final assessment 3x > initial issues
@@ -66,6 +73,7 @@
     - Explicit numeric contradictions: "4 stars for X but 5 overall" → 5
     - Short positive reviews: Assume 5 stars unless negative modifiers present
     - Negative updates with severe failures override initial positive impressions
+    - Decorative use due to functional limitations: 4 unless decor is explicit focus
 </DynamicRules>
 
 </System>
@@ -77,7 +85,7 @@ Review: "Catastrophic failure after 2 weeks. Sparks flew out! Immediate return."
 Rating: 1
 
 Example 2:
-Review: "The blender works but sounds like a jet engine. Buttons stick constantly."
+Review: "Works but overheats constantly. Not worth the safety risk long-term."
 Rating: 2
 
 Example 3:
@@ -85,72 +93,64 @@ Review: "These storage cubes sort of work but collapse if overloaded. Better tha
 Rating: 3
 
 Example 4:
-Review: "Love this mug's design! Holds heat well but too small for my morning coffee."
+Review: "I love this cover. Waterproof and fits perfectly. Cost-wise beats competitors but warmer in summer."
 Rating: 4
 
 Example 5:
-Review: "EDIT: After daily use for 18 months, still performs flawlessly. Initial squeak resolved."
+Review: "My camping bed was tricky to inflate initially, but once done - best sleep outdoors ever!"
 Rating: 5
 
 Example 6:
-Review: "These bins transformed my closet! Perfect size despite slight lid stiffness."
-Rating: 5
-
-Example 7:
-Review: "Great for soft ingredients but struggles with ice. Makes decent smoothies."
+Review: "Great for soft ingredients but struggles with ice. Still makes decent smoothies."
 Rating: 4
 
-Example 8:
+Example 7:
 Review: "4 stars comfort but 5 overall! Thin profile perfect for space-limited beds."
 Rating: 5
 
+Example 8:
+Review: "Exceeds expectations! Minor wobble doesn't affect cooking performance."
+Rating: 5
+
 Example 9:
-Review: "Exceeds all expectations! Minor wobble irrelevant to cooking performance."
-Rating: 5
-
-Example 10:
-Review: "Collapsible baskets great for seasonal storage. Slight fraying after 6 months."
-Rating: 4
-
-Example 11:
-Review: "Perfect replacement lids! Fit better than original despite minor warping."
-Rating: 5
-
-Example 12:
-Review: "Beautiful mug too small for coffee but ideal tea size with stunning details."
-Rating: 4
-
-Example 13:
-Review: "Makes one-skillet meals effortless. Cleanup is a breeze despite weight."
-Rating: 5
-
-Example 14:
 Review: "Certified organic cotton worth minor thickness issues. Safe for kids!"
 Rating: 4
 
-Example 15:
-Review: "I give 5 stars! Basic pieces but superb durability exceeded expectations."
-Rating: 5
-
-Example 16:
+Example 10:
 Review: "UPDATE: Major failure after 2 months. Loved it initially but complete waste now."
 Rating: 1
 
-Example 17:
+Example 11:
 Review: "Vibrant color transforms any room! Slight sizing quirk irrelevant to decor impact."
 Rating: 5
 
-Example 18:
+Example 12:
 Review: "Functional but overheats dangerously. Works but unsafe for daily use."
 Rating: 1
 
-Example 19:
+Example 13:
 Review: "Perfect organizational tool! Sturdy construction overrides lid stiffness."
 Rating: 5
 
-Example 20:
+Example 14:
 Review: "Straightforward assembly but wobbles constantly. Storage space can't compensate."
 Rating: 2
+
+Example 15:
+Review: "Great size, convenient for one-skillet meals."
+Rating: 5
+
+Example 16:
+Review: "Beautiful mug too small for coffee but perfect for tea. Stunning details limit functionality."
+Rating: 4
+
+Example 17:
+Review: "First setup was confusing, but now works flawlessly. Very happy with purchase!"
+Rating: 5
+
+Example 18:
+Review: "Does the job adequately but feels cheap. Gets by but wouldn't repurchase."
+Rating: 3
 
 </FewShotExamples>
 
@@ -158,3 +158,4 @@ Rating: 2
 Review: {review}
 Rating:
 </Task>
+# EVOLVE-BLOCK-END

@@ -196,7 +196,7 @@ IMPORTANT: The prompt MUST use the following XML structure with three sections:
     <BaseGuidelines>
         (Static rules that should NOT change during evolution:
          - Star rating scale: 1-5
-         - Output format: ONLY a number (1, 2, 3, 4, or 5), no explanation
+         - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
          - Task: classify sentiment based on review text)
     </BaseGuidelines>
 
@@ -212,7 +212,7 @@ IMPORTANT: The prompt MUST use the following XML structure with three sections:
     (Include 5-8 representative examples from the list above, formatted as:
      Example 1:
      Review: [text]
-     Rating: [label]
+     Rating: [1-5]
      
      Example 2:
      ...)
@@ -220,17 +220,15 @@ IMPORTANT: The prompt MUST use the following XML structure with three sections:
 
 <Task>
     Review: {{review}}
-    
-    Rating:
 </Task>
 
 The prompt MUST:
 - Use the exact XML structure above with <System>, <BaseGuidelines>, <DynamicRules>, <FewShotExamples>, and <Task> sections
 - Put static, unchanging rules in <BaseGuidelines>
 - Put evolvable rules and criteria in <DynamicRules>
-- Include 5-8 few-shot examples in <FewShotExamples>
+- Include 5-8 few-shot examples in <FewShotExamples> with "Rating: [1-5]" per example
 - Use {{review}} as the placeholder in <Task>
-- Request ONLY a number (1, 2, 3, 4, or 5) as output—no explanation
+- Request output as a single rating 1-5 only (e.g. "Rating: 4" or "4")
 
 Generate 5 different prompt variants following this structure. For each variant, briefly explain its strengths.
 """

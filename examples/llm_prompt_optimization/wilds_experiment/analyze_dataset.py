@@ -1,6 +1,6 @@
 """
-Скрипт для анализа датасета WILDS Amazon.
-Загружает датасет и выводит статистику по категориям товаров.
+Script for analyzing the WILDS Amazon dataset.
+Loads the dataset and prints statistics by product categories.
 """
 
 import os
@@ -8,6 +8,13 @@ import ssl
 import urllib.request
 import numpy as np
 from collections import Counter
+import sys
+
+# Ensure UTF-8 output to avoid Windows console encoding issues
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 # Отключаем проверку SSL сертификатов (для обхода ошибки expired certificate)
 ssl._create_default_https_context = ssl._create_unverified_context

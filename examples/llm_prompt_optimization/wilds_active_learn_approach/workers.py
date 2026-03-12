@@ -1,6 +1,5 @@
 """
 LLMWorker with OpenRouter support for Active Prompt Evolution.
-Supports both Yandex Cloud and OpenRouter API backends.
 Учитывает токены через token_usage.get_tracker().
 """
 
@@ -12,7 +11,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 import re
 import time
-from typing import Tuple, Optional
+from typing import Optional
 
 from openai import OpenAI
 
@@ -24,6 +23,7 @@ def parse_rating(response: str) -> int:
     patterns = [
         r'^([1-5])$',
         r'(?:rating|score|answer)[:\s]+([1-5])',
+        r'<Rating>\s*([1-5])\s*</Rating>',  # fallback if model still outputs XML
         r'\b([1-5])\s*(?:out of 5|/5|stars?)',
         r'^\s*\**\s*([1-5])\s*\**\s*$',
         r'final.*?([1-5])',
@@ -48,22 +48,13 @@ OPENROUTER_MODELS = {
     "gpt-4o-mini": "openai/gpt-4o-mini",
 }
 
-# Yandex Cloud model mapping (fallback)
-YANDEX_MODELS = {
-    "qwen3-235b": "gpt://b1gemincl8p7b2uiv5nl/qwen3-235b-a22b-fp8/latest",
-    "gemma3-27b": "gpt://b1gemincl8p7b2uiv5nl/gemma-3-27b-it/latest",
-    "gpt-oss-120b": "gpt://b1gemincl8p7b2uiv5nl/gpt-oss-120b/latest",
-    "yandexgpt": "gpt://b1gemincl8p7b2uiv5nl/yandexgpt/latest",
-}
 
 
 class LLMWorker:
     """
-    Worker for calling LLM APIs. Supports OpenRouter and Yandex Cloud.
-    Use OPENROUTER_API_KEY for OpenRouter, OPENAI_API_KEY or YANDEX_API_KEY for Yandex.
+    Worker for calling LLM APIs via OpenRouter (OpenAI-compatible endpoint).
     """
 
-    # Default to OpenRouter
     DEFAULT_API_BASE = "https://openrouter.ai/api/v1"
 
     def __init__(
@@ -82,15 +73,8 @@ class LLMWorker:
         self.timeout = timeout
         self.max_retries = max_retries
 
-        # Resolve model ID based on API
-        is_openrouter = "openrouter" in self.api_base.lower()
-        if is_openrouter:
-            self.model_uri = OPENROUTER_MODELS.get(model_name, model_name)
-            api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
-        else:
-            self.model_uri = YANDEX_MODELS.get(model_name, model_name)
-            api_key = os.getenv("OPENAI_API_KEY") or os.getenv("YANDEX_API_KEY")
-
+        self.model_uri = OPENROUTER_MODELS.get(model_name, model_name)
+        api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(base_url=self.api_base, api_key=api_key)
 
     def _call(self, prompt: str) -> str:
@@ -140,7 +124,3 @@ class LLMWorker:
         response = self._call(prompt)
         return parse_rating(response)
 
-    def predict_with_reasoning(self, review_text: str, instruction: str) -> Tuple[str, int]:
-        prompt = instruction.format(review=review_text)
-        response = self._call(prompt)
-        return response, parse_rating(response)

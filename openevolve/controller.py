@@ -206,11 +206,20 @@ class OpenEvolve:
         )
         root_logger.addHandler(file_handler)
 
-        # Add console handler with UTF-8 encoding support for Windows
-        import io
-        console_handler = logging.StreamHandler(io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace'))
-        console_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-        root_logger.addHandler(console_handler)
+        # Add console handler only if no console-like handler yet (FileHandler is a StreamHandler
+        # but writes to file; we want to avoid adding duplicate console handlers when run_evolution
+        # is called multiple times in the same process, e.g. AL cycles)
+        has_console = any(
+            isinstance(h, logging.StreamHandler) and not isinstance(h, logging.FileHandler)
+            for h in root_logger.handlers
+        )
+        if not has_console:
+            import io
+            console_handler = logging.StreamHandler(
+                io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+            )
+            console_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+            root_logger.addHandler(console_handler)
 
         logger.info(f"Logging to {log_file}")
 

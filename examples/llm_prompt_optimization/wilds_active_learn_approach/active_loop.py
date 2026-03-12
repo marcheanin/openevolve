@@ -87,14 +87,19 @@ def _validate_prompt_structure(prompt_text: str) -> Tuple[bool, str]:
         errors.append("Missing <Task>")
     if "{review}" not in prompt_text:
         errors.append("Missing {review} placeholder in <Task>")
-    if "Rating:" not in prompt_text:
-        errors.append("Missing 'Rating:' line in <Task>")
-    has_format = any(p in prompt_text.lower() for p in [
-        "single number", "only a single number", "only a number",
-        "1, 2, 3, 4, or 5", "1-5",
-    ])
-    if not has_format:
-        errors.append("Missing output format instruction (e.g. 'ONLY a single number: 1, 2, 3, 4, or 5')")
+    
+    # Validation updated for CoT structure
+    # if "Rating:" not in prompt_text:
+    #    errors.append("Missing 'Rating:' line in <Task>")
+    
+    # Check for CoT related keywords instead of strict single number
+    # has_format = any(p in prompt_text.lower() for p in [
+    #    "single number", "only a single number", "only a number",
+    #    "1, 2, 3, 4, or 5", "1-5",
+    # ])
+    # if not has_format:
+    #    errors.append("Missing output format instruction (e.g. 'ONLY a single number: 1, 2, 3, 4, or 5')")
+    
     return (len(errors) == 0, "; ".join(errors))
 
 
@@ -186,32 +191,33 @@ Your task: take the best prompt as-is and CAREFULLY IMPROVE it by:
 
 CRITICAL PRINCIPLES:
 - The best prompt is your STARTING POINT. Do NOT rewrite it from scratch.
-- NEVER DELETE existing rules — they were evolved to solve specific problems.
+- Prefer to KEEP working rules — they were evolved to solve specific problems.
+- You may MERGE or PRUNE rules that are clearly redundant or contradicted by
+  stronger, higher-level rules, as long as all rating categories remain covered.
 - ADD new rules that address the error patterns shown in the artifacts.
 - Ensure <DynamicRules> covers ALL 5 rating levels (1, 2, 3, 4, 5) with
-  at least 2 rules per level.
+  at least 2 rules per level, while keeping the total number of rules compact
+  (aim for no more than ~50 rules).
 - Ensure <FewShotExamples> has at least one example per rating level (1-5),
   aim for 7-10 examples total.
 
 ALLOWED modifications:
 - <BaseGuidelines>: Promote consistently successful rules here. Keep the output \
-format instruction ("ONLY a single number: 1, 2, 3, 4, or 5") and the star \
-rating scale definition.
+format instruction (single rating 1-5) and the star rating scale definition.
 - <DynamicRules>: ADD new rules, REFINE wording, MERGE near-duplicates.
-  NEVER remove a rule unless it directly contradicts a better-scoring rule.
+  You may remove or merge weaker duplicate rules when they are fully subsumed
+  by clearer, higher-level rules and category coverage is preserved.
 - <FewShotExamples>: Add or replace examples to improve category coverage. \
+Each example must end with a single line: Rating: [1-5]. \
 Never remove an example if it is the only one for its rating level.
 
 FORBIDDEN:
-- Do NOT change the <Task> section. It must remain EXACTLY:
-    <Task>
-    Review: {review}
-    Rating:
-    </Task>
+- Do NOT change the <Task> section. It must remain EXACTLY as in Prompt 1.
 - Do NOT remove the <Role> tag inside <System>.
 - Preserve the XML structure: <System>(<Role>, <BaseGuidelines>, <DynamicRules>)\
 </System>, <FewShotExamples>, <Task>.
-- Do NOT delete rules to make the prompt shorter.
+- Do NOT delete rules solely to make the prompt shorter; prune only when it
+  does not reduce coverage or hurt generalization.
 
 Output ONLY the complete prompt text from <System> to </Task>.
 No explanation, no markdown code fences.\
@@ -440,12 +446,50 @@ def _quick_batch_score(
     return _compute_weighted_fitness(acc_hard, acc_anchor, kappa_hard, prompt_template)
 
 
+def _is_api_error(exc: BaseException) -> bool:
+    """True if exception looks like API/auth failure (401, timeout, etc.)."""
+    msg = str(exc).lower()
+    return (
+        "401" in msg or "user not found" in msg or "llm call failed" in msg
+        or "authentication" in msg or "api key" in msg
+    )
+
+
+def _exit_on_api_error(
+    exc: BaseException,
+    results_dir: Path,
+    last_completed_cycle: int,
+    prompt_path: Optional[Path],
+    n_al: int,
+    n_evolve: int,
+) -> None:
+    """Write resume state and exit with instructions."""
+    state = {
+        "last_completed_cycle": last_completed_cycle,
+        "next_cycle": last_completed_cycle + 1,
+        "prompt_path": str(prompt_path) if prompt_path else None,
+        "n_al_iterations": n_al,
+        "n_evolve_iterations": n_evolve,
+    }
+    state_path = results_dir / "resume_state.json"
+    with open(state_path, "w", encoding="utf-8") as f:
+        json.dump(state, f, indent=2)
+    print("\n" + "!" * 60)
+    print("API error (e.g. 401). Check OPENROUTER_API_KEY in .env")
+    print(str(exc))
+    print(f"Resume state saved to {state_path}")
+    print("Fix the key and run with: --resume-from-dir", results_dir)
+    print("!" * 60 + "\n")
+    sys.exit(1)
+
+
 def run_active_loop(
     n_al_iterations: int = 4,
     n_evolve_iterations: int = 15,
     initial_prompt_path: Optional[Path] = None,
     results_dir: Optional[Path] = None,
     smoke_mode: bool = False,
+    resume_start_cycle: Optional[int] = None,
 ) -> None:
     """
     Run the Active Prompt Evolution loop with pool expansion.
@@ -467,6 +511,23 @@ def run_active_loop(
     results_dir.mkdir(parents=True, exist_ok=True)
 
     log_entries = []
+    log_path = results_dir / "active_loop_log.json"
+    if log_path.exists():
+        with open(log_path, "r", encoding="utf-8") as f:
+            log_entries = json.load(f)
+
+    if resume_start_cycle is not None:
+        if resume_start_cycle <= 0:
+            raise ValueError("resume_start_cycle must be >= 1")
+        resume_prompt_path = results_dir / f"al_iter_{resume_start_cycle}" / "best_prompt.txt"
+        if not resume_prompt_path.exists():
+            raise FileNotFoundError(
+                f"Resume prompt not found: {resume_prompt_path}. "
+                "Ensure evolution for that cycle completed (best_prompt.txt exists)."
+            )
+        prompt_path = resume_prompt_path
+        print(f"Resuming from cycle {resume_start_cycle + 1}, prompt: {prompt_path}")
+
     diag = DiagnosticLogger(results_dir / "debug_trace.jsonl")
     smoke_timings = []  # (stage, duration_s) when smoke_mode
 
@@ -474,6 +535,8 @@ def run_active_loop(
     batch_size = al_cfg.get("batch_size", 80)
     hard_ratio = al_cfg.get("hard_ratio", 0.7)
     expansion_trigger = al_cfg.get("expansion_trigger", 5)
+    refresh_per_cycle = al_cfg.get("refresh_per_cycle", 0)
+    consolidation_gate_delta = al_cfg.get("consolidation_gate_delta", 0.02)
 
     with open(prompt_path, "r", encoding="utf-8") as f:
         current_prompt = f.read()
@@ -501,9 +564,14 @@ def run_active_loop(
     print("=" * 60)
     if smoke_mode:
         t0 = _time.time()
-    full_results = _evaluate_batch(
-        current_prompt, list(range(data_manager.n_total)), data_manager, cfg_dict
-    )
+    try:
+        full_results = _evaluate_batch(
+            current_prompt, list(range(data_manager.n_total)), data_manager, cfg_dict
+        )
+    except RuntimeError as e:
+        if _is_api_error(e):
+            _exit_on_api_error(e, results_dir, 0, None, n_al_iterations, n_evolve_iterations)
+        raise
     batch_indices = data_manager.initialize_from_evaluation(
         full_results["predictions"],
         full_results["gold_labels"],
@@ -523,26 +591,69 @@ def run_active_loop(
     diag.log("init", total_pool=data_manager.n_total, batch=len(batch_indices),
              hard=data_manager.n_hard, anchor=data_manager.n_anchor, unseen=data_manager.n_unseen)
 
-    # Baseline test evaluation (initial prompt on test set)
-    print("  Evaluating initial prompt on test set...")
-    if smoke_mode:
-        t0 = _time.time()
-    baseline_test_metrics = _evaluate_split_full(current_prompt, cfg_dict, split_name="test")
-    if smoke_mode:
-        dur = _time.time() - t0
-        print(f"  [smoke] baseline_test: {dur:.1f}s")
-        smoke_timings.append(("baseline_test", round(dur, 2)))
-        diag.log("smoke_timing", stage="baseline_test", duration_s=round(dur, 2))
-    with open(results_dir / "baseline_test_metrics.json", "w", encoding="utf-8") as f:
-        json.dump(baseline_test_metrics, f, indent=2)
-    print(f"  Baseline test: R_global={baseline_test_metrics['R_global']:.2%}  "
-          f"Acc_Hard={baseline_test_metrics['Acc_Hard']:.2%}  Acc_Anchor={baseline_test_metrics['Acc_Anchor']:.2%}")
-    diag.log("baseline_test", **{k: v for k, v in baseline_test_metrics.items() if isinstance(v, (int, float))})
+    # Baseline test evaluation (initial prompt on test set); skip when resuming
+    baseline_path = results_dir / "baseline_test_metrics.json"
+    if resume_start_cycle is None:
+        print("  Evaluating initial prompt on test set...")
+        if smoke_mode:
+            t0 = _time.time()
+        try:
+            baseline_test_metrics = _evaluate_split_full(current_prompt, cfg_dict, split_name="test")
+        except RuntimeError as e:
+            if _is_api_error(e):
+                _exit_on_api_error(e, results_dir, 0, None, n_al_iterations, n_evolve_iterations)
+            raise
+        if smoke_mode:
+            dur = _time.time() - t0
+            print(f"  [smoke] baseline_test: {dur:.1f}s")
+            smoke_timings.append(("baseline_test", round(dur, 2)))
+            diag.log("smoke_timing", stage="baseline_test", duration_s=round(dur, 2))
+        with open(baseline_path, "w", encoding="utf-8") as f:
+            json.dump(baseline_test_metrics, f, indent=2)
+        print(f"  Baseline test: R_global={baseline_test_metrics['R_global']:.2%}  "
+              f"Acc_Hard={baseline_test_metrics['Acc_Hard']:.2%}  Acc_Anchor={baseline_test_metrics['Acc_Anchor']:.2%}")
+        diag.log("baseline_test", **{k: v for k, v in baseline_test_metrics.items() if isinstance(v, (int, float))})
+    else:
+        if not baseline_path.exists():
+            raise FileNotFoundError(f"Resume requires {baseline_path} from initial run.")
+        with open(baseline_path, "r", encoding="utf-8") as f:
+            baseline_test_metrics = json.load(f)
+        print(f"  Baseline test (from file): R_global={baseline_test_metrics['R_global']:.2%}  "
+              f"Acc_Hard={baseline_test_metrics['Acc_Hard']:.2%}  Acc_Anchor={baseline_test_metrics['Acc_Anchor']:.2%}")
 
     # ======================================================================
     # Main AL loop
     # ======================================================================
-    for al_iter in range(n_al_iterations):
+    if resume_start_cycle is not None:
+        # Восстановление незавершённого цикла (смещение на конкретный al_iter)
+        al_start = resume_start_cycle
+    elif log_entries:
+        # Расширение существующего эксперимента: начинаем с следующего цикла
+        last_iter = max(e.get("al_iter", -1) for e in log_entries)
+        al_start = last_iter + 1
+    else:
+        al_start = 0
+
+    # History of val_combined_score for soft expansion trigger
+    val_scores_history = []
+    if log_entries:
+        val_scores_history = [
+            e.get("seed_val_score", e.get("val_combined_score", -1.0))
+            for e in log_entries
+        ]
+
+    best_val_score = -1.0
+    best_val_prompt = current_prompt
+    if log_entries:
+        for e in log_entries:
+            sv = e.get("seed_val_score", e.get("val_combined_score", -1.0))
+            if sv > best_val_score:
+                best_val_score = sv
+        best_val_prompt_path = results_dir / "best_val_prompt.txt"
+        if best_val_prompt_path.exists():
+            best_val_prompt = best_val_prompt_path.read_text(encoding="utf-8")
+
+    for al_iter in range(al_start, n_al_iterations):
         t_cycle_start = _time.time()
         print(f"\n{'=' * 60}")
         print(f"AL Cycle {al_iter + 1}/{n_al_iterations}  |  Hard: {data_manager.n_hard}  "
@@ -593,7 +704,8 @@ def run_active_loop(
         out_dir = results_dir / f"al_iter_{al_iter}"
         out_dir.mkdir(parents=True, exist_ok=True)
         db_dir = out_dir / "database"
-        if db_dir.exists():
+        is_resume_cycle = (resume_start_cycle is not None and al_iter == resume_start_cycle)
+        if not is_resume_cycle and db_dir.exists():
             import shutil
             shutil.rmtree(db_dir)
         evolve_config.database.db_path = str(db_dir)
@@ -603,41 +715,52 @@ def run_active_loop(
         if evolve_config.evolution_trace and evolve_config.evolution_trace.enabled:
             evolve_config.evolution_trace.output_path = ""
 
-        # Run OpenEvolve
-        print(f"  Running evolution ({n_evolve_iterations} iterations)...")
-        (out_dir / "start_prompt.txt").write_text(current_prompt, encoding="utf-8")
-        diag.log("evolution_start", al_iter=al_iter, n_iterations=n_evolve_iterations)
-
         best_evolution_score = -1.0
-        if smoke_mode:
-            t0_evo = _time.time()
-        try:
-            result = run_evolution(
-                initial_program=current_prompt,
-                evaluator=evaluator_path,
-                config=evolve_config,
-                iterations=n_evolve_iterations,
-                output_dir=oe_output_dir,
-                cleanup=False,
-            )
-            best_code = current_prompt
-            if result:
-                if result.best_program and hasattr(result.best_program, "code"):
-                    best_code = result.best_program.code
-                    best_evolution_score = result.best_score
-                elif result.best_code:
-                    best_code = result.best_code
-                    best_evolution_score = result.best_score
-            current_prompt = best_code
-            (out_dir / "best_prompt.txt").write_text(current_prompt, encoding="utf-8")
-            diag.log("evolution_done", al_iter=al_iter, best_score=best_evolution_score,
-                     best_prompt_len=len(current_prompt))
-        except Exception as e:
-            print(f"  Evolution failed: {e}")
-            import traceback
-            traceback.print_exc()
-            diag.log("evolution_error", al_iter=al_iter, error=str(e))
-        if smoke_mode:
+        if is_resume_cycle:
+            # Skip evolution; keep current_prompt (already loaded from best_prompt.txt)
+            (out_dir / "start_prompt.txt").write_text(current_prompt, encoding="utf-8")
+            best_info_path = out_dir / "openevolve_output" / "best" / "best_program_info.json"
+            if best_info_path.exists():
+                with open(best_info_path, "r", encoding="utf-8") as f:
+                    best_info = json.load(f)
+                best_evolution_score = float(best_info.get("metrics", {}).get("combined_score", -1.0))
+            print(f"  Resuming: skipping evolution, best_evolution_score={best_evolution_score:.4f}")
+            diag.log("evolution_skipped_resume", al_iter=al_iter, best_score=best_evolution_score)
+        else:
+            # Run OpenEvolve
+            print(f"  Running evolution ({n_evolve_iterations} iterations)...")
+            (out_dir / "start_prompt.txt").write_text(current_prompt, encoding="utf-8")
+            diag.log("evolution_start", al_iter=al_iter, n_iterations=n_evolve_iterations)
+
+            if smoke_mode:
+                t0_evo = _time.time()
+            try:
+                result = run_evolution(
+                    initial_program=current_prompt,
+                    evaluator=evaluator_path,
+                    config=evolve_config,
+                    iterations=n_evolve_iterations,
+                    output_dir=oe_output_dir,
+                    cleanup=False,
+                )
+                best_code = current_prompt
+                if result:
+                    if result.best_program and hasattr(result.best_program, "code"):
+                        best_code = result.best_program.code
+                        best_evolution_score = result.best_score
+                    elif result.best_code:
+                        best_code = result.best_code
+                        best_evolution_score = result.best_score
+                current_prompt = best_code
+                (out_dir / "best_prompt.txt").write_text(current_prompt, encoding="utf-8")
+                diag.log("evolution_done", al_iter=al_iter, best_score=best_evolution_score,
+                         best_prompt_len=len(current_prompt))
+            except Exception as e:
+                print(f"  Evolution failed: {e}")
+                import traceback
+                traceback.print_exc()
+                diag.log("evolution_error", al_iter=al_iter, error=str(e))
+        if smoke_mode and not is_resume_cycle:
             dur = _time.time() - t0_evo
             st = f"cycle_{al_iter}_evolution"
             print(f"  [smoke] {st} ({n_evolve_iterations} iter): {dur:.1f}s")
@@ -656,7 +779,16 @@ def run_active_loop(
         print("  Re-evaluating batch...")
         if smoke_mode:
             t0 = _time.time()
-        batch_results = _evaluate_batch(current_prompt, batch_indices, data_manager, cfg_dict)
+        try:
+            batch_results = _evaluate_batch(current_prompt, batch_indices, data_manager, cfg_dict)
+        except RuntimeError as e:
+            if _is_api_error(e):
+                _exit_on_api_error(
+                    e, results_dir, al_iter - 1,
+                    results_dir / f"al_iter_{al_iter}" / "best_prompt.txt",
+                    n_al_iterations, n_evolve_iterations,
+                )
+            raise
         hard_now, anchor_now = data_manager.reclassify_batch(
             batch_indices, batch_results["predictions"],
             batch_results["gold_labels"], batch_results["worker_predictions"],
@@ -674,7 +806,16 @@ def run_active_loop(
         print("  Validation...")
         if smoke_mode:
             t0 = _time.time()
-        val_ha = _evaluate_split_full(current_prompt, cfg_dict, split_name="validation")
+        try:
+            val_ha = _evaluate_split_full(current_prompt, cfg_dict, split_name="validation")
+        except RuntimeError as e:
+            if _is_api_error(e):
+                _exit_on_api_error(
+                    e, results_dir, al_iter,
+                    results_dir / f"al_iter_{al_iter}" / "best_prompt.txt",
+                    n_al_iterations, n_evolve_iterations,
+                )
+            raise
         if smoke_mode:
             dur = _time.time() - t0
             st = f"cycle_{al_iter}_validation"
@@ -684,7 +825,10 @@ def run_active_loop(
         diag.log("validation", al_iter=al_iter,
                  **{k: v for k, v in val_ha.items() if isinstance(v, (int, float))})
 
-        # --- Consolidation (Level 2) — always accept if valid ---
+        # Текущая оценка промпта на validation (для трекинга лучшего по val)
+        seed_val_score = float(val_ha.get("combined_score", 0.0))
+
+        # --- Consolidation (Level 2) — accept only if not much worse than best ---
         consolidated = False
         cons_top = _load_top_programs_from_db(db_dir, n=3)
         if len(cons_top) >= 2:
@@ -697,29 +841,68 @@ def run_active_loop(
             best_artifacts = cons_top[0].get("artifacts", None)
             cons_prompt = _consolidate_prompt(cons_top, al_iter, cfg_dict,
                                               error_artifacts=best_artifacts)
+            cons_val = None
             if cons_prompt is not None:
                 (out_dir / "consolidated_prompt.txt").write_text(cons_prompt, encoding="utf-8")
 
-                print("  Evaluating consolidated prompt on batch...")
-                cons_score = _quick_batch_score(
-                    cons_prompt, batch_indices, hard_in_batch, anchor_in_batch,
-                    data_manager, cfg_dict,
-                )
+                print("  Evaluating consolidated prompt on validation split...")
+                try:
+                    cons_val = _evaluate_split_full(cons_prompt, cfg_dict, split_name="validation")
+                except RuntimeError as e:
+                    if _is_api_error(e):
+                        _exit_on_api_error(
+                            e, results_dir, al_iter,
+                            results_dir / f"al_iter_{al_iter}" / "best_prompt.txt",
+                            n_al_iterations, n_evolve_iterations,
+                        )
+                    raise
                 if smoke_mode:
                     dur = _time.time() - t0_cons
                     st = f"cycle_{al_iter}_consolidation"
                     print(f"  [smoke] {st}: {dur:.1f}s")
                     smoke_timings.append((st, round(dur, 2)))
                     diag.log("smoke_timing", stage=st, duration_s=round(dur, 2), al_iter=al_iter)
-                print(f"  Consolidated batch score: {cons_score:.4f}  (evolution best: {best_evolution_score:.4f})")
-                diag.log("consolidation_eval", al_iter=al_iter,
-                         cons_score=cons_score, evo_best_score=best_evolution_score)
 
-                current_prompt = cons_prompt
-                consolidated = True
-                print("  Consolidated prompt ACCEPTED (always-accept policy).")
-                diag.log("consolidation_decision", al_iter=al_iter,
-                         accepted=True, cons_score=cons_score, evo_score=best_evolution_score)
+                if cons_val is not None:
+                    cons_score = float(cons_val.get("combined_score", 0.0))
+                    evo_val_score = float(val_ha.get("combined_score", 0.0))
+                    print(
+                        "  Consolidated validation score: "
+                        f"{cons_score:.4f}  (evolution val: {evo_val_score:.4f})"
+                    )
+                    delta = evo_val_score - cons_score
+                    diag.log(
+                        "consolidation_eval",
+                        al_iter=al_iter,
+                        cons_score=cons_score,
+                        evo_val_score=evo_val_score,
+                        delta=delta,
+                    )
+
+                    # Gate: reject consolidated prompt if validation score drops too much
+                    if cons_score + consolidation_gate_delta < evo_val_score:
+                        print(f"  Consolidated prompt REJECTED (Δ_val > {consolidation_gate_delta}, keep evolution best).")
+                        diag.log(
+                            "consolidation_decision",
+                            al_iter=al_iter,
+                            accepted=False,
+                            cons_score=cons_score,
+                            evo_score=best_evolution_score,
+                            delta=delta,
+                        )
+                    else:
+                        current_prompt = cons_prompt
+                        consolidated = True
+                        seed_val_score = cons_score
+                        print("  Consolidated prompt ACCEPTED (Δ_val ≤ 0.02).")
+                        diag.log(
+                            "consolidation_decision",
+                            al_iter=al_iter,
+                            accepted=True,
+                            cons_score=cons_score,
+                            evo_score=best_evolution_score,
+                            delta=delta,
+                        )
             else:
                 if smoke_mode:
                     dur = _time.time() - t0_cons
@@ -731,6 +914,12 @@ def run_active_loop(
         else:
             print("  Skipping consolidation (fewer than 2 programs in archive).")
             diag.log("consolidation_skip", al_iter=al_iter, reason="too_few_programs")
+
+        # Обновляем глобально лучший по validation промпт (для анализа и возможного использования)
+        if seed_val_score > best_val_score:
+            best_val_score = seed_val_score
+            best_val_prompt = current_prompt
+            (results_dir / "best_val_prompt.txt").write_text(best_val_prompt, encoding="utf-8")
 
         entry = {
             "al_iter": al_iter,
@@ -750,22 +939,194 @@ def run_active_loop(
             "expanded": False,
             "consolidated": consolidated,
             "evo_best_score": best_evolution_score,
+            "seed_val_score": seed_val_score,
+            "batch_actual_size": len(batch_indices),
+            "prompt_tokens": len(current_prompt) // 4,
         }
 
-        # Expansion check
-        if data_manager.needs_expansion(threshold=expansion_trigger):
+        # =================================================================
+        # Periodic Seen-pool re-evaluation (every N cycles)
+        # =================================================================
+        seen_reeval_interval = al_cfg.get("seen_reeval_interval", 3)
+        if seen_reeval_interval > 0 and (al_iter + 1) % seen_reeval_interval == 0:
+            seen_list = sorted(data_manager.seen_indices)
+            if seen_list:
+                print(f"  [SEEN RE-EVAL] Re-evaluating all {len(seen_list)} Seen examples...")
+                try:
+                    seen_results = _evaluate_batch(
+                        current_prompt, seen_list, data_manager, cfg_dict
+                    )
+                    old_hard, old_anchor = data_manager.n_hard, data_manager.n_anchor
+                    data_manager.reclassify_seen(
+                        seen_results["predictions"],
+                        seen_results["gold_labels"],
+                        seen_results["worker_predictions"],
+                        seen_list,
+                    )
+                    print(f"  [SEEN RE-EVAL] Done. Hard: {old_hard}->{data_manager.n_hard}, "
+                          f"Anchor: {old_anchor}->{data_manager.n_anchor}")
+                    diag.log("seen_reeval", al_iter=al_iter,
+                             n_seen=len(seen_list),
+                             hard_before=old_hard, hard_after=data_manager.n_hard,
+                             anchor_before=old_anchor, anchor_after=data_manager.n_anchor)
+                    entry["seen_reeval"] = {
+                        "n_seen": len(seen_list),
+                        "hard_before": old_hard, "hard_after": data_manager.n_hard,
+                        "anchor_before": old_anchor, "anchor_after": data_manager.n_anchor,
+                    }
+                except RuntimeError as e:
+                    if _is_api_error(e):
+                        _exit_on_api_error(
+                            e, results_dir, al_iter,
+                            results_dir / f"al_iter_{al_iter}" / "best_prompt.txt",
+                            n_al_iterations, n_evolve_iterations,
+                        )
+                    raise
+
+        # =================================================================
+        # Expansion / refresh check
+        # =================================================================
+        # Use val_combined_score for soft expansion (stable across cycles)
+        val_scores_history.append(seed_val_score)
+
+        soft_patience = al_cfg.get("soft_expansion_patience", 5)
+        soft_delta = al_cfg.get("soft_expansion_min_delta", 0.02)
+
+        needs_soft_expansion = False
+        if len(val_scores_history) >= soft_patience:
+            window_scores = val_scores_history[-soft_patience:]
+            window_max = max(window_scores)
+            window_start = window_scores[0]
+            if (window_max - window_start) < soft_delta:
+                needs_soft_expansion = True
+                print(f"  Soft expansion condition met: val improvement {window_max - window_start:.4f} < {soft_delta} over {soft_patience} cycles.")
+
+        needs_hard_expansion = data_manager.needs_expansion(threshold=expansion_trigger)
+
+        if (needs_hard_expansion or needs_soft_expansion) and data_manager.n_unseen > 0:
+            if needs_hard_expansion:
+                reason = f"Hard={data_manager.n_hard} <= {expansion_trigger}"
+            else:
+                reason = "Stagnation detected (val_combined_score plateau)"
+
             n_hard_needed = int(batch_size * hard_ratio) - data_manager.n_hard
-            n_hard_needed = max(n_hard_needed, expansion_trigger)
-            print(f"  Expansion triggered: Hard={data_manager.n_hard} <= {expansion_trigger}. "
-                  f"Adding {n_hard_needed} from Unseen...")
+            min_add = expansion_trigger if needs_hard_expansion else 15
+            n_hard_needed = max(n_hard_needed, min_add)
+
+            print(f"  [POOL EXPANSION] Triggered. Reason: {reason}. Selecting {n_hard_needed} from Unseen...")
             new_indices = data_manager.expand_pool(n_new=n_hard_needed, seed=42 + al_iter)
-            data_manager.hard_indices.extend(new_indices)
-            print(f"  After expansion: Hard: {data_manager.n_hard}, Anchor: {data_manager.n_anchor}, "
-                  f"Unseen: {data_manager.n_unseen}")
+
+            # Evaluate expanded examples before classifying as Hard/Anchor
+            if new_indices:
+                print(f"  [POOL EXPANSION] Evaluating {len(new_indices)} new examples...")
+                try:
+                    exp_results = _evaluate_batch(
+                        current_prompt, new_indices, data_manager, cfg_dict
+                    )
+                    exp_hard, exp_anchor = [], []
+                    uncertainty_threshold = al_cfg.get("uncertainty_threshold", 0.0)
+                    for j, idx in enumerate(new_indices):
+                        pred = exp_results["predictions"][j]
+                        gold = exp_results["gold_labels"][j]
+                        wp = [int(w[j]) for w in exp_results["worker_predictions"]]
+                        correct = pred == gold
+                        d_score = disagreement_score(wp, rating_min=1, rating_max=5)
+                        if (not correct) or (d_score > uncertainty_threshold):
+                            exp_hard.append(idx)
+                        else:
+                            exp_anchor.append(idx)
+                    data_manager.hard_indices.extend(exp_hard)
+                    data_manager.anchor_indices.extend(exp_anchor)
+                    print(f"  [POOL EXPANSION] Classified: {len(exp_hard)} Hard, {len(exp_anchor)} Anchor")
+                except RuntimeError as e:
+                    if _is_api_error(e):
+                        _exit_on_api_error(
+                            e, results_dir, al_iter,
+                            results_dir / f"al_iter_{al_iter}" / "best_prompt.txt",
+                            n_al_iterations, n_evolve_iterations,
+                        )
+                    # Fallback: add all as Hard if evaluation fails
+                    data_manager.hard_indices.extend(new_indices)
+                    exp_hard = new_indices
+                    exp_anchor = []
+                    print(f"  [POOL EXPANSION] Eval failed, added all {len(new_indices)} as Hard (fallback)")
+
+            print(f"  [POOL EXPANSION] Done. Hard: {data_manager.n_hard}, Anchor: {data_manager.n_anchor}, Unseen: {data_manager.n_unseen}")
             entry["expanded"] = True
             entry["n_expanded"] = len(new_indices)
-            diag.log("expansion", al_iter=al_iter, added=len(new_indices),
-                     hard=data_manager.n_hard, anchor=data_manager.n_anchor, unseen=data_manager.n_unseen)
+            entry["n_expanded_hard"] = len(exp_hard)
+            entry["n_expanded_anchor"] = len(exp_anchor)
+            entry["expansion_reason"] = reason
+            entry["expansion_event"] = "pool_expansion"
+            diag.log(
+                "expansion",
+                event_description="pool_expansion",
+                reason=reason,
+                al_iter=al_iter,
+                added=len(new_indices),
+                added_hard=len(exp_hard),
+                added_anchor=len(exp_anchor),
+                hard=data_manager.n_hard,
+                anchor=data_manager.n_anchor,
+                unseen=data_manager.n_unseen,
+            )
+
+        # Pool refresh: add small number of Unseen examples to Hard each cycle
+        if refresh_per_cycle > 0 and data_manager.n_unseen > 0:
+            n_refresh = min(refresh_per_cycle, data_manager.n_unseen)
+            print(f"  [POOL REFRESH] Adding {n_refresh} Unseen examples to Hard pool...")
+            refresh_indices = data_manager.expand_pool(n_new=n_refresh, seed=42 + al_iter + 1000)
+            if refresh_indices:
+                data_manager.hard_indices.extend(refresh_indices)
+                entry["refresh_event"] = {
+                    "added": len(refresh_indices),
+                    "hard": data_manager.n_hard,
+                    "anchor": data_manager.n_anchor,
+                    "unseen": data_manager.n_unseen,
+                }
+                diag.log(
+                    "refresh",
+                    event_description="cycle_refresh",
+                    al_iter=al_iter,
+                    added=len(refresh_indices),
+                    hard=data_manager.n_hard,
+                    anchor=data_manager.n_anchor,
+                    unseen=data_manager.n_unseen,
+                )
+                print(f"  [POOL REFRESH] Done. Hard: {data_manager.n_hard}, Unseen: {data_manager.n_unseen}")
+
+        # Per-cycle test evaluation (for graphs)
+        print("  Test evaluation (per-cycle)...")
+        if smoke_mode:
+            t0_test = _time.time()
+        try:
+            test_metrics = _evaluate_split_full(current_prompt, cfg_dict, split_name="test")
+        except RuntimeError as e:
+            if _is_api_error(e):
+                _exit_on_api_error(
+                    e, results_dir, al_iter,
+                    results_dir / f"al_iter_{al_iter}" / "best_prompt.txt",
+                    n_al_iterations, n_evolve_iterations,
+                )
+            raise
+        if smoke_mode:
+            dur = _time.time() - t0_test
+            st = f"cycle_{al_iter}_test"
+            print(f"  [smoke] {st}: {dur:.1f}s")
+            smoke_timings.append((st, round(dur, 2)))
+            diag.log("smoke_timing", stage=st, duration_s=round(dur, 2), al_iter=al_iter)
+        entry["test_R_global"] = test_metrics["R_global"]
+        entry["test_R_worst"] = test_metrics["R_worst"]
+        entry["test_combined_score"] = test_metrics["combined_score"]
+        entry["test_Acc_Hard"] = test_metrics["Acc_Hard"]
+        entry["test_Acc_Anchor"] = test_metrics["Acc_Anchor"]
+        entry["test_mae"] = test_metrics["mae"]
+        entry["test_mean_kappa"] = test_metrics["mean_kappa"]
+        entry["test_n_hard"] = test_metrics["n_hard"]
+        entry["test_n_anchor"] = test_metrics["n_anchor"]
+        print(f"  Test: R_global={test_metrics['R_global']:.2%}  R_worst={test_metrics['R_worst']:.2%}  "
+              f"combined={test_metrics['combined_score']:.4f}  Acc_Hard={test_metrics['Acc_Hard']:.2%}")
+        diag.log("cycle_test", al_iter=al_iter, **{k: v for k, v in test_metrics.items() if isinstance(v, (int, float))})
 
         cycle_time = _time.time() - t_cycle_start
         print(f"  Val: R_global={val_ha['R_global']:.2%}  Acc_Hard={val_ha['Acc_Hard']:.2%}  "
@@ -792,7 +1153,19 @@ def run_active_loop(
     print("=" * 60)
     if smoke_mode:
         t0 = _time.time()
-    final_test_metrics = _evaluate_split_full(current_prompt, cfg_dict, split_name="test")
+    try:
+        final_test_metrics = _evaluate_split_full(current_prompt, cfg_dict, split_name="test")
+    except RuntimeError as e:
+        if _is_api_error(e):
+            last_prompt = results_dir / "final_prompt.txt"
+            if not last_prompt.exists():
+                last_prompt = results_dir / f"al_iter_{n_al_iterations - 1}" / "best_prompt.txt"
+            _exit_on_api_error(
+                e, results_dir, n_al_iterations - 1,
+                last_prompt if last_prompt.exists() else None,
+                n_al_iterations, n_evolve_iterations,
+            )
+        raise
     if smoke_mode:
         dur = _time.time() - t0
         print(f"  [smoke] final_test: {dur:.1f}s")
@@ -856,9 +1229,56 @@ def main():
                         help="Output directory (default: results). Use results_smoke for smoke run.")
     parser.add_argument("--smoke", action="store_true",
                         help="Smoke run: 2 AL cycles, 4 evolve iter, results_smoke/.")
+    parser.add_argument(
+        "--resume-from-dir",
+        type=str,
+        default=None,
+        help=(
+            "Continue or recover a previous run in this results dir. "
+            "If active_loop_log.json exists, uses the last completed cycle's best_prompt "
+            "as the seed and appends new AL cycles."
+        ),
+    )
     args = parser.parse_args()
 
-    if args.smoke:
+    resume_start_cycle = None
+    initial_prompt_path = Path(args.prompt) if args.prompt else None
+    out_dir = None
+
+    if args.resume_from_dir:
+        results_dir = Path(args.resume_from_dir).resolve()
+        if not results_dir.is_dir():
+            raise SystemExit(f"Not a directory: {results_dir}")
+        out_dir = results_dir
+        log_path = results_dir / "active_loop_log.json"
+        if log_path.exists():
+            with open(log_path, "r", encoding="utf-8") as f:
+                log_entries = json.load(f)
+            if log_entries:
+                # Расширяем существующий эксперимент: берём последний завершённый цикл как seed
+                last_iter = max(e.get("al_iter", -1) for e in log_entries)
+                prompt_path = results_dir / f"al_iter_{last_iter}" / "best_prompt.txt"
+                if not prompt_path.exists():
+                    raise SystemExit(
+                        f"Resume seed prompt not found: {prompt_path}. "
+                        "Run without --resume-from-dir first."
+                    )
+                initial_prompt_path = prompt_path
+                resume_start_cycle = None  # al_start будет last_iter+1 внутри run_active_loop
+                n_al, n_evolve = args.n_al, args.n_evolve
+                print(
+                    f"Resume (extend): last completed cycle {last_iter}, "
+                    f"next cycle index will be {last_iter + 1}, seed {initial_prompt_path}"
+                )
+            else:
+                # Лог пустой, но директория существует — ведём себя как свежий запуск
+                resume_start_cycle = None
+                n_al, n_evolve = args.n_al, args.n_evolve
+        else:
+            # Нет логов — свежий запуск в уже существующей директории
+            resume_start_cycle = None
+            n_al, n_evolve = args.n_al, args.n_evolve
+    elif args.smoke:
         n_al, n_evolve = 2, 4
         out_dir = SCRIPT_DIR / "results_smoke"
         print("Smoke run: --n-al 2 --n-evolve 4 --results-dir results_smoke")
@@ -869,9 +1289,10 @@ def main():
     run_active_loop(
         n_al_iterations=n_al,
         n_evolve_iterations=n_evolve,
-        initial_prompt_path=Path(args.prompt) if args.prompt else None,
+        initial_prompt_path=initial_prompt_path,
         results_dir=out_dir,
         smoke_mode=args.smoke,
+        resume_start_cycle=resume_start_cycle,
     )
 
 

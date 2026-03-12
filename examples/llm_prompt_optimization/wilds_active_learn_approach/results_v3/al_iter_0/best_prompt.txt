@@ -1,0 +1,119 @@
+# EVOLVE-BLOCK-START
+<System>
+<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive
+    - Output format: ONLY a single number: 1, 2, 3, 4, or 5
+    - Do NOT output any explanation, text, symbols, or punctuation
+    - Task: Classify the overall sentiment of the review based solely on the review text
+    - Base the rating on overall customer satisfaction, not on isolated phrases
+</BaseGuidelines>
+
+<DynamicRules>
+    STAR LEVEL CRITERIA:
+
+    1 Star (Very Negative):
+    - Strong dissatisfaction or anger
+    - Product is defective, unsafe, completely ineffective, or returned
+    - Clear statements such as "terrible," "junk," "don't buy," "returned," "doesn't work"
+    - Safety hazards or total failure automatically lean toward 1
+    - Multiple unresolved issues reported together
+
+    2 Stars (Negative):
+    - More negative than positive
+    - Significant flaws, poor quality, missing parts, misleading description
+    - Functional but with major compromises affecting regular use
+    - Language such as "cheap," "useless," "not as pictured," "pain to use"
+    - Short lifespan despite proper use
+
+    3 Stars (Neutral / Mixed):
+    - Balanced pros and cons with neither dominating
+    - "It's okay," "average," "not great but not terrible"
+    - Works but with limitations requiring compromises
+    - Conflicted tone where satisfaction equals dissatisfaction
+    - "Better than nothing" statements with explicit compromises
+
+    4 Stars (Positive):
+    - Mostly positive with SPECIFIC minor criticisms
+    - Exceeds basic expectations but has clear imperfections
+    - Satisfied but with reservations about durability/quality
+    - Performance praise with explicit limitations (e.g., "great but heavy")
+    - Requires special handling/maintenance for optimal use
+    - Praise for aesthetics/design combined with functional limitations
+    - Material quality concerns (thinness, stitching) despite good functionality
+    - Explicit comparisons to superior products despite satisfaction
+
+    5 Stars (Very Positive):
+    - Unambiguous enthusiasm and strong recommendation
+    - Core functionality excellence outweighs minor feature gaps
+    - Transforms user experience through exceptional utility
+    - Practical disclaimers with strong satisfaction (e.g., "needs care but works perfectly")
+    - Sustained praise across multiple aspects (function, design, value)
+    - "Pleasantly surprised" outcomes that validate exceeded low expectations
+    - Explicit repurchasing/gifting behavior mentioned despite minor issues
+    - Emotional language ("love," "perfect") outweighing neutral observations
+    - Final positive verdict overriding initial negative impressions
+    - Specific performance validation through multi-use success stories
+
+    EDGE CASE HANDLING:
+    - Mixed updates: Final positive conclusion dominates initial skepticism
+    - Practical usage tips without dissatisfaction →5 ("works best when...")
+    - Temporary satisfaction + long-term doubts →4
+    - Aesthetic praise + flawless function →5
+    - Core functionality excellence + non-critical flaws →5
+    - Price praise with functional limitations →4; without limitations →5
+    - Material thickness concerns + enthusiastic endorsement →5 if transformative
+</DynamicRules>
+
+</System>
+
+<FewShotExamples>
+
+Example 1:
+Review: "This vacuum spat debris back out immediately. Dangerous and completely useless."
+Rating: 1
+
+Example 2:
+Review: "Lids crack easily and leak during transport. Not worth the price despite working occasionally."
+Rating: 2
+
+Example 3:
+Review: "Does the job as basic storage but feels flimsy. Better than nothing for now."
+Rating: 3
+
+Example 4:
+Review: "Vibrant blue transformed my kitchen! Material feels thin compared to premium brands but works flawlessly."
+Rating: 4
+
+Example 5:
+Review: "With all the mixed opinions I had low expectations, but this blanket surpassed all! Soft, weighty, and durable despite initial doubts."
+Rating: 5
+
+Example 6:
+Review: "Frankly had reservations but ended up happy. Sheets improve with use - now my favorite despite break-in period."
+Rating: 5
+
+Example 7:
+Review: "Effective but handles get hot quickly. Good for quick meals not daily use."
+Rating: 3
+
+Example 8:
+Review: "Kids love these reusable bags! Minor stitching issues don't detract from Halloween magic we created."
+Rating: 5
+
+Example 9:
+Review: "This pan makes cooking effortless! Nothing sticks despite being lightweight. Worth every penny!"
+Rating: 5
+
+Example 10:
+Review: "Great storage solution if you don't overfill. Multiple purchases confirm reliability despite minor size issues."
+Rating: 5
+
+</FewShotExamples>
+
+<Task>
+Review: {review}
+Rating:
+</Task>
+
+# EVOLVE-BLOCK-END

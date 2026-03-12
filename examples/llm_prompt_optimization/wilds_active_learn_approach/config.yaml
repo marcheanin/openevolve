@@ -17,7 +17,7 @@ llm:
   retries: 3
 
 prompt:
-  template_dir: "../wilds_experiment/templates"
+  template_dir: null
   num_top_programs: 5
   num_diverse_programs: 3
   include_artifacts: true
@@ -31,21 +31,41 @@ prompt:
     GPT-4o-mini). Each worker classifies a product review into 1-5 stars.
     The majority vote is the final prediction.
 
+    ## Prompt Structure & Output Format
+    The prompt MUST use XML tags for structure:
+    1. <System>: Contains <Role>, <BaseGuidelines>, <DynamicRules>.
+    2. <FewShotExamples>: Contains examples with a single rating per example (e.g. "Rating: 3").
+    3. <Task>: The input template.
+
+    **Output format:** Workers must output ONLY a rating 1-5 (e.g. "Rating: 4" or just "4").
+    No reasoning or explanation. Your few-shot examples MUST use this format:
+    Example:
+    Review: [text]
+    Rating: [1-5]
+
     ## What You Can Modify
     1. <DynamicRules>: ADD new rules or REFINE existing rule wording.
     2. <FewShotExamples>: ADD, replace, or reorder examples.
+       - Use the provided **Error Examples** (in artifacts) to create new Few-Shot examples.
+       - Replace least effective examples with these new "hard" cases.
+       - Each example ends with a single line: Rating: [1-5].
     3. Do NOT change <BaseGuidelines> or <Task>. These sections are frozen.
 
     ## CRITICAL: Active Learning Rule Management
-    This is an ACTIVE LEARNING system. The rule set must GROW over cycles,
-    not shrink. Follow these principles strictly:
+    This is an ACTIVE LEARNING system. The rule set should GROW over cycles,
+    but also stay compact and non-redundant. Follow these principles:
 
-    **NEVER DELETE existing rules.** If a rule exists, it was added because it
-    solved a real classification problem. Deleting it will cause regression on
-    those examples in future cycles. You may only:
+    **Avoid deleting working rules blindly.** If a rule exists, it was added
+    because it solved a real classification problem. You may:
     - ADD a new rule to address a new error pattern
     - REFINE the wording of an existing rule to make it clearer
     - MERGE two very similar rules into one that covers both cases
+    - REMOVE or MERGE rules that are clearly redundant or contradicted by
+      stronger, higher-level rules, as long as all rating categories remain covered.
+
+    **Keep the DynamicRules section compact.** Aim for no more than ~50 rules
+    total. When you add new rules, prefer merging or pruning weaker duplicates
+    instead of unbounded growth.
 
     **MANDATORY: cover ALL 5 rating categories.** The <DynamicRules> section
     MUST contain at least 2 rules for EACH star level (1, 2, 3, 4, 5).
@@ -73,30 +93,42 @@ prompt:
     - MUST include at least one example for EACH rating level (1-5).
     - Do NOT remove an example if it is the only one for its rating level.
     - Prioritize commonly confused rating pairs (4 vs 5, 2 vs 3).
-    - You may use misclassified reviews from the artifacts as new few-shot
-      demonstrations if they are instructive.
+    - **Smart Few-Shot:** If the artifacts show a specific error type (e.g., sarcasm failed),
+      create a NEW few-shot example from that specific error case with the correct rating.
     - Aim for 7-10 diverse examples total.
 
     ## How Evaluation Works
     1. The {review} placeholder is replaced with the actual review text.
     2. The prompt is sent to each of the 3 worker models.
-    3. Each worker responds with a rating (1-5).
-    4. The majority vote becomes the final prediction.
+    3. Each worker responds with a single rating 1-5.
+    4. The rating is extracted and the majority vote becomes the final prediction.
 
-    ## Fitness Function
+    ## Metrics & Fitness (what \"good\" means)
+    During evolution, each candidate prompt is evaluated on a fixed active batch
+    of Hard+Anchor examples using an ensemble of 3 workers. From these results
+    we compute:
+    - R_global: overall accuracy on the batch.
+    - R_worst: accuracy on the worst user group (fairness metric).
+    - Acc_Hard: accuracy on Hard examples (either misclassified before or with
+      high worker disagreement).
+    - Acc_Anchor: accuracy on Anchor examples (easy, stable cases).
+    - mean_kappa: mean quadratic weighted Cohen's kappa between workers.
+
+    The main fitness used for selection is:
       fitness = 0.5 * Acc_Hard + 0.3 * Acc_Anchor + 0.2 * kappa_Hard - length_penalty
-    - Acc_Hard: accuracy on Hard examples (misclassified or disagreed).
-    - Acc_Anchor: accuracy on Anchor examples (correct and unanimous).
-    - kappa_Hard: quadratic weighted Cohen's Kappa among workers on Hard set.
-    - length_penalty: 0.01 per 100 extra tokens above 2000 estimated tokens.
+    where kappa_Hard is inter-worker agreement on the Hard subset, and
+    length_penalty grows with prompt length above ~2000 tokens. Your goal in
+    evolving prompts is to **maximize this combined fitness**, with particular
+    focus on improving Acc_Hard and kappa_Hard while preserving high Acc_Anchor
+    and keeping the prompt reasonably compact.
 
     ## Best Practices
-    1. GROW the rule set: add new rules based on error artifacts; never delete working rules.
+    1. Add new rules based on error artifacts; merge near-duplicates to stay compact.
     2. Use clear, generalizing rules (not rules for one specific review).
     3. Ensure DynamicRules covers ALL 5 rating levels with at least 2 rules each.
     4. Ensure FewShotExamples covers ALL 5 rating levels with diverse review styles.
     5. Preserve logic that correctly handles easy (Anchor) examples to avoid regression.
-    6. When in doubt, ADD a new rule rather than modifying or removing an existing one.
+    6. When in doubt, ADD a new rule rather than removing an existing one.
 
 database:
   population_size: 30
@@ -109,6 +141,7 @@ database:
   exploitation_ratio: 0.3
 
 evaluator:
+  model: "deepseek-chat-v3"  # primary model for single-model eval; when null, use workers ensemble
   timeout: 1800
   max_retries: 3
   parallel_evaluations: 1
@@ -152,7 +185,11 @@ active_learning:
   batch_size: 80
   hard_ratio: 0.7
   expansion_trigger: 15
-
+  soft_expansion_patience: 3      # Cycles without val improvement to trigger expansion
+  soft_expansion_min_delta: 0.02  # Minimum val_combined_score improvement required
+  seen_reeval_interval: 3         # Re-evaluate all Seen examples every N AL cycles (0 = off)
+  refresh_per_cycle: 10           # Add N Unseen examples to Hard pool each cycle (0 = off)
+  consolidation_gate_delta: 0.02  # Reject consolidated prompt if val score drops more than this
 dataset:
   config_path: "dataset.yaml"
   max_samples: null

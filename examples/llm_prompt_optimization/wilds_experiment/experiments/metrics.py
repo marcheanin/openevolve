@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from typing import Dict, List, Optional, Any
 
@@ -60,13 +62,22 @@ def compute_metrics(
     if worker_predictions and len(worker_predictions) > 1:
         kappas_unweighted = []
         kappas_weighted = []
+        labels_1_5 = [1, 2, 3, 4, 5]  # ordinal scale; avoids sklearn warnings when single label
         if cohen_kappa_score is not None:
-            for i in range(len(worker_predictions)):
-                for j in range(i + 1, len(worker_predictions)):
-                    a, b = worker_predictions[i], worker_predictions[j]
-                    kappas_unweighted.append(cohen_kappa_score(a, b))
-                    # Quadratic weighted kappa: штраф за близкие промахи (1 vs 2) меньше, чем за далёкие (1 vs 5)
-                    kappas_weighted.append(cohen_kappa_score(a, b, weights="quadratic"))
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", UserWarning)
+                warnings.simplefilter("ignore", RuntimeWarning)
+                for i in range(len(worker_predictions)):
+                    for j in range(i + 1, len(worker_predictions)):
+                        a, b = worker_predictions[i], worker_predictions[j]
+                        try:
+                            ku = cohen_kappa_score(a, b, labels=labels_1_5)
+                            kw = cohen_kappa_score(a, b, weights="quadratic", labels=labels_1_5)
+                            kappas_unweighted.append(ku if not np.isnan(ku) else 0.0)
+                            kappas_weighted.append(kw if not np.isnan(kw) else 0.0)
+                        except (ValueError, ZeroDivisionError):
+                            kappas_unweighted.append(0.0)
+                            kappas_weighted.append(0.0)
         result["mean_kappa_unweighted"] = float(np.mean(kappas_unweighted)) if kappas_unweighted else 0.0
         result["mean_kappa"] = float(np.mean(kappas_weighted)) if kappas_weighted else 0.0
 

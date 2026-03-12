@@ -289,6 +289,13 @@ def main():
     analyze_tokens()
     analyze_archive()
 
+    # Build plots from active_loop_log.json
+    try:
+        import visualize
+        visualize.plot_results(results_dir=RESULTS_DIR)
+    except Exception as e:
+        print(f"  [!!] Visualization skipped: {e}")
+
     section("Summary")
     final_path = RESULTS_DIR / "final_test_metrics.json"
     baseline_path = RESULTS_DIR / "baseline_test_metrics.json"

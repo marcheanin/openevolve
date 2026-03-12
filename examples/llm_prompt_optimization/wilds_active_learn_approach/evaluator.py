@@ -11,6 +11,7 @@ Supports:
 import json
 import os
 import sys
+import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -43,8 +44,10 @@ DEFAULT_MAX_PARALLEL = 15
 W1_ACC_HARD = 0.5
 W2_ACC_ANCHOR = 0.3
 W3_KAPPA = 0.2
+# Более строгий лимит и усиленный штраф за длину, чтобы
+# сдерживать рост промпта и избегать деградации из-за bloat.
 PROMPT_LEN_LIMIT = 2000
-PENALTY_PER_100_TOKENS = 0.01
+PENALTY_PER_100_TOKENS = 0.02
 
 
 class MajorityVoteAggregator:
@@ -272,9 +275,17 @@ def evaluate_fast(
             if hard_j:
                 hw = [np.array([wp_arr[k][j] for j in hard_j]) for k in range(len(wp_arr))]
                 kappas = []
-                for i in range(len(hw)):
-                    for j in range(i + 1, len(hw)):
-                        kappas.append(cohen_kappa_score(hw[i], hw[j], weights="quadratic"))
+                labels_1_5 = [1, 2, 3, 4, 5]
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)
+                    warnings.simplefilter("ignore", RuntimeWarning)
+                    for i in range(len(hw)):
+                        for j in range(i + 1, len(hw)):
+                            try:
+                                k = cohen_kappa_score(hw[i], hw[j], weights="quadratic", labels=labels_1_5)
+                                kappas.append(k if not np.isnan(k) else 0.0)
+                            except (ValueError, ZeroDivisionError):
+                                kappas.append(0.0)
                 kappa_hard = float(np.mean(kappas)) if kappas else 0.0
 
     combined = _compute_weighted_fitness(acc_hard, acc_anchor, kappa_hard, prompt_template)
@@ -479,11 +490,3 @@ def evaluate(prompt_path: Optional[str] = None) -> Union[Dict[str, Any], Evaluat
     return result
 
 
-def evaluate_stage1(prompt_path: Optional[str] = None) -> Dict[str, Any]:
-    """Cascade stage 1: fast evaluation on active batch."""
-    return evaluate(prompt_path)
-
-
-def evaluate_stage2(prompt_path: Optional[str] = None) -> Dict[str, Any]:
-    """Cascade stage 2: full validation (same as evaluate when no active batch)."""
-    return evaluate(prompt_path)

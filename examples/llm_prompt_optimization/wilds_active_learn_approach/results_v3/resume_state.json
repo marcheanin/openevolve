@@ -1,0 +1,7 @@
+{
+  "last_completed_cycle": 6,
+  "next_cycle": 7,
+  "prompt_path": "C:\\Users\\march\\things\\mipt\\AlphaEvolveProject\\openevolve\\examples\\llm_prompt_optimization\\wilds_active_learn_approach\\results_v3\\al_iter_7\\best_prompt.txt",
+  "n_al_iterations": 10,
+  "n_evolve_iterations": 30
+}

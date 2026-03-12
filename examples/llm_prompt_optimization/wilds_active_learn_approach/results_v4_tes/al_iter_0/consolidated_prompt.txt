@@ -1,0 +1,110 @@
+<System>
+<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive
+    - Output: a single rating 1-5 (e.g. "Rating: 3" or just "3")
+    - Task: Classify the overall sentiment of the review based solely on the review text
+    - Base the rating on overall customer satisfaction, not on isolated phrases
+</BaseGuidelines>
+
+<DynamicRules>
+    STAR LEVEL CRITERIA:
+
+    1 Star (Very Negative):
+    - Strong dissatisfaction or anger
+    - Product is defective, unsafe, completely ineffective, or returned
+    - Clear statements such as "terrible," "junk," "don't buy," "returned," "doesn't work"
+    - Safety hazards or total failure automatically lean toward 1
+    - Explicit mentions of unresolved major issues despite initial praise → 1
+
+    2 Stars (Negative):
+    - More negative than positive with functional limitations
+    - Fails within short timeframe or underperforms vs alternatives
+    - Significant quality issues but still minimally usable
+    - Language indicating regret like "disappointing," "worse than expected"
+    - Comparison phrases: "X does this better" without recommendation
+
+    3 Stars (Neutral / Mixed):
+    - Balanced pros and cons with resigned acceptance
+    - "Gets the job done" without enthusiasm
+    - Works adequately but with clear compromises
+    - Conflicted tone with equivalent positive/negative aspects
+    - Negative descriptors like "cheap/flimsy" with functional acceptance → 3
+
+    4 Stars (Positive):
+    - Clear satisfaction with minor functional nitpicks
+    - Praise outweighs criticisms about non-essential features
+    - "Great value" or "better than average" with minor caveats
+    - Would repurchase but notes room for improvement
+    - Functional benefits outweigh quality concerns unless severe
+    - Specific usage adjustments that don't impact core functionality → 4
+
+    5 Stars (Very Positive):
+    - Unambiguous endorsement with emotional positivity
+    - Exceeds expectations in core functionality
+    - Effective results outweigh any setup/learning curve
+    - "Best purchase" or "life changing" phrases
+    - Niche satisfaction meeting specific enthusiast needs
+    - Multiple positive attributes without major criticisms → 5 (even if not "extraordinary")
+    - Expressions of love, joy, or delight (e.g., "love it," "so happy," "delighted")
+    - Strong recommendations to others ("highly recommend," "must-have")
+    - Products meeting needs effectively without needing exceptional qualities → 5
+
+    EDGE CASE HANDLING:
+    - Prioritize final verdict over temporary frustrations mentioned earlier
+    - "Works but..." openings with strong conclusions → align with closing sentiment
+    - Comparisons highlighting inferiority → 2 if functional, 3 if still usable
+    - Enthusiastic problem-solving (e.g., "figured out controls and love it") → 5
+    - Price praise with limitations → 4 unless quality compromises are severe
+    - Explicit recommendations → minimum 4, usually 5
+    - "Nice," "good," "well-made" with no negatives → 5, not 4
+    - Neutral material characteristics (e.g., "cotton wrinkles") don't reduce rating if positive overall
+    - Minor learning curve with excellent results → 5 stars
+    - Overall positive tone despite minor drawbacks → 5 if enthusiasm is clear
+    - Specific praise for quality/design without negatives → 5 even if not "remarkable"
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+
+Example 1:
+Review: It's not a good vacuum. It's hard to pick up dirt and then it will spit it out so you have to go over and over the same area. I wouldn't buy it again.
+Rating: 1
+
+Example 2:
+Review: Since buying this product and it dying 12 months later I've owned numerous carpet cleaners... Both of these blew the performance of this machine out of the water.
+Rating: 2
+
+Example 3:
+Review: The cushions are okay, but the size was waaaay off for my rocker. I'm still using it though because it is better than nothing.
+Rating: 3
+
+Example 4:
+Review: Not bad but the entire box feels cheap. Still provides easy storage and much better access for spices. A little more durability would have made this nicer.
+Rating: 4
+
+Example 5:
+Review: This is a good storage bin. It lacks exceptional build quality but looks good and keeps stuff organized. You could do worse for the price.
+Rating: 5
+
+Example 6:
+Review: Love this salad container! BPA-free and easy to use. The only downside is it's a bit smaller than expected, but still works well.
+Rating: 4
+
+Example 7:
+Review: This blender works well for smoothies. The build design is very sharp looking. One thing that wasn't skimped on was the looks!
+Rating: 5
+
+Example 8:
+Review: I love this vacuum...UPDATE after 2 yrs of major problems which were never resolved. Giving up and moving on.
+Rating: 1
+
+Example 9:
+Review: Very nice set of skillets - and what a lovely color. Quite a bargain, and I was glad to find it as I provide my husband his "own" skillets.
+Rating: 5
+
+</FewShotExamples>
+
+<Task>
+Review: {review}
+</Task>
