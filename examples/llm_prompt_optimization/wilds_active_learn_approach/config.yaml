@@ -2,7 +2,7 @@ max_iterations: 100
 checkpoint_interval: 10
 log_level: "INFO"
 diff_based_evolution: false
-max_code_length: 10000
+max_code_length: 9000
 language: "text"
 
 # OpenRouter: Evolution model (DeepSeek R1 for reasoning)
@@ -31,11 +31,19 @@ prompt:
     GPT-4o-mini). Each worker classifies a product review into 1-5 stars.
     The majority vote is the final prediction.
 
-    ## Prompt Structure & Output Format
+    ## Prompt Structure & Roles (read carefully)
     The prompt MUST use XML tags for structure:
     1. <System>: Contains <Role>, <BaseGuidelines>, <DynamicRules>.
-    2. <FewShotExamples>: Contains examples with a single rating per example (e.g. "Rating: 3").
+    2. <FewShotExamples>: Examples with a single rating per example (e.g. "Rating: 3").
     3. <Task>: The input template.
+
+    **BaseGuidelines** = stable, proven rules (scale, output format, task framing).
+    Workers treat this as the PRIMARY anchor. During evolution you MUST NOT edit
+    <BaseGuidelines>; it is updated only in the consolidation step between cycles.
+
+    **DynamicRules** = experimental scratchpad for edge cases and new patterns.
+    It must stay small and non-redundant. Do NOT restate what is already in
+    BaseGuidelines—only add genuinely new disambiguations.
 
     **Output format:** Workers must output ONLY a rating 1-5 (e.g. "Rating: 4" or just "4").
     No reasoning or explanation. Your few-shot examples MUST use this format:
@@ -44,91 +52,70 @@ prompt:
     Rating: [1-5]
 
     ## What You Can Modify
-    1. <DynamicRules>: ADD new rules or REFINE existing rule wording.
+    1. <DynamicRules>: REFINE, MERGE, or (sparingly) add rules under the hard cap below.
     2. <FewShotExamples>: ADD, replace, or reorder examples.
-       - Use the provided **Error Examples** (in artifacts) to create new Few-Shot examples.
-       - Replace least effective examples with these new "hard" cases.
+       - Use **Error Examples** (artifacts) to replace weak examples with hard cases.
        - Each example ends with a single line: Rating: [1-5].
-    3. Do NOT change <BaseGuidelines> or <Task>. These sections are frozen.
+    3. Do NOT change <BaseGuidelines> or <Task>. These sections are frozen during evolution.
 
-    ## CRITICAL: Active Learning Rule Management
-    This is an ACTIVE LEARNING system. The rule set should GROW over cycles,
-    but also stay compact and non-redundant. Follow these principles:
+    ## CRITICAL: Merge-first DynamicRules (anti-bloat)
+    **Hard cap:** <DynamicRules> must contain **at most 15 rules** (count each distinct
+    bullet or numbered line as one rule). If you already have 15 rules, you MUST merge
+    or remove at least two overlapping or weak rules **before** you add anything new.
 
-    **Avoid deleting working rules blindly.** If a rule exists, it was added
-    because it solved a real classification problem. You may:
-    - ADD a new rule to address a new error pattern
-    - REFINE the wording of an existing rule to make it clearer
-    - MERGE two very similar rules into one that covers both cases
-    - REMOVE or MERGE rules that are clearly redundant or contradicted by
-      stronger, higher-level rules, as long as all rating categories remain covered.
+    **Merge-first policy (mandatory order):**
+    1. Before adding a new rule, check whether an existing DynamicRules line already
+       covers the same pattern. If yes, **REFINE that line** instead of appending a duplicate.
+    2. If two rules say almost the same thing, **merge them into one** clearer rule.
+    3. Delete rules that only repeat BaseGuidelines (e.g. generic star definitions already
+       implied by BaseGuidelines) unless they add a concrete boundary case.
+    4. Only when no existing rule can be extended should you add a **single** new rule—
+       and only if you are under the 15-rule cap or you merged first.
 
-    **Keep the DynamicRules section compact.** Aim for no more than ~50 rules
-    total. When you add new rules, prefer merging or pruning weaker duplicates
-    instead of unbounded growth.
+    **Coverage:** DynamicRules should still help all five star levels. Aim for at least
+    two rules per level **within the 15-rule budget** by merging, not by listing 50 bullets.
+    If RULE COVERAGE in artifacts shows missing categories, fix coverage by **refining or
+    merging** existing lines to cover those levels; do not explode the count.
 
-    **MANDATORY: cover ALL 5 rating categories.** The <DynamicRules> section
-    MUST contain at least 2 rules for EACH star level (1, 2, 3, 4, 5).
-    If the RULE COVERAGE WARNING in the artifacts shows missing categories,
-    your PRIMARY task is to add rules for those categories BEFORE doing
-    anything else.
-
-    **Prioritize error patterns.** When the Evaluation Artifacts show
-    systematic errors (e.g., gold=3 predicted as 4), add a SPECIFIC new
-    rule that disambiguates this boundary. Do NOT replace existing rules —
-    add the new rule alongside them.
+    **Error patterns:** For systematic gold→predicted errors, prefer **tightening one
+    existing rule** (e.g. 4 vs 5 boundary) over stacking many near-duplicate bullets.
 
     ## Error Feedback (Evaluation Artifacts)
-    Each evaluation provides concrete examples:
-    - ERROR DISTRIBUTION: which gold->predicted pairs are most frequent.
-    - MISCLASSIFIED EXAMPLES: review text, gold rating, predicted rating,
-      per-worker votes, and disagreement score.
-    - BORDERLINE EXAMPLES: correct prediction but workers disagreed.
-    - RULE COVERAGE: which rating categories have rules in DynamicRules
-      and which are MISSING — add rules for missing categories first.
-    Use these to identify systematic failure patterns and craft targeted
-    new rules or select better few-shot examples.
+    - ERROR DISTRIBUTION, TOP CONFUSION PAIRS, MISCLASSIFIED EXAMPLES, BORDERLINE EXAMPLES.
+    - FEW-SHOT BALANCE AUDIT, RULE COVERAGE.
+    Use them to refine rules and few-shots without growing DynamicRules past the cap.
 
     ## FewShotExamples Management
-    - MUST include at least one example for EACH rating level (1-5).
-    - Do NOT remove an example if it is the only one for its rating level.
-    - Prioritize commonly confused rating pairs (4 vs 5, 2 vs 3).
-    - **Smart Few-Shot:** If the artifacts show a specific error type (e.g., sarcasm failed),
-      create a NEW few-shot example from that specific error case with the correct rating.
+    - At least one example per rating (1-5); do not remove the only example for a level.
+    - Prioritize confused pairs (4 vs 5, 2 vs 3). Prefer replacing redundant 5-star
+      examples with under-represented levels when the audit warns of imbalance.
     - Aim for 7-10 diverse examples total.
 
     ## How Evaluation Works
     1. The {review} placeholder is replaced with the actual review text.
     2. The prompt is sent to each of the 3 worker models.
     3. Each worker responds with a single rating 1-5.
-    4. The rating is extracted and the majority vote becomes the final prediction.
+    4. The majority vote becomes the final prediction.
 
     ## Metrics & Fitness (what \"good\" means)
     During evolution, each candidate prompt is evaluated on a fixed active batch
     of Hard+Anchor examples using an ensemble of 3 workers. From these results
     we compute:
-    - R_global: overall accuracy on the batch.
-    - R_worst: accuracy on the worst user group (fairness metric).
-    - Acc_Hard: accuracy on Hard examples (either misclassified before or with
-      high worker disagreement).
-    - Acc_Anchor: accuracy on Anchor examples (easy, stable cases).
-    - mean_kappa: mean quadratic weighted Cohen's kappa between workers.
+    - R_global, R_worst, Acc_Hard, Acc_Anchor, mean_kappa.
 
-    The main fitness used for selection is:
+    The main fitness is:
       fitness = 0.5 * Acc_Hard + 0.3 * Acc_Anchor + 0.2 * kappa_Hard - length_penalty
-    where kappa_Hard is inter-worker agreement on the Hard subset, and
-    length_penalty grows with prompt length above ~2000 tokens. Your goal in
-    evolving prompts is to **maximize this combined fitness**, with particular
-    focus on improving Acc_Hard and kappa_Hard while preserving high Acc_Anchor
-    and keeping the prompt reasonably compact.
+    where length_penalty grows with prompt length above ~2000 tokens. **Maximize fitness**
+    by improving Acc_Hard and kappa_Hard while keeping Acc_Anchor high and the **entire
+    prompt short**—merging rules directly helps fitness.
 
     ## Best Practices
-    1. Add new rules based on error artifacts; merge near-duplicates to stay compact.
-    2. Use clear, generalizing rules (not rules for one specific review).
-    3. Ensure DynamicRules covers ALL 5 rating levels with at least 2 rules each.
-    4. Ensure FewShotExamples covers ALL 5 rating levels with diverse review styles.
-    5. Preserve logic that correctly handles easy (Anchor) examples to avoid regression.
-    6. When in doubt, ADD a new rule rather than removing an existing one.
+    1. Merge similar rules first; add new rules only when necessary and under the cap.
+    2. Use clear, generalizing rules (not one-off wording for a single review).
+    3. Keep DynamicRules at or below 15 rules; never exceed 15 without merging first.
+    4. Keep FewShotExamples balanced across 1-5 where artifacts flag imbalance.
+    5. Preserve behavior on easy (Anchor) examples to avoid regression.
+    6. When unsure whether to add or merge: **merge or refine**; do not blindly append.
 
 database:
   population_size: 30

@@ -374,6 +374,7 @@ def _format_error_artifacts(
     """Format error and borderline examples as artifact text for the LLM mutator."""
     from data_manager import disagreement_score
     from collections import Counter as _Counter
+    import re
 
     n_workers = len(worker_predictions)
     errors = []
@@ -398,14 +399,71 @@ def _format_error_artifacts(
         lines.append(_analyze_rule_coverage(prompt_text))
         lines.append("")
 
+        # Few-shot balance audit: how many examples per rating level (1-5)
+        fse_match = re.search(r"<FewShotExamples>(.*?)</FewShotExamples>", prompt_text, re.DOTALL)
+        if fse_match:
+            ratings_in_fse = re.findall(r"Rating:\s*([1-5])", fse_match.group(1))
+            total_fse = len(ratings_in_fse)
+            counter = _Counter(ratings_in_fse)
+            lines.append("FEW-SHOT BALANCE AUDIT:")
+            if total_fse == 0:
+                lines.append("  No Rating: [1-5] lines found in <FewShotExamples>.")
+            else:
+                for r in range(1, 6):
+                    count = counter.get(str(r), 0)
+                    flag = ""
+                    # Under-represented if strictly below 1, or far below uniform share
+                    uniform = max(1, total_fse // 5)
+                    if count == 0 or count < uniform // 2:
+                        flag = " (UNDER-REPRESENTED)"
+                    # Over-represented if dominates the set
+                    if count > total_fse * 0.4:
+                        flag = " (OVER-REPRESENTED)"
+                    lines.append(f"  Rating {r}: {count} example(s){flag}")
+                if counter.get("5", 0) > total_fse * 0.4:
+                    lines.append(
+                        "  WARNING: Rating 5 is heavily OVER-REPRESENTED. "
+                        "Prefer adding 2/3/4-star examples from recent errors instead of more 5-star ones."
+                    )
+            lines.append("")
+
     if errors:
         confusion = _Counter()
         for _, gold, pred, _, _ in errors:
             confusion[f"{gold} -> {pred}"] += 1
         top_conf = confusion.most_common(5)
+
+        # High-level distribution of mistakes
         lines.append(f"ERROR DISTRIBUTION ({len(errors)} total misclassified):")
         for pair, cnt in top_conf:
             lines.append(f"  gold {pair}: {cnt}")
+
+        # Highlight top confusion pairs with concrete examples
+        if top_conf:
+            lines.append("")
+            lines.append("TOP CONFUSION PAIRS (focus your rule changes here):")
+            for pair, cnt in top_conf[:3]:
+                try:
+                    gold_s, pred_s = pair.split(" -> ")
+                    gold_int = int(gold_s.strip())
+                    pred_int = int(pred_s.strip())
+                except ValueError:
+                    gold_int, pred_int = None, None
+                lines.append(f"  Pair gold={gold_s} vs pred={pred_s}: {cnt} errors")
+                # Collect up to 2 representative examples for this pair
+                examples_for_pair = []
+                if gold_int is not None and pred_int is not None:
+                    for (text, gold, pred, wp, ds) in errors:
+                        if gold == gold_int and pred == pred_int:
+                            examples_for_pair.append((text, gold, pred, wp, ds))
+                            if len(examples_for_pair) >= 2:
+                                break
+                for text, gold, pred, wp, ds in examples_for_pair:
+                    t = text[:max_text_len] + ("..." if len(text) > max_text_len else "")
+                    lines.append(
+                        f"    - Example: \"{t}\" (gold={gold}, pred={pred}, workers={wp}, disagreement={ds:.2f})"
+                    )
+
         lines.append("")
         lines.append("MISCLASSIFIED EXAMPLES (your prompt got these wrong):")
         for i, (text, gold, pred, wp, ds) in enumerate(errors[:max_errors]):

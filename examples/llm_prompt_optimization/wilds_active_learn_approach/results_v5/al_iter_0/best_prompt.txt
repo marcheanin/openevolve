@@ -1,0 +1,75 @@
+# Your rewritten program here
+# EVOLVE-BLOCK-START
+<System>
+<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive
+    - Output: a single rating 1-5 (e.g. "Rating: 3" or just "3")
+    - Task: Classify the overall sentiment of the review based solely on the review text
+    - Base the rating on overall customer satisfaction, not on isolated phrases
+</BaseGuidelines>
+
+<DynamicRules>
+1. 5-Star: Strong enthusiasm and clear recommendation. "Love," "perfect," "excellent." Exceeds expectations. Inherent/expected drawbacks (ironing cotton, setup time) in otherwise glowing reviews → 5, not 4.
+2. 4-Star: Mostly positive with minor criticisms. Works well overall despite drawbacks. "Pretty good," "above average," "would recommend." Moderate recommendation without strong emotion → 4.
+3. 3-Star: Balanced mix. "Okay," "average," "better than nothing." Functional with clear limitations. Mixed utility ("Great for X but not for Y") without overall enthusiasm → 3.
+4. 2-Star: More negative than positive. Significant flaws diminish usefulness, but product has limited function. "Cheap," "misleading," "pain to use."
+5. 1-Star: Complete failure, defective, unsafe, or returned. Strong negativity with no redeeming qualities.
+6. Updates: Use final evaluation. Initial praise overridden by later disappointment → lower rating accordingly.
+7. Mixed sentiment: Weigh overall conclusion more than isolated complaints. Conflicted tone where neither side dominates → 3.
+8. Short positive reviews: "Sturdy and attractive" or similar unequivocal praise → 5. Slightly qualified ("good but") → 4.
+9. Price praised despite limitations: Satisfies despite drawbacks → 4, exceeds value expectations → 5.
+10. "Wouldn't buy again" → 1 or 2 unless product functions adequately with major flaws → 2.
+11. Distinguish 4 vs 5: Strong enthusiasm and clear recommendation → 5. Positive but tempered praise or notable (non-inherent) drawback → 4.
+12. Distinguish 2 vs 3: More negative than positive with significant flaws → 2. Balanced mix → 3. "Better than nothing" → 3.
+13. Sarcasm detection: Positive words in obvious failure context → 1 or 2.
+14. "Okay but not extraordinary" with some positives → 4 if overall positive, 3 if mixed/conflicted.
+15. Strong satisfaction with minor inconvenience can be 5 if overall tone is very positive and inconvenience is trivial/expected.
+</DynamicRules>
+
+</System>
+
+<FewShotExamples>
+
+Example 1:
+Review: It's not a good vacuum. It's hard to pick up dirt and then it will spit it out so you have to go over and over the same area. I wouldn't buy it again.
+Rating: 1
+
+Example 2:
+Review: Very poor quality. Cheap fabric, not as pictured and the color was off. Returned the next day.
+Rating: 1
+
+Example 3:
+Review: This was pretty straightforward to put together, feels very sturdy, leaves lots of room underneath for storage (plus a little space I left open because the dog seems to be happy about being able to curl up under there and use it as a hiding place), allowed us to get rid of the box spring, and hasn't...
+Rating: 2
+
+Example 4:
+Review: The cushions are okay, but the size was waaaay off for my rocker. I'm still using it though because it is better than nothing.
+Rating: 3
+
+Example 5:
+Review: These are really nice IF you only use them for bigger items. They are too thick and bulky for smaller items.
+Rating: 3
+
+Example 6:
+Review: They're okay, but not extraordinary. They seem to be well made and are holding up so far with no problems, and the fact that you can toss them into the washing machine to be cleaned is nice. They're just a bit on the thin side as well, though, so you...
+Rating: 4
+
+Example 7:
+Review: I'd rate this as pretty good although it doesn't feel quite as heavy duty as the ones we've been using for the past few years... Overall I'd rate this as above average although only time will tell how durable it is.
+Rating: 4
+
+Example 8:
+Review: Sturdy and attractive, I've had this for almost a year and it looks like new. To use you stuff bags in the top. I've found that it can sometimes be a problem to pull them out. But that's because we manage to accumulate a lot of grocery bags --which I use when I walk the dogs, if you know what I m...
+Rating: 5
+
+Example 9:
+Review: These deep teal color of these clothes was exactly the shade I was hoping they would be. Sometimes things are called teal but aren't very true to the color, but these are. It's my teen daughter's favorite color and one of the colors we used in the de...
+Rating: 5
+
+</FewShotExamples>
+
+<Task>
+Review: {review}
+</Task>
+# EVOLVE-BLOCK-END
