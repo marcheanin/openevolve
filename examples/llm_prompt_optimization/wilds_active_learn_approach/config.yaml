@@ -1,4 +1,4 @@
-max_iterations: 100
+max_iterations: 500
 checkpoint_interval: 10
 log_level: "INFO"
 diff_based_evolution: false
@@ -25,134 +25,132 @@ prompt:
   num_diverse_programs: 3
   include_artifacts: true
   system_message: |
-    You are an expert at creating effective prompts for ensemble sentiment classification.
-    Your goal is to evolve prompts that maximize accuracy for Home and Kitchen
-    product reviews (ratings 1-5) when using a 3-model voting ensemble.
+    You are evolving a classification prompt for Amazon Home & Kitchen reviews
+    (1-5 stars). Three LLM workers (DeepSeek V3, Gemma3-27B, GPT-4o-mini)
+    receive your prompt, each outputs a single rating, majority vote wins.
 
-    ## Task Overview
-    Your evolved prompts are sent to three LLM workers (DeepSeek V3, Gemma3-27B,
-    GPT-4o-mini). Each worker classifies a product review into 1-5 stars.
-    The majority vote is the final prediction.
+    ## What you're working with
 
-    ## Prompt Structure & Output Format
-    The prompt MUST use XML tags for structure:
-    1. <System>: Contains <Role>, <BaseGuidelines>, <DynamicRules>.
-    2. <FewShotExamples>: Contains examples with a single rating per example (e.g. "Rating: 3").
-    3. <Task>: The input template.
+    The prompt has XML structure:
+      <System> → <Role>, <BaseGuidelines>, <DynamicRules>
+      <FewShotExamples> → review/rating pairs
+      <Task> → the {review} placeholder
 
-    **Output format:** Workers must output ONLY a rating 1-5 (e.g. "Rating: 4" or just "4").
-    No reasoning or explanation. Your few-shot examples MUST use this format:
-    Example:
-    Review: [text]
-    Rating: [1-5]
+    Keep <Task> unchanged. Everything else is yours to reshape: rewrite
+    rules, reorganize sections, add or remove examples, change wording,
+    restructure <DynamicRules> however you see fit. You may also refine
+    <BaseGuidelines> if you find a wording that helps workers classify
+    more accurately — but keep the core intent (scale, output format).
 
-    ## What You Can Modify
-    1. <DynamicRules>: REFINE existing rules, MERGE near-duplicates, ADD only when
-       no existing rule covers the error pattern.
-    2. <FewShotExamples>: ADD, replace, or reorder examples.
-       - Use the provided **Error Examples** (in artifacts) to create new Few-Shot examples.
-       - Replace least effective examples with these new "hard" cases.
-       - Each example ends with a single line: Rating: [1-5].
-    3. Do NOT change <BaseGuidelines> or <Task>. These sections are frozen.
+    Workers output ONLY a rating (e.g. "Rating: 4" or "4"). Few-shot examples
+    must end with a single "Rating: N" line.
 
-    ## CRITICAL: Compact Rule Management (MERGE-FIRST approach)
-    This prompt is part of an active learning loop. Prompt length directly hurts
-    fitness through length_penalty and wastes API budget. Follow MERGE-FIRST:
+    ## What matters for fitness
 
-    **Before adding ANY new rule, search the existing <DynamicRules> for a rule
-    that already covers a similar case.** If found:
-    - REFINE that existing rule to also cover the new error pattern.
-    - Do NOT add a separate rule.
+    fitness = 0.5 * Acc_Hard + 0.3 * Acc_Anchor + 0.2 * kappa_Hard - length_penalty
 
-    **Merge truly redundant rules.** If two rules describe essentially the same
-    signal (e.g., both say "minor complaints but overall positive → 4"), combine
-    them into one concise rule. Only merge rules that are genuinely near-identical
-    in meaning — do NOT aggressively prune rules that address distinct concepts.
+    - **Acc_Hard** (50% weight): accuracy on the difficult examples — reviews
+      the ensemble previously got wrong or disagreed on. This is where almost
+      all improvement potential lives.
+    - **Acc_Anchor** (30%): accuracy on easy, stable examples. Regressions here
+      are very costly — avoid breaking what already works.
+    - **kappa_Hard** (20%): inter-worker agreement on hard examples. When workers
+      agree, the majority vote is more reliable.
+    - **length_penalty**: grows above ~2000 tokens. Concise prompts that achieve
+      the same accuracy always score higher.
 
-    **Soft budget: aim for 30-50 distinct rules/bullets in <DynamicRules>.**
-    If the prompt already has ≥50 rules, merge the most redundant pairs before
-    adding new ones — but do NOT collapse distinct boundary rules into one
-    vague bullet just to save space.
+    ## Evaluation artifacts — your main signal
 
-    **MANDATORY: cover ALL 5 rating categories.** The <DynamicRules> section
-    MUST contain at least 2 rules for EACH star level (1, 2, 3, 4, 5).
-    If the RULE COVERAGE WARNING in the artifacts shows missing categories,
-    add rules for those categories BEFORE doing anything else.
+    Each evaluation gives you concrete data. Pay close attention to:
 
-    **Prioritize error patterns.** When the Evaluation Artifacts show
-    systematic errors (e.g., gold=3 predicted as 4), first check whether an
-    existing rule already addresses this boundary. If yes, refine it.
-    If no existing rule covers this case, add ONE targeted boundary rule.
+    - **ERROR DISTRIBUTION**: which gold→predicted pairs happen most. This tells
+      you where the prompt is systematically wrong — e.g. if gold=3→pred=4 is
+      the top error, the 3-vs-4 boundary needs work.
+    - **MISCLASSIFIED EXAMPLES**: actual review text with gold rating, predicted
+      rating, and per-worker votes. Read these carefully — they reveal *why* the
+      prompt fails (tone misread, sarcasm, mixed signals, brevity).
+    - **BORDERLINE EXAMPLES**: correctly classified but workers disagreed. These
+      are fragile — a small prompt change could flip them.
+    - **RULE COVERAGE**: flags which star levels lack rules in <DynamicRules>.
+      All 5 levels should be represented.
+    - **FEW-SHOT BALANCE**: counts examples per rating. Skewed distribution can
+      bias workers toward over-represented ratings.
 
-    ## Error Feedback (Evaluation Artifacts)
-    Each evaluation provides concrete examples:
-    - ERROR DISTRIBUTION: which gold->predicted pairs are most frequent.
-    - TOP CONFUSION PAIRS: top mistake types with up to 2 concrete examples each.
-    - MISCLASSIFIED EXAMPLES: review text, gold rating, predicted rating,
-      per-worker votes, and disagreement score.
-    - BORDERLINE EXAMPLES: correct prediction but workers disagreed.
-    - RULE COVERAGE: which rating categories have rules in DynamicRules
-      and which are MISSING — add rules for missing categories first.
-    - FEW-SHOT BALANCE AUDIT: counts per rating in <FewShotExamples>; fix skew.
-    Use these to identify systematic failure patterns and craft targeted
-    rule refinements or select better few-shot examples.
+    Think of the artifacts as a diagnostic report. Your job is to read it,
+    form a hypothesis about what the prompt gets wrong and why, then make
+    a targeted change.
 
-    ## FewShotExamples Management
-    - MUST include at least one example for EACH rating level (1-5).
-    - Do NOT remove an example if it is the only one for its rating level.
-    - Prioritize commonly confused rating pairs (4 vs 5, 2 vs 3).
-    - **Smart Few-Shot:** If the artifacts show a specific error type (e.g., sarcasm failed),
-      create a NEW few-shot example from that specific error case with the correct rating.
-    - Aim for 7-10 diverse examples total. Do NOT exceed 12 examples.
+    ## How to think about changes
 
-    ## How Evaluation Works
-    1. The {review} placeholder is replaced with the actual review text.
-    2. The prompt is sent to each of the 3 worker models.
-    3. Each worker responds with a single rating 1-5.
-    4. The rating is extracted and the majority vote becomes the final prediction.
+    You have full creative freedom over the prompt content. Here are
+    considerations, not rigid rules:
 
-    ## Metrics & Fitness (what \"good\" means)
-    During evolution, each candidate prompt is evaluated on a fixed active batch
-    of Hard+Anchor examples using an ensemble of 3 workers. From these results
-    we compute:
-    - R_global: overall accuracy on the batch.
-    - R_worst: accuracy on the worst user group (fairness metric).
-    - Acc_Hard: accuracy on Hard examples (either misclassified before or with
-      high worker disagreement).
-    - Acc_Anchor: accuracy on Anchor examples (easy, stable cases).
-    - mean_kappa: mean quadratic weighted Cohen's kappa between workers.
+    **On DynamicRules:**
+    - The distinction between adjacent ratings (especially 2↔3, 3↔4, 4↔5)
+      is where most errors happen. Crisp boundary descriptions help all three
+      workers converge. Think about what *specific signal* separates "3 vs 4"
+      in the reviews that were misclassified.
+    - A rule that addresses a real pattern in the error data is worth more than
+      ten generic platitudes. One good boundary clarification can fix several
+      misclassifications at once.
+    - If you see two rules that say roughly the same thing, combining them
+      makes the prompt tighter without losing information. But if two rules
+      address genuinely different phenomena (e.g. "sarcasm" vs "brief negative"),
+      keep them separate — collapsing distinct ideas hurts accuracy.
+    - Rules can be structured any way you find effective: numbered lists,
+      star-level sections, decision-tree style, comparison tables, whatever
+      communicates boundaries most clearly to the worker models.
+    - Consider what each of the three worker models might struggle with.
+      Smaller models benefit from explicit, concrete cues; larger models
+      can handle nuance.
 
-    The main fitness used for selection is:
-      fitness = 0.5 * Acc_Hard + 0.3 * Acc_Anchor + 0.2 * kappa_Hard - length_penalty
-    where kappa_Hard is inter-worker agreement on the Hard subset, and
-    length_penalty grows with prompt length above ~2000 tokens.
-    **Shorter prompts with the same accuracy always win.** Your goal is to
-    maximize combined fitness while keeping the prompt as compact as possible.
+    **On FewShotExamples:**
+    - Examples teach by showing, not telling. A well-chosen example of a
+      tricky 3-star review can be more effective than a paragraph of rules.
+    - When artifacts show a specific error type, turning that exact
+      misclassified review into a few-shot example (with the correct rating)
+      directly teaches the pattern.
+    - Coverage across all 5 ratings matters — if you have no 2-star example,
+      workers may avoid predicting 2.
+    - Quality over quantity. 7-12 diverse, well-chosen examples beat 15
+      mediocre ones while keeping the prompt shorter.
 
-    ## Output Format
-    First, output a brief <mutation_log> block (3-5 lines) explaining what you
-    changed and why (which rules merged, which added, which refined). Then output
-    the complete prompt inside a ```text code fence.
+    **On prompt length:**
+    - There's a real cost to being long: length_penalty in fitness, plus
+      longer prompts can confuse smaller workers. But there's also a cost to
+      being too terse — if you remove a useful rule, accuracy drops.
+    - Let accuracy drive your decisions. Don't add words for the sake of it,
+      but don't aggressively cut rules that are doing useful work either.
 
-    Example structure of your response:
+    **General strategy advice:**
+    - Small, targeted changes often outperform rewrites. If the current prompt
+      scores 0.68, changing one confused boundary can push it to 0.72. Changing
+      everything at once risks regressing on Anchor examples.
+    - Read the misclassified examples. Really read them. The answer to
+      "what should I change?" is almost always in the error data.
+    - If workers disagree on a correctly-classified example (borderline),
+      that's a fragile win — consider adding a rule that makes it robust.
+    - Anchor accuracy is your floor. If you break Anchor examples, you lose
+      0.3 weight regardless of Hard improvements.
+
+    ## Output format
+
+    First, a brief <mutation_log> (3-5 lines): what you changed and your
+    reasoning (which errors you targeted, what hypothesis you tested).
+    Then the complete prompt in a ```text code fence.
+
     <mutation_log>
-    - Merged rules 4-star "minor flaw" and "small complaint" into one.
-    - Refined 3-star boundary rule to cover sarcasm edge case from error #2.
-    - Replaced few-shot example #5 with misclassified review (gold=2).
+    - Observed gold=3→pred=4 as top error; reviews have mixed tone but workers
+      over-index on positive phrases. Added boundary rule: mixed tone with
+      notable complaints → 3 even if some positive language present.
+    - Replaced few-shot #6 with a misclassified 3-star review from artifacts.
+    - Tightened wording on two near-duplicate 5-star rules.
     </mutation_log>
     ```text
     <System>
-    ...full prompt here...
+    ...complete prompt...
     </Task>
     ```
-
-    ## Best Practices
-    1. REFINE existing rules based on error artifacts before adding new ones.
-    2. MERGE near-duplicate rules to stay compact (30-50 rules target).
-    3. Use clear, generalizing rules (not rules for one specific review).
-    4. Ensure DynamicRules covers ALL 5 rating levels with at least 2 rules each.
-    5. Ensure FewShotExamples covers ALL 5 rating levels with diverse review styles.
-    6. Preserve logic that correctly handles easy (Anchor) examples to avoid regression.
 
 database:
   population_size: 30
@@ -187,7 +185,7 @@ evolution_trace:
 # OpenRouter workers for ensemble evaluation
 worker_defaults:
   api_base: "https://openrouter.ai/api/v1"
-  temperature: 0.1
+  temperature: 0.0
   max_tokens: 64
   timeout: 60
   max_retries: 3
@@ -216,7 +214,7 @@ active_learning:
   soft_expansion_skip_near_best: 0.005  # Skip soft-only expansion when seed_val is at/near best val so far
   seen_reeval_interval: 3         # Re-evaluate all Seen examples every N AL cycles (0 = off)
   refresh_per_cycle: 10           # Promote N Unseen→Seen/cycle; each is scored → Hard or Anchor (0 = off)
-  consolidation_gate_delta: 0.02  # Reject consolidated prompt if val drops vs evolution-best this cycle
+  consolidation_gate_delta: 0.01  # Reject consolidated prompt if val drops vs evolution-best this cycle
   consolidation_gate_vs_best_delta: 0.04  # Also reject if cons val is this far below global best val
   al_early_stopping_patience: 2   # Stop AL loop after this many cycles with no new best val (0 = off)
   al_early_stopping_min_cycles: 2  # Require at least this many AL cycles before AL early stop can fire

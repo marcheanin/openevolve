@@ -11,6 +11,7 @@
 | [ARCHITECTURE_AND_FILES.md](ARCHITECTURE_AND_FILES.md) | Структура репозитория, модули, конфиг, метрики — сжато и с привязкой к файлам. |
 | [EXPERIMENTS_AND_LESSONS.md](EXPERIMENTS_AND_LESSONS.md) | Хронология прогонов (v4_tes, v5, v6), ветка baserules-consolidation, длина промпта, утечки test, что пробовали. |
 | [V8_PIPELINE_UPDATE.md](V8_PIPELINE_UPDATE.md) | Итоги **v8**, выводы по метрикам, список правок пайплайна после v8 (best_val final test, gates, batch, AL early stop). |
+| [V9_V10_EXPERIMENTS.md](V9_V10_EXPERIMENTS.md) | Итоги **v9** и **v10**: эффект свободного system_message, сравнение всех прогонов, val-test gap, рекомендации по temperature и next steps. |
 | [TEST_VAL_AND_AL_POLICY.md](TEST_VAL_AND_AL_POLICY.md) | Политика train/val/test: что влияет на обучение, что только для графиков. |
 | [token_usage_reference.md](token_usage_reference.md) | Сводка по токенам (пример: `results_v4_tes`). |
 | [error_context_sample.txt](error_context_sample.txt) | Снимок фрагмента контекста ошибок (статический пример). При запуске `active_loop.py` актуальный контекст перезаписывается в **`../error_context.txt`** в корне подхода. |

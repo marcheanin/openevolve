@@ -6,15 +6,18 @@
 
 ## 1. Хронология каталогов результатов (ориентиры)
 
-| Каталог / тема | Заметки |
-|----------------|---------|
-| `results_v2` | Ранний AL: деградация val, мало защитных механизмов. |
-| `results_v3` | Основной длинный отчёт: 10 циклов, consolidation gate, refresh, length penalty; лучший per-cycle test около цикла 9. |
-| `results_v4` | Продолжение серии; смотреть `active_loop_log.json` при нужде. |
-| `results_v4_tes` | Прогон с фокусом на тестовую политику / сравнения; есть `token_usage_report.md`. **Iter 0**: более сильный best по батчу, чем в v6 при сопоставимой настройке. |
-| `results_v5` | Эксперименты с консолидацией / baserules; смотреть логи на предмет отклонённых консолидаций и регрессий. |
-| `results_v6` | Наблюдались **ранняя стагнация эволюции** и **раздувание промпта** относительно v4_tes на iter 0. |
-| `results_v8` | Компактные промпты (merge-first, max 7500), без length-crashes; **пик test** на цикле 3 (~0.85 combined), **финальный** отчётный тест по последнему циклу занижен; исправления зафиксированы в [V8_PIPELINE_UPDATE.md](V8_PIPELINE_UPDATE.md). |
+| Каталог / тема | combined (final) | Заметки |
+|----------------|:---:|---------|
+| `results_v2` | — | Ранний AL: деградация val, мало защитных механизмов. |
+| `results_v3` | — | Основной длинный отчёт: 10 циклов, consolidation gate, refresh, length penalty; лучший per-cycle test около цикла 9. |
+| `results_v4` | — | Продолжение серии; смотреть `active_loop_log.json` при нужде. |
+| `results_v4_tes` | **0.862** | Лучший прогон. Фокус на тестовую политику; `token_usage_report.md`. |
+| `results_v5` | — | Эксперименты с консолидацией / baserules; смотреть логи. |
+| `results_v6` | — | **Стагнация** эволюции и **раздувание промпта** vs v4_tes. |
+| `results_v8` | 0.750 | Merge-first, max 7500, compact prompts. Пик per-cycle test ~0.85 на цикле 3; final по last-cycle занижен. Правки → [V8_PIPELINE_UPDATE.md](V8_PIPELINE_UPDATE.md). |
+| `results_v9` | 0.806 | Post-v8 pipeline (best_val final, AL early stop, gates, batch). **3 цикла** (early stop). Стагнация мутатора. |
+| `results_v10` | **0.812** | Свободный system_message. **5 циклов**, все консолидации accepted. Лучший пост-v8. См. [V9_V10_EXPERIMENTS.md](V9_V10_EXPERIMENTS.md). |
+| `results_v11` | *pending* | temp=0.0, val_users=22, max_iter=500 (only early stop), BaseGuidelines editable, gate 0.01. См. [V9_V10_EXPERIMENTS.md](V9_V10_EXPERIMENTS.md#v11). |
 
 Точные числа всегда перепроверять по `best_program_info.json`, `debug_trace.jsonl`, `active_loop_log.json` в соответствующей папке.
 
@@ -74,11 +77,23 @@
 
 ## 5. Рекомендации для следующих итераций
 
-1. **Давление на длину**: увеличить штраф или снизить `max_code_length`; явно измерять токены best в логе цикла.
-2. **Мутатор**: в `system_message` приоритизировать **слияние** похожих правил и **удаление** слабых дубликатов, а не только добавление.
-3. **Итерации эволюции**: если best стабилизируется к середине цикла — сократить `max_iterations` или ввести раннюю остановку по плато **combined_score** на батче.
-4. **Сравнение прогонов**: фиксировать seed/API-версии где возможно; логировать длину в токенах и символах для каждого `best_prompt`.
-5. **Выбор промпта**: использовать **`best_val_prompt`** для финальной оценки, если последний цикл деградировал (уже описано в отчёте v3). **Реализовано в коде** после v8: `final_prompt.txt` = лучший по `seed_val_score` на val; см. [V8_PIPELINE_UPDATE.md](V8_PIPELINE_UPDATE.md).
+### Реализованные (начиная с v9)
+- [x] **`best_val_prompt`** для final test — реализовано после v8 ([V8_PIPELINE_UPDATE.md](V8_PIPELINE_UPDATE.md)).
+- [x] **AL early stopping** по `al_early_stopping_patience`.
+- [x] **Смягчение merge-давления** — бюджет 30-50, свобода мутатору.
+- [x] **Двойной consolidation gate** (vs evo-val + vs global best).
+- [x] **Soft expansion guard** при val-пике.
+- [x] **Свободный system_message** (v10) — ориентиры вместо жёстких правил.
+
+### Актуальные (после v10)
+1. **`temperature: 0.0` для workers** — шум ~0.04 сопоставим с порогами gate и delta эволюции. При 3 разных моделях ансамбль и так разнообразен.
+2. **Увеличить val set** (`max_val_users: 20-25`) — уменьшить val-test gap (до 0.07 в v10).
+3. **Больше итераций** (`max_iterations: 20`) — в v10 улучшения появлялись на поздних итерациях.
+4. **Разрешить модификацию BaseGuidelines** — модель уже делает это самостоятельно (и помогает).
+5. **Чувствительнее gate** — при temperature 0.0 уменьшить `consolidation_gate_delta` до 0.01.
+6. **Acc_Hard на тесте** — упорно ~0.24 при val ~0.36; нужна лучшая генерализация или больше hard-разнообразия в пуле.
+
+Подробности и таблицы — в [V9_V10_EXPERIMENTS.md](V9_V10_EXPERIMENTS.md).
 
 ---
 

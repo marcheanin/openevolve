@@ -1,21 +1,17 @@
 Examples where the model made errors (review + gold label):
-  - Review: Didn't work. Had to send it back.
-    Gold: 3
-  - Review: returned, will not fit toilet scrubber
-    Gold: 3
-  - Review: If there's anything you ever thought you wanted or needed in a trash can, this one has it. First, it's a semi-round, so it seems to have a smaller footprint than traditional round cans. Second, it has a silent opening and soft closing, which is great if you don't want to make any noise - say, in a s...
+  - Review: Great size, convenient for one-skillet meals.
     Gold: 5
-  - Review: I love my coffee. I have used nothing but stainless steel carafes for years. That way, my coffee stays hot until I am completed with it. This carafe meets my qualification in that respect. What is different with this coffee maker, is that the water is like a shower head, so you get better coverage o...
-    Gold: 4
-  - Review: Give Thanks Plaid is such a pretty fall pattern. The colors look great together and it can even be used going into the Christmas season if you're pairing it with rustic, country holiday decor. This tablecloth looks AMAZING with red or green plates, but also looks good with white/cream colored dishes...
+  - Review: Very nice set of skillets - and what a lovely color.  Quite a bargain, and I was glad to find it as I provide my husband his "own" skillets.  He tends to be a "high heat" cook, and so I don't let him use my expensive skillets.  Was nice to find Farberware quality at this great price.  I hope I can g...
+    Gold: 5
+  - Review: These are really nice washcloths. They are soft, big enough to get nice and sudsy, and fairly thick.  They have held up well in the wash so far (color and material) and seem to be well made.
+    Gold: 5
+  - Review: This is a 100% cotton runner that is fantastic for a sweetheart, anniversary or Valentine's Day dinner. It feels like a table napkin. It is a bit on the thin side. After using and washing, you may get shrinkage if you use warm or hot water and stick it in the dryer. You will have to iron this runner...
+    Gold: 3
+  - Review: I have only used this once so far, but I really like it. It is easy to operate once you figure out the steam buttons...lol! The scrubber was effective and it cleaned a pretty sticky kitchen floor. Next..on to my tile.
+    Gold: 5
+  - Review: Living in northern Minnesota, our family and friends do a lot of fishing and hunting. In our rural area, people still hunt every year for food (instead of purely for sport), so everything is frozen and saved for meals throughout the year. A big issue for those who are trying to store their meats is ...
     Gold: 5
   - Review: This mattress get 4 stars for comfort, but there's so many other nice features about it that it gets 5 starts for everything else. To begin with, I wouldn't suggest using this as a long term every day bed for someone. The shallow design and budget price make this a good mattress for the trundle bed ...
     Gold: 5
-  - Review: Love this.  It's an easy way to take your salad with you so you can eat healthy.
-
-WHAT YOU GET is a BPA-Free plastic container.  The clear portion has a wide mouth that makes eating and dishwashing easy.  The purple portion has a small cap that holds the dressing.
-
-Mostly it's all pluses for this at...
-    Gold: 4
-  - Review: I love the collapsible polyester storage basked by DII. I have several and I find them great for storing items and for moving items from room to room. Also make great little holders for toys or laundry. The pattern is attractive and I can put a lot of items in a medium sized basket. They stand up we...
-    Gold: 4
+  - Review: This is a good, though not extra ordinary storage bin. It lacks exceptional build quality, exceptional attention to detail, or anything that's all that remarkable. It looks good, and the pattern is timeless, plus it keeps stuff together. You could do worse, though perhaps you could do just as well a...
+    Gold: 5

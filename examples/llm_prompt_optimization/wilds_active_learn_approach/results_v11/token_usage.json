@@ -1,0 +1,27 @@
+{
+  "by_model": {
+    "gemma3-27b": {
+      "input_tokens": 8390183,
+      "output_tokens": 32535,
+      "total_tokens": 8422718
+    },
+    "gpt-4o-mini": {
+      "input_tokens": 7918912,
+      "output_tokens": 26409,
+      "total_tokens": 7945321
+    },
+    "deepseek-chat-v3": {
+      "input_tokens": 8061141,
+      "output_tokens": 255700,
+      "total_tokens": 8316841
+    },
+    "consolidation/deepseek/deepseek-r1": {
+      "input_tokens": 32128,
+      "output_tokens": 18660,
+      "total_tokens": 50788
+    }
+  },
+  "total_input_tokens": 24402364,
+  "total_output_tokens": 333304,
+  "total_tokens": 24735668
+}

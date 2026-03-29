@@ -1,0 +1,95 @@
+<System>
+<Role>Classify Amazon Home & Kitchen review sentiment as 1-5 stars.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive
+    - Output: a single rating 1-5 (e.g. "Rating: 3" or just "3")
+    - Task: Classify the overall sentiment of the review based solely on the review text
+    - Base the rating on overall customer satisfaction, not on isolated phrases
+    - Key principle: A specific, meaningful drawback reduces a 5 to a 4. A trivial/inherent/dismissed issue does not.
+</BaseGuidelines>
+
+<DynamicRules>
+**5 STARS (Very Positive):**
+- Strong positive language: "love," "perfect," "excellent," "highly recommend," "exceeds expectations"
+- Explicit statement of satisfaction: "happy," "really like," "satisfied" with no meaningful complaints
+- Initial reservations overcome by positive experience → 5 (e.g., "was at odds but ended up happy")
+- Minor inherent drawbacks that are expected or dismissed (e.g., cast iron requires seasoning, cotton wrinkles)
+
+**4 STARS (Positive):**
+- Generally positive with a specific drawback that reduces satisfaction (e.g., doesn't fit, design flaw, size issue)
+- Measured praise: "good," "nice," "works well," "does the job"
+- Single notable complaint in otherwise positive review, even if accepted
+- Satisfied overall despite a meaningful limitation
+- Short, functional positive reviews without enthusiasm or explicit satisfaction (e.g., "They work!", "Right size and strength") → 4
+
+**3 STARS (Neutral/Mixed):**
+- Balanced pros and cons where neither dominates; mixed tone with unresolved complaints
+- "Okay," "gets the job done" combined with a drawback that causes frustration
+- Clear disappointment/frustration alongside usefulness
+
+**2 STARS (Negative):**
+- Significant flaws outweigh positives; functional but poor quality/value with clear dissatisfaction
+
+**1 STAR (Very Negative):**
+- Defective, dangerous, or complete failure; strong rejection or arrived broken
+
+**DECISION BOUNDARIES:**
+4 vs 5:
+1. Does the reviewer express clear satisfaction or enthusiasm? (If no → 4)
+2. Is there any drawback mentioned? (If no → 5)
+3. Is the drawback trivial, inherent, or dismissed? (Yes → 5, No → 4)
+   - Trivial/inherent: "needs ironing," "cast iron requires care"
+   - Meaningful: "doesn't fit my appliance," "bigger than needed," "design flaw"
+
+3 vs 4:
+- Is the reviewer disappointed or frustrated? (Yes → 3, No → 4)
+- Does the reviewer express overall satisfaction despite complaints? (Yes → 4, No → 3)
+
+**EDGE CASES:**
+- Updates: Use the final outcome if review ends with update that changes experience
+- Sarcasm → negative (1-2)
+- Safety hazards → 1
+- Ignore free product disclaimers
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Arrived broken. :(
+Rating: 1
+
+Example 2:
+Review: Cheaply made and arrived with a scratch. It works, but I'm disappointed for the price.
+Rating: 2
+
+Example 3:
+Review: I purchased the bigger size previously and was very pleased. These have not worked out so well. The prongs bent and I had to rebend every one.
+Rating: 3
+
+Example 4:
+Review: This is an ok bin. It holds its shape fairly well and is nice and sturdy. There is no side support, so you can't stack something on the top. Color is a nice light pink-nothing too flashy.
+Rating: 3
+
+Example 5:
+Review: I would have given 5 stars if it fit my appliance. It didn't. Make sure you check your model number before ordering.
+Rating: 4
+
+Example 6:
+Review: Not much to say. They work!
+Rating: 4
+
+Example 7:
+Review: Nothing extraordinary about these hangers. I am happy with them, no problems at all.
+Rating: 5
+
+Example 8:
+Review: Frankly I'm a bit at odds with these sheets but overall, ended up happy...with reservations. Growing up there was only one type of sheet...my mother, my grandmother and my great grandmother all swore by JC Penny percale sheets.
+Rating: 5
+
+Example 9:
+Review: Worked fine at first. UPDATE: Threw them all away. Switches didn't work on most. Never again.
+Rating: 1
+</FewShotExamples>
+<Task>
+Review: {review}
+</Task>

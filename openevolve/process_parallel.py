@@ -195,21 +195,37 @@ def _run_iteration_worker(
 
         iteration_start = time.time()
 
-        # Generate code modification (sync wrapper for async)
-        try:
-            llm_response = asyncio.run(
-                _worker_llm_ensemble.generate_with_context(
-                    system_message=prompt["system"],
-                    messages=[{"role": "user", "content": prompt["user"]}],
+        # Generate code modification (sync wrapper for async).
+        # For transient provider issues, allow two extra retries on None responses.
+        none_retry_attempts = 2
+        llm_response = None
+        for attempt in range(none_retry_attempts + 1):
+            try:
+                llm_response = asyncio.run(
+                    _worker_llm_ensemble.generate_with_context(
+                        system_message=prompt["system"],
+                        messages=[{"role": "user", "content": prompt["user"]}],
+                    )
                 )
-            )
-        except Exception as e:
-            logger.error(f"LLM generation failed: {e}")
-            return SerializableResult(error=f"LLM generation failed: {str(e)}", iteration=iteration)
+            except Exception as e:
+                logger.error(f"LLM generation failed: {e}")
+                return SerializableResult(error=f"LLM generation failed: {str(e)}", iteration=iteration)
 
-        # Check for None response
-        if llm_response is None:
-            return SerializableResult(error="LLM returned None response", iteration=iteration)
+            if llm_response is not None:
+                break
+
+            if attempt < none_retry_attempts:
+                logger.warning(
+                    f"Iteration {iteration}: LLM returned None response "
+                    f"(retry {attempt + 1}/{none_retry_attempts})"
+                )
+                if _worker_config.llm.retry_delay and _worker_config.llm.retry_delay > 0:
+                    time.sleep(_worker_config.llm.retry_delay)
+            else:
+                return SerializableResult(
+                    error=f"LLM returned None response after {none_retry_attempts + 1} attempts",
+                    iteration=iteration,
+                )
 
         # Parse response based on evolution mode
         if _worker_config.diff_based_evolution:

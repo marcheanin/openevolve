@@ -1,0 +1,103 @@
+<System>
+<Role>Classify Amazon Home & Kitchen review sentiment as 1-5 stars.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive
+    - Output: a single rating 1-5 (e.g. "Rating: 3" or just "3")
+    - Task: Classify the overall sentiment of the review based solely on the review text
+    - Base the rating on overall customer satisfaction, not on isolated phrases
+    - Key principle: A specific, meaningful drawback reduces a 5 to a 4. A trivial/inherent/dismissed issue does not.
+</BaseGuidelines>
+
+<DynamicRules>
+**5 STARS (Very Positive):**
+- Exceeds or meets expectations with high satisfaction, strong enthusiasm/recommendation (e.g., "love," "perfect," "highly recommend")
+- Clear satisfaction even if described as "average," "nothing extraordinary," or "works fine" with no complaints
+- Minor downsides dismissed as trivial, inherent, or advice (e.g., "cotton wrinkles," "needs ironing")
+- Satisfied with no meaningful complaints, even without strong praise
+
+**4 STARS (Positive):**
+- Meets expectations with specific drawbacks that reduce satisfaction (e.g., design flaw, doesn't fit)
+- Positive but measured: "good," "nice," "works well"
+- Single notable complaint in otherwise positive review
+- Satisfied overall despite meaningful limitation
+- A drawback mentioned but not dismissed as trivial (even if resolved) → 4
+
+**3 STARS (Neutral/Mixed):**
+- Balanced pros and cons where neither dominates; mixed tone with complaints not dismissed
+- "Okay," "gets the job done" without positive lean; if "ok" with a drawback → 3
+- Clear disappointment/frustration alongside usefulness
+
+**2 STARS (Negative):**
+- Significant flaws outweigh positives; functional but poor quality/value with clear dissatisfaction
+
+**1 STAR (Very Negative):**
+- Defective, dangerous, or complete failure; strong rejection or arrived broken
+
+**DECISION BOUNDARIES:**
+4 vs 5:
+1. Is the reviewer clearly satisfied/enthusiastic? (If no → 4 or lower)
+2. Any drawback? (If no → 5)
+3. Is it trivial/inherent/dismissed? (Yes → 5, No → 4)
+- "Nothing extraordinary but happy/no problems" → 5
+- "Would have been 5 stars if not for [specific issue]" → 4
+- Noticeable functional limitation → 4
+
+3 vs 4:
+- Clear disappointment/frustration → 3
+- Satisfied overall despite complaints → 4
+- "Ok" with a drawback → 3
+
+**EDGE CASES:**
+- Final evaluation: Use final outcome if review ends with update that changes experience
+- Sarcasm → negative (1-2)
+- Safety hazards → 1
+- Ignore free product disclaimers
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+
+Example 1:
+Review: Arrived broken. :(
+Rating: 1
+
+Example 2:
+Review: Cheaply made and arrived with a scratch. It works, but I'm disappointed for the price.
+Rating: 2
+
+Example 3:
+Review: I purchased the bigger size previously and was very pleased. These have not worked out so well. The prongs bent and I had to rebend every one.
+Rating: 3
+
+Example 4:
+Review: This is an ok bin. It holds its shape fairly well and is nice and sturdy. There is no side support, so you can't stack something on the top. Color is a nice light pink-nothing too flashy.
+Rating: 3
+
+Example 5:
+Review: I would have given 5 stars if it fit my appliance. It didn't. Make sure you check your model number before ordering.
+Rating: 4
+
+Example 6:
+Review: I really like these potholders. They look great and do a good job of keeping hot pots and pans and other dishes out of the oven off the table and counters. They had a bit of a plastic smell when they arrived but after I washed them (they held up fine...
+Rating: 4
+
+Example 7:
+Review: Nothing extraordinary about these hangers. I am happy with them, no problems at all.
+Rating: 5
+
+Example 8:
+Review: This is an attractive, classy table cloth. It will likely need ironing after washing, but you can use it right away. The pattern hangs off the side a bit, but otherwise great.
+Rating: 5
+
+Example 9:
+Review: Worked fine at first. UPDATE: Threw them all away. Switches didn't work on most. Never again.
+Rating: 1
+
+Example 10:
+Review: I have only used this once so far, but I really like it. It is easy to operate once you figure out the steam buttons...lol! The scrubber was effective and it cleaned a pretty sticky kitchen floor. Next..on to my tile.
+Rating: 5
+
+</FewShotExamples>
+<Task>
+Review: {review}
+</Task>

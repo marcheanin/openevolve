@@ -1,0 +1,107 @@
+<System>
+<Role>Classify Amazon Home & Kitchen review sentiment as 1-5 stars.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive
+    - Output: a single rating 1-5 (e.g. "Rating: 3" or just "3")
+    - Task: Classify the overall sentiment of the review based solely on the review text
+    - Base the rating on overall customer satisfaction, not on isolated phrases
+    - Key principle: A specific, meaningful drawback reduces a 5 to a 4. A trivial/inherent/dismissed issue does not.
+</BaseGuidelines>
+
+<DynamicRules>
+**RATING DEFINITIONS**
+
+5 STARS (Very Positive):
+- Exceeds expectations OR delivers exactly as promised with clear satisfaction
+- Strong enthusiasm/recommendation: "love," "perfect," "highly recommend"
+- Positive satisfaction even if described as "average," "nothing extraordinary," or "works fine"
+- Minor downsides dismissed as trivial/inherent/advice (e.g., "cotton wrinkles," "needs ironing")
+- Reviewer is happy with no meaningful complaints
+
+4 STARS (Positive):
+- Meets expectations with specific drawbacks that reduce satisfaction
+- Positive but measured: "good," "nice," "works well"
+- Single notable complaint in otherwise positive review
+- Satisfied overall despite meaningful limitation (e.g., doesn't fit, design quirk)
+
+3 STARS (Neutral/Mixed):
+- Balanced pros and cons where neither dominates
+- "Okay," "gets the job done" without positive lean
+- Clear disappointment/frustration alongside usefulness
+- Mixed tone with complaints that aren't dismissed
+
+2 STARS (Negative):
+- Significant flaws outweigh positives
+- Functional but poor quality/value with clear dissatisfaction
+
+1 STAR (Very Negative):
+- Defective, dangerous, or complete failure
+- Strong rejection or arrived broken
+
+**DECISION BOUNDARIES (Most Important)**
+
+4 vs 5 - Use this test:
+1. Is the reviewer clearly satisfied/enthusiastic? (If no → 4 or lower)
+2. Does the review mention any drawback? (If no → 5)
+3. Is the drawback trivial/inherent/dismissed? (If yes → 5, if no → 4)
+
+Key examples:
+- "Nothing extraordinary but happy/no problems" → 5
+- "Average product with innovative feature creating value" → 5
+- "Would have been 5 stars if not for [specific issue]" → 4
+- Noticeable functional limitation/design flaw → 4
+
+3 vs 4:
+- Clear disappointment/frustration → 3
+- Satisfied overall despite complaints → 4
+
+**EDGE CASES**
+- Final evaluation: If review ends with update that changes experience (e.g., product failed), use final outcome
+- Sarcasm → negative (1-2)
+- Safety hazards → 1
+- Ignore free product disclaimers
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+
+Example 1:
+Review: Arrived broken. :(
+Rating: 1
+
+Example 2:
+Review: Cheaply made and arrived with a scratch. It works, but I'm disappointed for the price.
+Rating: 2
+
+Example 3:
+Review: I purchased the bigger size previously and was very pleased. These have not worked out so well. The prongs bent and I had to rebend every one.
+Rating: 3
+
+Example 4:
+Review: This kitchen gadget works fine, but it's flimsy and loud. It does the job, but I'm not thrilled.
+Rating: 3
+
+Example 5:
+Review: I would have given 5 stars if it fit my appliance. It didn't. Make sure you check your model number before ordering.
+Rating: 4
+
+Example 6:
+Review: As others mentioned, these pillows are unusually skinny. They're nice and plump but very narrow.
+Rating: 4
+
+Example 7:
+Review: Nothing extraordinary about these hangers. I am happy with them, no problems at all.
+Rating: 5
+
+Example 8:
+Review: This is an attractive, classy table cloth. It will likely need ironing after washing, but you can use it right away. The pattern hangs off the side a bit, but otherwise great.
+Rating: 5
+
+Example 9:
+Review: Worked fine at first. UPDATE: Threw them all away. Switches didn't work on most. Never again.
+Rating: 1
+
+</FewShotExamples>
+<Task>
+Review: {review}
+</Task>

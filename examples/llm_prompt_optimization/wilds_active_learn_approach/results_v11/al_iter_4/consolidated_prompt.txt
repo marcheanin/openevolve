@@ -1,0 +1,117 @@
+<System>
+<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive
+    - Output: a single rating 1-5 (e.g. "Rating: 3" or just "3")
+    - Task: Classify the overall sentiment of the review based solely on the review text
+    - Base the rating on overall customer satisfaction, not on isolated phrases
+    - If the reviewer explicitly states a star rating, follow that rating.
+</BaseGuidelines>
+
+<DynamicRules>
+STAR BOUNDARIES:
+
+1 STAR (Very Negative):
+- Strong dissatisfaction, anger, or safety hazards
+- Product defective, completely ineffective, or dangerous
+- Clear negative statements: "terrible," "junk," "don't buy," "doesn't work at all"
+- Returned due to major failure → 1
+- Major failure revealed in an update overrides initial positive language → 1
+
+2 STARS (Negative):
+- More negative than positive
+- Significant flaws, poor quality, misleading description
+- Works but with serious limitations, "not worth the price"
+- Disappointed but product has some limited use
+
+3 STARS (Neutral/Mixed):
+- Balanced pros and cons, neither strongly positive nor negative
+- "Okay," "average," "works but with limitations," "better than nothing"
+- Short factual statements about returns/fit issues without strong emotion → 3
+- Mixed tone with notable complaints → 3 even if positive language present
+- Positive but with notable functional limitations that impact usability (e.g., shrinkage, need for special care, bulkiness) → 3
+
+4 STARS (Positive):
+- Mostly positive with minor criticisms
+- Works well but not perfect, "pretty good," "above average"
+- Would recommend despite small flaws
+- Positive but not enthusiastic; meets expectations without exceeding
+- Minor complaints that affect satisfaction or recommendation → 4
+- Words like "like", "good", "nice" without strong emotion → 4
+- Short positive reviews lacking enthusiastic language or clear functional endorsement → 4
+- Functional criticisms (e.g., "not as heavy duty", "takes time to learn") → 4
+- Minor criticisms that do not impact overall satisfaction (e.g., "a bit thin") → 4
+- "I would have given 5 stars but [minor functional limitation]" → 4 (not 3 or 5)
+- Positive descriptive reviews that focus on features without strong emotional endorsement → 4
+
+5 STARS (Very Positive):
+- Explicit statements of 5-star rating → 5, even with minor flaws (this overrides other considerations)
+- Strong satisfaction, enthusiasm, exceeds expectations
+- Clear, unequivocal recommendation to others
+- Entirely positive with no criticisms → 5
+- Short, purely positive reviews without criticism AND with clear enthusiastic language (e.g., "love", "perfect", "best") OR clear functional endorsement (e.g., "great for X", "works perfectly") → 5
+- Overwhelmingly positive tone with trivial/minor criticisms that do not affect overall satisfaction → 5. Trivial criticisms include: minor inconvenience, small learning curve, aesthetic preferences, etc.
+- Long, detailed positive reviews that solve a problem or express strong implicit endorsement → 5, even if there are minor criticisms
+- Reviews that start with reservations but conclude with strong positive sentiment (e.g., "ended up happy", "very satisfied overall") → 5
+- Strong functional endorsement despite minor criticisms (e.g., "works great" with a minor complaint) → 5
+- Positive updates that mention continued satisfaction despite minor issues → 5
+
+KEY DECISIONS:
+- If the review explicitly states a star rating, use that rating.
+- 4 vs 5: Focus on enthusiasm and whether criticisms affect satisfaction.
+  - Overwhelmingly positive with strong endorsement and trivial criticisms → 5.
+  - Minor complaints affect satisfaction or tone is merely positive/descriptive → 4.
+  - Strong positive conclusion trumps initial reservations → 5.
+- 3 vs 4: Notable functional limitations impacting usability → 3. Only minor nitpicks → 4.
+- Short reviews: If entirely positive without criticism and with either enthusiastic language or clear functional endorsement → 5; if positive but vague or lacking endorsement → 4.
+- Weigh overall conclusion more than isolated phrases.
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+
+Example 1:
+Review: It's not a good vacuum. It's hard to pick up dirt and then it will spit it out so you have to go over and over the same area. I wouldn't buy it again.
+Rating: 1
+
+Example 2:
+Review: The quality is disappointing. It works, but feels cheap and broke after a few uses. Not worth the price.
+Rating: 2
+
+Example 3:
+Review: returned, will not fit toilet scrubber
+Rating: 3
+
+Example 4:
+Review: This is a 100% cotton runner that is fantastic for special dinners. It is a bit thin and may shrink. You will have to iron it.
+Rating: 3
+
+Example 5:
+Review: I'd rate this as pretty good although it doesn't feel quite as heavy duty as the ones we've been using for the past few years... Overall I'd rate this as above average although only time will tell how durable it is.
+Rating: 4
+
+Example 6:
+Review: I like this towel. It is 100% Turkish cotton and measures 27 inches by 55 inches. The dobby weave is somewhat intricate so you are going to get some good absorbency. This towel also comes in a bath sheet, which is competively priced with the local st...
+Rating: 4
+
+Example 7:
+Review: I have only used this once so far, but I really like it. It is easy to operate once you figure out the steam buttons...lol! The scrubber was effective and it cleaned a pretty sticky kitchen floor. Next..on to my tile.
+Rating: 5
+
+Example 8:
+Review: Nice and sturdy can opener. The padded handles are a bit bulkier than what you are accustomed to, but it works great and you can appreciate that padding if you are opening several cans.
+Rating: 5
+
+Example 9:
+Review: This is a sharp well made tablecloth. It's strengths are the vibrant colors, sharp contrast, and solid construction. The cons are just the inherent need to iron it that comes from the cotton.
+Rating: 5
+
+Example 10:
+Review: EDIT: A year of use later it's still humming along and doing its job just fine. Sometimes it seems like it doesn't pick up quickly that it should be upping its speed on its own in the auto setting, but maybe it's just taking longer for the air to rea...
+Rating: 5
+
+</FewShotExamples>
+
+<Task>
+Review: {review}
+</Task>
