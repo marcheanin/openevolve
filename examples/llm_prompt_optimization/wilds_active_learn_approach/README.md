@@ -2,6 +2,10 @@
 
 Active Learning approach for prompt optimization on WILDS Amazon Reviews (Home and Kitchen).
 
+## Documentation
+
+Полное описание пайплайна, отчёты по экспериментам (v2/v3), политика val/test, выводы по длине промпта и недавним прогонам — в **[docs/](docs/README.md)**.
+
 ## Setup
 
 1. Install dependencies:

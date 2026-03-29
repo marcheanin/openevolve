@@ -1,0 +1,103 @@
+<System>
+<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive
+    - Output: a single rating 1-5 (e.g. "Rating: 3" or just "3")
+    - Task: Classify the overall sentiment of the review based solely on the review text
+    - Base the rating on overall customer satisfaction, not on isolated phrases
+</BaseGuidelines>
+
+<DynamicRules>
+STAR LEVEL CRITERIA:
+
+1 Star (Very Negative):
+- Product defective, unsafe, or completely ineffective
+- Strong negative language: "terrible," "junk," "don't buy," "returned immediately"
+- Safety hazard, total failure, or immediate return
+
+2 Stars (Negative):
+- More negative than positive; significant flaws or poor quality
+- Some usefulness but strong disappointment
+- Language: "cheap," "useless," "not as pictured," "pain to use"
+- Product fails quickly or underperforms vs alternatives
+- Starts positive but reveals a major flaw that ruins satisfaction → 2
+- Works well initially but returned due to major suitability flaw → 2
+
+3 Stars (Neutral / Mixed):
+- Balanced pros and cons; moderate or conflicted tone
+- Works adequately with limitations: "okay," "average," "better than nothing"
+- Brief factual negatives without strong emotion → 3
+- Simple return/doesn't fit statements without strong emotion → 3
+
+4 Stars (Positive):
+- Mostly positive with minor criticisms; product works well but not perfectly
+- Positive but not enthusiastic: "pretty good," "above average," "would recommend"
+- Any notable functional criticism in otherwise positive review → 4
+- Positive but compares unfavorably to better alternative → 4
+- Mentions specific limitations that affect but don't ruin experience → 4
+- Very brief positive reviews without strong enthusiasm (e.g., "They work!") → 4
+
+5 Stars (Very Positive):
+- Strong satisfaction and enthusiasm; clear recommendation
+- Exceeds expectations; very positive overall tone
+- Phrases: "love it," "perfect," "excellent," "worth every penny," "great"
+- Explicit 5-star statement (even with mixed sub-ratings) overrides minor criticisms unless significant functional issues
+- Enthusiastic recommendation or perfect for intended use despite minor, non-core flaws or inherent limitations → 5
+
+BOUNDARY CLARIFICATIONS:
+- 5 vs 4: If review is enthusiastic/recommends product and flaws are trivial or non-functional → 5. If positive but has notable functional criticism → 4.
+- 4 vs 3: Mostly positive with some negatives → 4. Balanced or mixed with equal weight → 3.
+- 3 vs 2: More negative than positive with significant flaws → 2. Mixed but still functional with compromises → 3.
+- Updates: Use final evaluation if review ends negatively about same product experience.
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+
+Example 1:
+Review: I love this vacuum and ditto the other lovers reviews. It really does go under almost anything and is very handy.
+
+.UPDATE after 2 yrs of major problems which were rectified thru customer service I am giving up and moving on.
+Rating: 1
+
+Example 2:
+Review: Very poor quality. Cheap fabric, not as pictured and the color was off. Returned the next day.
+Rating: 1
+
+Example 3:
+Review: Since buying this product and it dying 12 months later I've owned numerous carpet cleaners including the Bissel Proheat 2X Pet Lift Off and the at-home version of the Rug Doctor. Both of these blew the performance of this machine out of the water. This machine would freshen up the carpets but never ...
+Rating: 2
+
+Example 4:
+Review: This was pretty straightforward to put together, feels very sturdy, leaves lots of room underneath for storage (plus a little space I left open because the dog seems to be happy about being able to curl up under there and use it as a hiding place), allowed us to get rid of the box spring, and hasn't... [The review ends by saying it had to be returned because it was too high for the customer.]
+Rating: 2
+
+Example 5:
+Review: The cushions are okay, but the size was waaaay off for my rocker. I'm still using it though because it is better than nothing.
+Rating: 3
+
+Example 6:
+Review: returned, will not fit toilet scrubber
+Rating: 3
+
+Example 7:
+Review: The great thing about this product is that it works perfectly. The bad thing is that if you want to buy it on Amazon now (as of September 2011), you'll have to wait for 1 to 2 months.
+But a little about the device. Personally, I am very satisfied. The vacuum is almost noiseless with a perfect suctio...
+Rating: 4
+
+Example 8:
+Review: I really like these potholders. They look great and do a good job of keeping hot pots and pans and other dishes out of the oven off the table and counters. They had a bit of a plastic smell when they arrived but after I washed them (they held up fine...
+Rating: 4
+
+Example 9:
+Review: This mattress get 4 stars for comfort, but there's so many other nice features about it that it gets 5 starts for everything else. To begin with, I wouldn't suggest using this as a long term every day bed for someone. The shallow design and budget pr...
+Rating: 5
+
+Example 10:
+Review: EDIT: A year of use later it's still humming along and doing its job just fine. Sometimes it seems like it doesn't pick up quickly that it should be upping its speed on its own in the auto setting, but maybe it's just taking longer for the air to reach it than I expect. Either way, no problems with ...
+Rating: 5
+
+</FewShotExamples>
+<Task>
+Review: {review}
+</Task>

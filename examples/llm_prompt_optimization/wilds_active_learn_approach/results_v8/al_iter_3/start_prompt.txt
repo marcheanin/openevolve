@@ -1,0 +1,102 @@
+<System>
+<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive
+    - Output: a single rating 1-5 (e.g. "Rating: 3" or just "3")
+    - Task: Classify the overall sentiment of the review based solely on the review text
+    - Base the rating on overall customer satisfaction, not on isolated phrases
+</BaseGuidelines>
+
+<DynamicRules>
+STAR LEVEL CRITERIA:
+
+1 Star (Very Negative):
+- Product defective, unsafe, or completely ineffective
+- Strong negative language: "terrible," "junk," "don't buy," "returned immediately"
+- Safety hazard, total failure, or immediate return
+
+2 Stars (Negative):
+- More negative than positive; significant flaws or poor quality
+- Some usefulness but strong disappointment
+- Language: "cheap," "useless," "not as pictured," "pain to use"
+- Product fails quickly or underperforms vs alternatives
+
+3 Stars (Neutral / Mixed):
+- Balanced pros and cons; moderate or conflicted tone
+- Works adequately with limitations: "okay," "average," "better than nothing"
+- Brief factual negatives without strong emotion → 3
+
+4 Stars (Positive):
+- Mostly positive with minor criticisms; product works well but not perfectly
+- Positive but not enthusiastic: "pretty good," "above average," "would recommend," "good," "useful"
+- Any criticism of core functionality in positive review → 4
+- Positive but compares unfavorably to better alternative → 4
+- Mentions specific limitations that affect but don't ruin experience → 4
+
+5 Stars (Very Positive):
+- Strong satisfaction and enthusiasm; clear recommendation
+- Exceeds expectations; very positive overall tone
+- Brief entirely positive reviews with no criticism → 5
+- Phrases: "love it," "perfect," "excellent," "worth every penny," "great"
+- Enthusiastic recommendation despite minor, non-core flaws → 5
+- Product works perfectly for intended use despite niche limitations → 5
+- Explicit 5-star statement in text overrides minor criticisms → 5
+- Overwhelmingly positive review for specific audience/use case → 5
+
+BOUNDARY CLARIFICATIONS:
+- 5 vs 4: If review is enthusiastic, recommends product, and flaws are trivial/non-core → 5. If positive but has any notable criticism of functionality or lacks enthusiasm → 4.
+- 4 vs 3: Mostly positive with some negatives → 4. Balanced or mixed with equal weight → 3.
+- 3 vs 2: More negative than positive with significant flaws → 2. Mixed but still functional with compromises → 3.
+- Sarcasm: Detect implicit negativity behind positive words.
+- Updates: Use final evaluation if review ends negatively.
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+
+Example 1:
+Review: I love this vacuum and ditto the other lovers reviews. It really does go under almost anything and is very handy.
+
+.UPDATE after 2 yrs of major problems which were rectified thru customer service I am giving up and moving on.
+Rating: 1
+
+Example 2:
+Review: Very poor quality. Cheap fabric, not as pictured and the color was off. Returned the next day.
+Rating: 1
+
+Example 3:
+Review: Since buying this product and it dying 12 months later I've owned numerous carpet cleaners including the Bissel Proheat 2X Pet Lift Off and the at-home version of the Rug Doctor. Both of these blew the performance of this machine out of the water. This machine would freshen up the carpets but never ...
+Rating: 2
+
+Example 4:
+Review: This was pretty straightforward to put together, feels very sturdy, leaves lots of room underneath for storage (plus a little space I left open because the dog seems to be happy about being able to curl up under there and use it as a hiding place), a...
+Rating: 2
+
+Example 5:
+Review: The cushions are okay, but the size was waaaay off for my rocker. I'm still using it though because it is better than nothing.
+Rating: 3
+
+Example 6:
+Review: Didn't work. Had to send it back.
+Rating: 3
+
+Example 7:
+Review: I'd rate this as pretty good although it doesn't feel quite as heavy duty as the ones we've been using for the past few years... Overall I'd rate this as above average although only time will tell how durable it is.
+Rating: 4
+
+Example 8:
+Review: There are two kinds of DII fabric storage bins - the ones that are reinforced and the ones that aren't. The ones that aren't tend to flop around and tip over. The ones that are reinforced are so much better. This one is the better style that actually...
+Rating: 4
+
+Example 9:
+Review: This is a coffee pot for coffee geeks. Most discerning coffee aficionados likely wouldn't notice much if any difference from a a great less complicated coffee make, such as a Bonavita. To cut to the point, this probably isn't for you, but who knows...
+Rating: 5
+
+Example 10:
+Review: This is an attractive, classy, and ready to use table cloth. It will likely need some ironing after washing, but as noted, you can get some use out of it from the get go. The pattern will largely be hanging off the side, but otherwise these are great.
+Rating: 5
+
+</FewShotExamples>
+<Task>
+Review: {review}
+</Task>

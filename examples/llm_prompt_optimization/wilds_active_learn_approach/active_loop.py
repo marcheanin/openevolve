@@ -14,6 +14,9 @@ Workflow per cycle:
   3. Re-evaluate and reclassify batch.
   4. Consolidation: top-K prompts → LLM → improved seed (may change BaseGuidelines).
   5. Expand pool from Unseen if Hard examples exhausted.
+
+Holdout test: baseline + final run, plus per-cycle test metrics written to the log for
+graphs only (not used for consolidation, expansion triggers, or prompt selection).
 """
 
 import json
@@ -184,30 +187,35 @@ You will receive:
 2. Other top-performing prompts for reference.
 3. Error artifacts: concrete examples where the best prompt still fails.
 
-Your task: take the best prompt as-is and CAREFULLY IMPROVE it by:
-- Adding rules from other top prompts that address error patterns
-- Adding NEW rules to fix the specific errors shown in the artifacts
-- Optionally promoting stable, proven rules to <BaseGuidelines>
+Your PRIMARY goal is to produce a prompt that is **SHORTER or equal in length** \
+to Prompt 1, while preserving or improving classification accuracy. \
+Prompt length directly hurts fitness through length_penalty and wastes API budget.
 
-CRITICAL PRINCIPLES:
+CONSOLIDATION STRATEGY (in this priority order):
+1. **MERGE truly near-identical rules.** Scan <DynamicRules> for pairs that \
+describe the same signal with different wording. Combine each such pair into \
+one concise rule. Only merge rules that are genuinely redundant in meaning — \
+do NOT aggressively prune rules that cover distinct concepts.
+2. **TIGHTEN wording.** Shorten verbose rule descriptions without losing meaning.
+3. **IMPORT targeted fixes** from other top prompts ONLY if they address a \
+specific error pattern from the artifacts AND no existing rule already covers it.
+4. **Promote** consistently successful DynamicRules to <BaseGuidelines> if they \
+are general enough, then remove them from DynamicRules.
+
+HARD BUDGET: aim for 25-40 rules total in <DynamicRules>. If the input has >40 \
+rules, merging redundant pairs is your FIRST action before anything else.
+
+CRITICAL CONSTRAINTS:
 - The best prompt is your STARTING POINT. Do NOT rewrite it from scratch.
-- Prefer to KEEP working rules — they were evolved to solve specific problems.
-- You may MERGE or PRUNE rules that are clearly redundant or contradicted by
-  stronger, higher-level rules, as long as all rating categories remain covered.
-- ADD new rules that address the error patterns shown in the artifacts.
-- Ensure <DynamicRules> covers ALL 5 rating levels (1, 2, 3, 4, 5) with
-  at least 2 rules per level, while keeping the total number of rules compact
-  (aim for no more than ~50 rules).
-- Ensure <FewShotExamples> has at least one example per rating level (1-5),
-  aim for 7-10 examples total.
+- Ensure <DynamicRules> covers ALL 5 rating levels (1-5) with at least 2 rules each.
+- Ensure <FewShotExamples> has at least one example per rating level (1-5), \
+aim for 7-10 examples total, do NOT exceed 12.
+- Keep the output format instruction (single rating 1-5) in <BaseGuidelines>.
 
 ALLOWED modifications:
-- <BaseGuidelines>: Promote consistently successful rules here. Keep the output \
-format instruction (single rating 1-5) and the star rating scale definition.
-- <DynamicRules>: ADD new rules, REFINE wording, MERGE near-duplicates.
-  You may remove or merge weaker duplicate rules when they are fully subsumed
-  by clearer, higher-level rules and category coverage is preserved.
-- <FewShotExamples>: Add or replace examples to improve category coverage. \
+- <BaseGuidelines>: Promote general rules here. Keep output format and scale.
+- <DynamicRules>: MERGE near-duplicates, REFINE wording, ADD only if needed.
+- <FewShotExamples>: Replace weak examples with error cases from artifacts. \
 Each example must end with a single line: Rating: [1-5]. \
 Never remove an example if it is the only one for its rating level.
 
@@ -216,11 +224,21 @@ FORBIDDEN:
 - Do NOT remove the <Role> tag inside <System>.
 - Preserve the XML structure: <System>(<Role>, <BaseGuidelines>, <DynamicRules>)\
 </System>, <FewShotExamples>, <Task>.
-- Do NOT delete rules solely to make the prompt shorter; prune only when it
-  does not reduce coverage or hurt generalization.
 
-Output ONLY the complete prompt text from <System> to </Task>.
-No explanation, no markdown code fences.\
+OUTPUT FORMAT:
+First, output a brief <consolidation_log> block (3-7 lines) listing what you \
+merged, removed, added, or refined. Then output the complete prompt text.
+
+Example:
+<consolidation_log>
+- Merged 3 pairs of near-duplicate 4-star rules (45→39 rules).
+- Tightened wording on 5 rules (-120 chars).
+- Added 1 boundary rule for gold=3→pred=4 from error artifacts.
+- Replaced few-shot #7 with misclassified review (gold=2).
+</consolidation_log>
+<System>
+...complete prompt...
+</Task>\
 """
 
 
@@ -230,13 +248,43 @@ def _consolidate_prompt(
     config: dict,
     max_retries: int = 2,
     error_artifacts: Optional[dict] = None,
+    metrics_summary: Optional[dict] = None,
 ) -> Optional[str]:
     """
     Consolidation step: take the best prompt as base, enrich with rules from
     other top prompts and fix errors shown in artifacts.
+    metrics_summary: optional validation-only metrics (never use holdout test here).
     Returns consolidated prompt text or None on failure.
     """
     parts = [f"Here are the top {len(top_programs)} prompts from AL cycle {al_iter + 1}:\n"]
+
+    if metrics_summary:
+        parts.append(
+            "Validation metrics for the current best prompt (holdout test is NOT used in training):"
+        )
+        parts.append(
+            "  combined_score={val_combined:.4f}, R_global={val_R_global:.2%}, "
+            "R_worst={val_R_worst:.2%}".format(
+                val_combined=metrics_summary.get("val_combined", 0.0),
+                val_R_global=metrics_summary.get("val_R_global", 0.0),
+                val_R_worst=metrics_summary.get("val_R_worst", 0.0),
+            )
+        )
+        parts.append("")
+
+    def _extract_section(text: str, tag: str) -> str:
+        start_tag = f"<{tag}>"
+        end_tag = f"</{tag}>"
+        start = text.find(start_tag)
+        end = text.find(end_tag)
+        if start == -1 or end == -1 or end <= start:
+            return ""
+        return text[start + len(start_tag) : end]
+
+    base_prompt_text = top_programs[0]["code"]
+    base_dyn = _extract_section(base_prompt_text, "DynamicRules")
+    base_few = _extract_section(base_prompt_text, "FewShotExamples")
+
     for i, prog in enumerate(top_programs):
         m = prog["metrics"]
         label = " [THIS IS THE BASE — start from this prompt]" if i == 0 else ""
@@ -246,6 +294,48 @@ def _consolidate_prompt(
             f"Acc_Anchor: {m.get('Acc_Anchor', 0):.2%}) ==="
         )
         parts.append(prog["code"])
+        parts.append("")
+
+    extra_rules_blocks = []
+    extra_fewshot_blocks = []
+    for i, prog in enumerate(top_programs[1:], start=2):
+        code_i = prog["code"]
+        dyn_i = _extract_section(code_i, "DynamicRules")
+        few_i = _extract_section(code_i, "FewShotExamples")
+
+        if dyn_i:
+            base_lines = {ln.strip() for ln in base_dyn.splitlines() if ln.strip()}
+            dyn_lines = [
+                ln for ln in dyn_i.splitlines()
+                if ln.strip() and ln.strip() not in base_lines
+            ]
+            if dyn_lines:
+                extra_rules_blocks.append(
+                    f"Additional DynamicRules from Prompt {i} that are NOT in Prompt 1:\n"
+                    + "\n".join(f"  - {ln.strip()}" for ln in dyn_lines[:20])
+                )
+
+        if few_i:
+            base_examples = {ln.strip() for ln in base_few.splitlines() if ln.strip()}
+            few_lines = [
+                ln for ln in few_i.splitlines()
+                if ln.strip() and ln.strip() not in base_examples
+            ]
+            if few_lines:
+                extra_fewshot_blocks.append(
+                    f"Additional FewShotExamples fragments from Prompt {i} that are NOT in Prompt 1:\n"
+                    + "\n".join(f"  - {ln.strip()}" for ln in few_lines[:20])
+                )
+
+    if extra_rules_blocks or extra_fewshot_blocks:
+        parts.append("=== DIFFERENTIAL VIEW (import only what fixes real errors) ===")
+        if extra_rules_blocks:
+            parts.append("DynamicRules candidates from other top prompts:")
+            parts.extend(extra_rules_blocks)
+        if extra_fewshot_blocks:
+            parts.append("")
+            parts.append("Few-shot fragments from other top prompts:")
+            parts.extend(extra_fewshot_blocks)
         parts.append("")
 
     if error_artifacts:
@@ -264,6 +354,15 @@ def _consolidate_prompt(
         try:
             result = _call_consolidation_llm(CONSOLIDATION_SYSTEM, user_msg, config)
 
+            # Strip <consolidation_log>...</consolidation_log> block if present
+            import re as _re
+            result = _re.sub(
+                r"<consolidation_log>.*?</consolidation_log>\s*",
+                "",
+                result,
+                flags=_re.DOTALL,
+            )
+
             # Strip markdown fences if the LLM wrapped its output
             if result.startswith("```"):
                 lines = result.split("\n")
@@ -272,6 +371,8 @@ def _consolidate_prompt(
                 if lines and lines[-1].strip() == "```":
                     lines = lines[:-1]
                 result = "\n".join(lines)
+
+            result = result.strip()
 
             valid, errs = _validate_prompt_structure(result)
             if valid:
@@ -839,8 +940,19 @@ def run_active_loop(
                 t0_cons = _time.time()
 
             best_artifacts = cons_top[0].get("artifacts", None)
-            cons_prompt = _consolidate_prompt(cons_top, al_iter, cfg_dict,
-                                              error_artifacts=best_artifacts)
+            metrics_summary = {
+                "val_combined": float(val_ha.get("combined_score", 0.0)),
+                "val_R_global": float(val_ha.get("R_global", 0.0)),
+                "val_R_worst": float(val_ha.get("R_worst", 0.0)),
+            }
+            cons_prompt = _consolidate_prompt(
+                cons_top,
+                al_iter,
+                cfg_dict,
+                max_retries=2,
+                error_artifacts=best_artifacts,
+                metrics_summary=metrics_summary,
+            )
             cons_val = None
             if cons_prompt is not None:
                 (out_dir / "consolidated_prompt.txt").write_text(cons_prompt, encoding="utf-8")
@@ -1071,15 +1183,57 @@ def run_active_loop(
                 unseen=data_manager.n_unseen,
             )
 
-        # Pool refresh: add small number of Unseen examples to Hard each cycle
+        # Pool refresh: promote Unseen → Seen, then label Hard vs Anchor (same logic as expansion)
         if refresh_per_cycle > 0 and data_manager.n_unseen > 0:
             n_refresh = min(refresh_per_cycle, data_manager.n_unseen)
-            print(f"  [POOL REFRESH] Adding {n_refresh} Unseen examples to Hard pool...")
+            print(f"  [POOL REFRESH] Adding {n_refresh} Unseen examples (will classify Hard/Anchor)...")
             refresh_indices = data_manager.expand_pool(n_new=n_refresh, seed=42 + al_iter + 1000)
+            refresh_hard, refresh_anchor = [], []
             if refresh_indices:
-                data_manager.hard_indices.extend(refresh_indices)
+                try:
+                    print(f"  [POOL REFRESH] Evaluating {len(refresh_indices)} new examples...")
+                    refresh_results = _evaluate_batch(
+                        current_prompt, refresh_indices, data_manager, cfg_dict
+                    )
+                    uncertainty_threshold = al_cfg.get("uncertainty_threshold", 0.0)
+                    for j, idx in enumerate(refresh_indices):
+                        pred = refresh_results["predictions"][j]
+                        gold = refresh_results["gold_labels"][j]
+                        wp = [int(w[j]) for w in refresh_results["worker_predictions"]]
+                        correct = pred == gold
+                        d_score = disagreement_score(wp, rating_min=1, rating_max=5)
+                        if (not correct) or (d_score > uncertainty_threshold):
+                            refresh_hard.append(idx)
+                        else:
+                            refresh_anchor.append(idx)
+                    data_manager.hard_indices.extend(refresh_hard)
+                    data_manager.anchor_indices.extend(refresh_anchor)
+                    print(
+                        f"  [POOL REFRESH] Classified: {len(refresh_hard)} Hard, "
+                        f"{len(refresh_anchor)} Anchor"
+                    )
+                except RuntimeError as e:
+                    if _is_api_error(e):
+                        _exit_on_api_error(
+                            e,
+                            results_dir,
+                            al_iter,
+                            results_dir / f"al_iter_{al_iter}" / "best_prompt.txt",
+                            n_al_iterations,
+                            n_evolve_iterations,
+                        )
+                    # Non-API failure: same fallback as pool expansion
+                    data_manager.hard_indices.extend(refresh_indices)
+                    refresh_hard = list(refresh_indices)
+                    refresh_anchor = []
+                    print(
+                        f"  [POOL REFRESH] Eval failed, added all {len(refresh_indices)} as Hard (fallback)"
+                    )
+
                 entry["refresh_event"] = {
                     "added": len(refresh_indices),
+                    "added_hard": len(refresh_hard),
+                    "added_anchor": len(refresh_anchor),
                     "hard": data_manager.n_hard,
                     "anchor": data_manager.n_anchor,
                     "unseen": data_manager.n_unseen,
@@ -1089,14 +1243,19 @@ def run_active_loop(
                     event_description="cycle_refresh",
                     al_iter=al_iter,
                     added=len(refresh_indices),
+                    added_hard=len(refresh_hard),
+                    added_anchor=len(refresh_anchor),
                     hard=data_manager.n_hard,
                     anchor=data_manager.n_anchor,
                     unseen=data_manager.n_unseen,
                 )
-                print(f"  [POOL REFRESH] Done. Hard: {data_manager.n_hard}, Unseen: {data_manager.n_unseen}")
+                print(
+                    f"  [POOL REFRESH] Done. Hard: {data_manager.n_hard}, "
+                    f"Anchor: {data_manager.n_anchor}, Unseen: {data_manager.n_unseen}"
+                )
 
-        # Per-cycle test evaluation (for graphs)
-        print("  Test evaluation (per-cycle)...")
+        # Per-cycle test: diagnostics / visualize.py only (no training decisions use these metrics).
+        print("  Test evaluation (per-cycle, for plots — not used in AL decisions)...")
         if smoke_mode:
             t0_test = _time.time()
         try:
@@ -1147,9 +1306,9 @@ def run_active_loop(
     if active_batch_path.exists():
         active_batch_path.unlink()
 
-    # Final test evaluation
+    # Single holdout test evaluation (train/val used during AL; test only here for reporting)
     print("\n" + "=" * 60)
-    print("Final test evaluation")
+    print("Final test evaluation (holdout, not used for model selection)")
     print("=" * 60)
     if smoke_mode:
         t0 = _time.time()

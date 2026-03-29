@@ -2,7 +2,7 @@
 Visualization for Active Prompt Evolution results.
 
 Generates plot files from active_loop_log.json, baseline_test_metrics.json,
-and final_test_metrics.json:
+and final_test_metrics.json (per-cycle test_* fields in the log drive test curves).
   - active_evolution_curves.png   (validation metrics)
   - active_evolution_test.png    (test metrics per cycle, when available)
   - active_evolution_secondary.png (diagnostics)

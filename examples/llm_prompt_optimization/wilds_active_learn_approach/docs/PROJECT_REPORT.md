@@ -1,5 +1,7 @@
 # Оптимизация LLM-промптов методом эволюционного активного обучения
 
+> Файл перенесён в каталог `docs/`. Актуальное оглавление документации: [README.md](README.md). Краткое описание пайплайна v4: [pipeline_desc.txt](pipeline_desc.txt). Недавние прогоны и выводы по длине: [EXPERIMENTS_AND_LESSONS.md](EXPERIMENTS_AND_LESSONS.md).
+
 ## Полное описание проекта: от идеи до результатов
 
 ---
@@ -160,7 +162,7 @@ wilds_active_learn_approach/
 ├── visualize.py            # Генерация графиков эволюции
 ├── visualize_report_test.py # Графики test-метрик для отчёта
 ├── analyze_run.py          # Комплексный анализ прогона
-├── desc.txt                # Техническое описание пайплайна
+├── docs/pipeline_desc.txt    # Техническое описание пайплайна (v4)
 ├── results_v2/             # Эксперимент v2 (5 циклов)
 ├── results_v3/             # Эксперимент v3 (10 циклов, основной)
 │   ├── active_loop_log.json    # Лог всех циклов с метриками

@@ -2,8 +2,11 @@ max_iterations: 100
 checkpoint_interval: 10
 log_level: "INFO"
 diff_based_evolution: false
-max_code_length: 10000
+max_code_length: 7500
 language: "text"
+early_stopping_patience: 5
+early_stopping_metric: "combined_score"
+convergence_threshold: 0.001
 
 # OpenRouter: Evolution model (DeepSeek R1 for reasoning)
 llm:
@@ -44,50 +47,54 @@ prompt:
     Rating: [1-5]
 
     ## What You Can Modify
-    1. <DynamicRules>: ADD new rules or REFINE existing rule wording.
+    1. <DynamicRules>: REFINE existing rules, MERGE near-duplicates, ADD only when
+       no existing rule covers the error pattern.
     2. <FewShotExamples>: ADD, replace, or reorder examples.
        - Use the provided **Error Examples** (in artifacts) to create new Few-Shot examples.
        - Replace least effective examples with these new "hard" cases.
        - Each example ends with a single line: Rating: [1-5].
     3. Do NOT change <BaseGuidelines> or <Task>. These sections are frozen.
 
-    ## CRITICAL: Active Learning Rule Management
-    This is an ACTIVE LEARNING system. The rule set should GROW over cycles,
-    but also stay compact and non-redundant. Follow these principles:
+    ## CRITICAL: Compact Rule Management (MERGE-FIRST approach)
+    This prompt is part of an active learning loop. Prompt length directly hurts
+    fitness through length_penalty and wastes API budget. Follow MERGE-FIRST:
 
-    **Avoid deleting working rules blindly.** If a rule exists, it was added
-    because it solved a real classification problem. You may:
-    - ADD a new rule to address a new error pattern
-    - REFINE the wording of an existing rule to make it clearer
-    - MERGE two very similar rules into one that covers both cases
-    - REMOVE or MERGE rules that are clearly redundant or contradicted by
-      stronger, higher-level rules, as long as all rating categories remain covered.
+    **Before adding ANY new rule, search the existing <DynamicRules> for a rule
+    that already covers a similar case.** If found:
+    - REFINE that existing rule to also cover the new error pattern.
+    - Do NOT add a separate rule.
 
-    **Keep the DynamicRules section compact.** Aim for no more than ~50 rules
-    total. When you add new rules, prefer merging or pruning weaker duplicates
-    instead of unbounded growth.
+    **Merge truly redundant rules.** If two rules describe essentially the same
+    signal (e.g., both say "minor complaints but overall positive → 4"), combine
+    them into one concise rule. Only merge rules that are genuinely near-identical
+    in meaning — do NOT aggressively prune rules that address distinct concepts.
+
+    **Hard budget: aim for 25-40 rules total.** If the prompt already has ≥40
+    rules, your FIRST action must be to merge the most redundant pairs before
+    adding anything new.
 
     **MANDATORY: cover ALL 5 rating categories.** The <DynamicRules> section
     MUST contain at least 2 rules for EACH star level (1, 2, 3, 4, 5).
     If the RULE COVERAGE WARNING in the artifacts shows missing categories,
-    your PRIMARY task is to add rules for those categories BEFORE doing
-    anything else.
+    add rules for those categories BEFORE doing anything else.
 
     **Prioritize error patterns.** When the Evaluation Artifacts show
-    systematic errors (e.g., gold=3 predicted as 4), add a SPECIFIC new
-    rule that disambiguates this boundary. Do NOT replace existing rules —
-    add the new rule alongside them.
+    systematic errors (e.g., gold=3 predicted as 4), first check whether an
+    existing rule already addresses this boundary. If yes, refine it.
+    If no existing rule covers this case, add ONE targeted boundary rule.
 
     ## Error Feedback (Evaluation Artifacts)
     Each evaluation provides concrete examples:
     - ERROR DISTRIBUTION: which gold->predicted pairs are most frequent.
+    - TOP CONFUSION PAIRS: top mistake types with up to 2 concrete examples each.
     - MISCLASSIFIED EXAMPLES: review text, gold rating, predicted rating,
       per-worker votes, and disagreement score.
     - BORDERLINE EXAMPLES: correct prediction but workers disagreed.
     - RULE COVERAGE: which rating categories have rules in DynamicRules
       and which are MISSING — add rules for missing categories first.
+    - FEW-SHOT BALANCE AUDIT: counts per rating in <FewShotExamples>; fix skew.
     Use these to identify systematic failure patterns and craft targeted
-    new rules or select better few-shot examples.
+    rule refinements or select better few-shot examples.
 
     ## FewShotExamples Management
     - MUST include at least one example for EACH rating level (1-5).
@@ -95,7 +102,7 @@ prompt:
     - Prioritize commonly confused rating pairs (4 vs 5, 2 vs 3).
     - **Smart Few-Shot:** If the artifacts show a specific error type (e.g., sarcasm failed),
       create a NEW few-shot example from that specific error case with the correct rating.
-    - Aim for 7-10 diverse examples total.
+    - Aim for 7-10 diverse examples total. Do NOT exceed 12 examples.
 
     ## How Evaluation Works
     1. The {review} placeholder is replaced with the actual review text.
@@ -117,18 +124,34 @@ prompt:
     The main fitness used for selection is:
       fitness = 0.5 * Acc_Hard + 0.3 * Acc_Anchor + 0.2 * kappa_Hard - length_penalty
     where kappa_Hard is inter-worker agreement on the Hard subset, and
-    length_penalty grows with prompt length above ~2000 tokens. Your goal in
-    evolving prompts is to **maximize this combined fitness**, with particular
-    focus on improving Acc_Hard and kappa_Hard while preserving high Acc_Anchor
-    and keeping the prompt reasonably compact.
+    length_penalty grows with prompt length above ~2000 tokens.
+    **Shorter prompts with the same accuracy always win.** Your goal is to
+    maximize combined fitness while keeping the prompt as compact as possible.
+
+    ## Output Format
+    First, output a brief <mutation_log> block (3-5 lines) explaining what you
+    changed and why (which rules merged, which added, which refined). Then output
+    the complete prompt inside a ```text code fence.
+
+    Example structure of your response:
+    <mutation_log>
+    - Merged rules 4-star "minor flaw" and "small complaint" into one.
+    - Refined 3-star boundary rule to cover sarcasm edge case from error #2.
+    - Replaced few-shot example #5 with misclassified review (gold=2).
+    </mutation_log>
+    ```text
+    <System>
+    ...full prompt here...
+    </Task>
+    ```
 
     ## Best Practices
-    1. Add new rules based on error artifacts; merge near-duplicates to stay compact.
-    2. Use clear, generalizing rules (not rules for one specific review).
-    3. Ensure DynamicRules covers ALL 5 rating levels with at least 2 rules each.
-    4. Ensure FewShotExamples covers ALL 5 rating levels with diverse review styles.
-    5. Preserve logic that correctly handles easy (Anchor) examples to avoid regression.
-    6. When in doubt, ADD a new rule rather than removing an existing one.
+    1. REFINE existing rules based on error artifacts before adding new ones.
+    2. MERGE near-duplicate rules to stay compact (25-40 rules target).
+    3. Use clear, generalizing rules (not rules for one specific review).
+    4. Ensure DynamicRules covers ALL 5 rating levels with at least 2 rules each.
+    5. Ensure FewShotExamples covers ALL 5 rating levels with diverse review styles.
+    6. Preserve logic that correctly handles easy (Anchor) examples to avoid regression.
 
 database:
   population_size: 30
@@ -180,6 +203,7 @@ workers:
 # batch_size: size of the active batch used for evolution.
 # hard_ratio: fraction of batch reserved for Hard examples.
 # expansion_trigger: when Hard count drops to this or below, expand pool from Unseen.
+# Per-cycle test metrics go to active_loop_log.json for graphs; AL decisions use train+val only.
 active_learning:
   uncertainty_threshold: 0.0
   batch_size: 80
@@ -188,7 +212,7 @@ active_learning:
   soft_expansion_patience: 3      # Cycles without val improvement to trigger expansion
   soft_expansion_min_delta: 0.02  # Minimum val_combined_score improvement required
   seen_reeval_interval: 3         # Re-evaluate all Seen examples every N AL cycles (0 = off)
-  refresh_per_cycle: 10           # Add N Unseen examples to Hard pool each cycle (0 = off)
+  refresh_per_cycle: 10           # Promote N Unseen→Seen/cycle; each is scored → Hard or Anchor (0 = off)
   consolidation_gate_delta: 0.02  # Reject consolidated prompt if val score drops more than this
 dataset:
   config_path: "dataset.yaml"
