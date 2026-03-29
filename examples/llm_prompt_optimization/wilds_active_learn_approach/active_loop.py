@@ -202,8 +202,8 @@ specific error pattern from the artifacts AND no existing rule already covers it
 4. **Promote** consistently successful DynamicRules to <BaseGuidelines> if they \
 are general enough, then remove them from DynamicRules.
 
-HARD BUDGET: aim for 25-40 rules total in <DynamicRules>. If the input has >40 \
-rules, merging redundant pairs is your FIRST action before anything else.
+SOFT BUDGET: aim for 30-50 distinct rules/bullets in <DynamicRules>. If the input has >50 \
+rules, merge only truly redundant pairs — do NOT merge distinct boundary rules into one vague line.
 
 CRITICAL CONSTRAINTS:
 - The best prompt is your STARTING POINT. Do NOT rewrite it from scratch.
@@ -638,6 +638,11 @@ def run_active_loop(
     expansion_trigger = al_cfg.get("expansion_trigger", 5)
     refresh_per_cycle = al_cfg.get("refresh_per_cycle", 0)
     consolidation_gate_delta = al_cfg.get("consolidation_gate_delta", 0.02)
+    consolidation_gate_vs_best = al_cfg.get("consolidation_gate_vs_best_delta", 0.04)
+    soft_skip_near_best = al_cfg.get("soft_expansion_skip_near_best", 0.005)
+    al_stop_patience = al_cfg.get("al_early_stopping_patience", 0)
+    al_stop_min_cycles = al_cfg.get("al_early_stopping_min_cycles", 2)
+    min_hard_batch_ratio = al_cfg.get("min_hard_batch_ratio", 0.55)
 
     with open(prompt_path, "r", encoding="utf-8") as f:
         current_prompt = f.read()
@@ -745,11 +750,14 @@ def run_active_loop(
 
     best_val_score = -1.0
     best_val_prompt = current_prompt
+    best_val_cycle = -1
     if log_entries:
         for e in log_entries:
             sv = e.get("seed_val_score", e.get("val_combined_score", -1.0))
+            ai = e.get("al_iter", -1)
             if sv > best_val_score:
                 best_val_score = sv
+                best_val_cycle = ai
         best_val_prompt_path = results_dir / "best_val_prompt.txt"
         if best_val_prompt_path.exists():
             best_val_prompt = best_val_prompt_path.read_text(encoding="utf-8")
@@ -769,9 +777,16 @@ def run_active_loop(
         if smoke_mode:
             t0_batch = _time.time()
         batch_indices, hard_in_batch, anchor_in_batch = data_manager.build_active_batch(
-            batch_size=batch_size, hard_ratio=hard_ratio, seed=42 + al_iter,
+            batch_size=batch_size,
+            hard_ratio=hard_ratio,
+            seed=42 + al_iter,
+            min_hard_ratio=min_hard_batch_ratio,
         )
-        print(f"  Active batch: {len(batch_indices)} (Hard: {len(hard_in_batch)}, Anchor: {len(anchor_in_batch)})")
+        hb_frac = len(hard_in_batch) / len(batch_indices) if batch_indices else 0.0
+        print(
+            f"  Active batch: {len(batch_indices)} (Hard: {len(hard_in_batch)}, Anchor: {len(anchor_in_batch)}; "
+            f"hard_frac={hb_frac:.2%})"
+        )
         diag.log("cycle_start", al_iter=al_iter, batch_size=len(batch_indices),
                  n_hard_in_batch=len(hard_in_batch), n_anchor_in_batch=len(anchor_in_batch),
                  n_hard_total=data_manager.n_hard, n_anchor_total=data_manager.n_anchor,
@@ -991,9 +1006,18 @@ def run_active_loop(
                         delta=delta,
                     )
 
-                    # Gate: reject consolidated prompt if validation score drops too much
-                    if cons_score + consolidation_gate_delta < evo_val_score:
-                        print(f"  Consolidated prompt REJECTED (Δ_val > {consolidation_gate_delta}, keep evolution best).")
+                    # Gate 1: vs evolution validation this cycle
+                    reject_vs_evo = cons_score + consolidation_gate_delta < evo_val_score
+                    # Gate 2: vs best val we know (previous cycles ∪ this cycle's evolution val)
+                    ref_best_val = max(best_val_score, evo_val_score)
+                    reject_vs_best = ref_best_val > 0 and (
+                        cons_score + consolidation_gate_vs_best < ref_best_val
+                    )
+                    if reject_vs_evo:
+                        print(
+                            f"  Consolidated prompt REJECTED (vs evolution: Δ_val > {consolidation_gate_delta}, "
+                            "keep evolution best)."
+                        )
                         diag.log(
                             "consolidation_decision",
                             al_iter=al_iter,
@@ -1001,12 +1025,31 @@ def run_active_loop(
                             cons_score=cons_score,
                             evo_score=best_evolution_score,
                             delta=delta,
+                            reason="vs_evolution",
+                        )
+                    elif reject_vs_best:
+                        print(
+                            f"  Consolidated prompt REJECTED (vs ref best val: "
+                            f"cons {cons_score:.4f} < ref_best {ref_best_val:.4f} − {consolidation_gate_vs_best})."
+                        )
+                        diag.log(
+                            "consolidation_decision",
+                            al_iter=al_iter,
+                            accepted=False,
+                            cons_score=cons_score,
+                            evo_score=best_evolution_score,
+                            delta=delta,
+                            reason="vs_ref_best",
+                            ref_best_val=ref_best_val,
                         )
                     else:
                         current_prompt = cons_prompt
                         consolidated = True
                         seed_val_score = cons_score
-                        print("  Consolidated prompt ACCEPTED (Δ_val ≤ 0.02).")
+                        print(
+                            f"  Consolidated prompt ACCEPTED (Δ_val ≤ {consolidation_gate_delta} "
+                            f"and vs global best OK)."
+                        )
                         diag.log(
                             "consolidation_decision",
                             al_iter=al_iter,
@@ -1027,10 +1070,11 @@ def run_active_loop(
             print("  Skipping consolidation (fewer than 2 programs in archive).")
             diag.log("consolidation_skip", al_iter=al_iter, reason="too_few_programs")
 
-        # Обновляем глобально лучший по validation промпт (для анализа и возможного использования)
+        # Обновляем глобально лучший по validation промпт (для анализа и финального теста)
         if seed_val_score > best_val_score:
             best_val_score = seed_val_score
             best_val_prompt = current_prompt
+            best_val_cycle = al_iter
             (results_dir / "best_val_prompt.txt").write_text(best_val_prompt, encoding="utf-8")
 
         entry = {
@@ -1114,6 +1158,21 @@ def run_active_loop(
                 print(f"  Soft expansion condition met: val improvement {window_max - window_start:.4f} < {soft_delta} over {soft_patience} cycles.")
 
         needs_hard_expansion = data_manager.needs_expansion(threshold=expansion_trigger)
+
+        # After best_val update, best_val_score is the global max including this cycle's seed_val_score.
+        at_or_near_best_val = seed_val_score >= (best_val_score - soft_skip_near_best)
+        if needs_soft_expansion and not needs_hard_expansion and at_or_near_best_val:
+            print(
+                f"  Soft expansion SKIPPED: seed_val {seed_val_score:.4f} at/near best val "
+                f"{best_val_score:.4f} (threshold ±{soft_skip_near_best})."
+            )
+            diag.log(
+                "soft_expansion_skipped_near_best",
+                al_iter=al_iter,
+                seed_val_score=seed_val_score,
+                best_val_score=best_val_score,
+            )
+            needs_soft_expansion = False
 
         if (needs_hard_expansion or needs_soft_expansion) and data_manager.n_unseen > 0:
             if needs_hard_expansion:
@@ -1292,6 +1351,8 @@ def run_active_loop(
               f"Acc_Anchor={val_ha['Acc_Anchor']:.2%}  (Hard:{val_ha['n_hard']}/Anchor:{val_ha['n_anchor']})  "
               f"[{cycle_time:.0f}s]")
         entry["cycle_time_s"] = round(cycle_time, 1)
+        entry["best_val_cycle"] = best_val_cycle
+        entry["global_best_val_score"] = best_val_score
         log_entries.append(entry)
 
         log_path = results_dir / "active_loop_log.json"
@@ -1302,18 +1363,45 @@ def run_active_loop(
             print(f"\n  Pool exhausted and Hard={data_manager.n_hard}. Stopping.")
             break
 
+        if (
+            al_stop_patience > 0
+            and best_val_cycle >= 0
+            and (al_iter - best_val_cycle) >= al_stop_patience
+            and (al_iter + 1) >= al_stop_min_cycles
+        ):
+            log_entries[-1]["al_early_stopped"] = True
+            with open(log_path, "w", encoding="utf-8") as f:
+                json.dump(log_entries, f, indent=2)
+            print(
+                f"\n  AL early stopping: no new best val for {al_stop_patience} cycle(s) "
+                f"(best at AL cycle index {best_val_cycle}, patience={al_stop_patience})."
+            )
+            diag.log(
+                "al_early_stop",
+                al_iter=al_iter,
+                best_val_cycle=best_val_cycle,
+                patience=al_stop_patience,
+                best_val_score=best_val_score,
+            )
+            break
+
     # Cleanup
     if active_batch_path.exists():
         active_batch_path.unlink()
 
-    # Single holdout test evaluation (train/val used during AL; test only here for reporting)
+    # Single holdout test evaluation (train/val used during AL; test only here for reporting).
+    # Use global best-by-val prompt so a weak last AL cycle does not define the reported test score.
     print("\n" + "=" * 60)
-    print("Final test evaluation (holdout, not used for model selection)")
+    print("Final test evaluation (holdout; best_val_prompt — best seed_val_score on validation)")
     print("=" * 60)
+    print(
+        f"  best_val_score={best_val_score:.4f}  (AL cycle index {best_val_cycle}; "
+        f"last_cycle len={len(current_prompt)} chars, best_val len={len(best_val_prompt)} chars)"
+    )
     if smoke_mode:
         t0 = _time.time()
     try:
-        final_test_metrics = _evaluate_split_full(current_prompt, cfg_dict, split_name="test")
+        final_test_metrics = _evaluate_split_full(best_val_prompt, cfg_dict, split_name="test")
     except RuntimeError as e:
         if _is_api_error(e):
             last_prompt = results_dir / "final_prompt.txt"
@@ -1332,7 +1420,19 @@ def run_active_loop(
         diag.log("smoke_timing", stage="final_test", duration_s=round(dur, 2))
     with open(results_dir / "final_test_metrics.json", "w", encoding="utf-8") as f:
         json.dump(final_test_metrics, f, indent=2)
-    (results_dir / "final_prompt.txt").write_text(current_prompt, encoding="utf-8")
+    (results_dir / "final_prompt.txt").write_text(best_val_prompt, encoding="utf-8")
+    (results_dir / "last_cycle_prompt.txt").write_text(current_prompt, encoding="utf-8")
+    with open(results_dir / "best_val_meta.json", "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "best_val_score": best_val_score,
+                "best_val_cycle": best_val_cycle,
+                "last_cycle_chars": len(current_prompt),
+                "best_val_chars": len(best_val_prompt),
+            },
+            f,
+            indent=2,
+        )
 
     print(f"Baseline test: R_global={baseline_test_metrics['R_global']:.2%}  "
           f"R_worst={baseline_test_metrics['R_worst']:.2%}  combined={baseline_test_metrics['combined_score']:.4f}")
@@ -1346,8 +1446,15 @@ def run_active_loop(
     print(f"Delta:        R_global={delta_r:+.2%}  combined={delta_comb:+.4f}")
     print("=" * 60)
 
-    diag.log("final_test", **{k: v for k, v in final_test_metrics.items() if isinstance(v, (int, float))},
-             delta_R_global=delta_r, delta_combined=delta_comb)
+    diag.log(
+        "final_test",
+        **{k: v for k, v in final_test_metrics.items() if isinstance(v, (int, float))},
+        delta_R_global=delta_r,
+        delta_combined=delta_comb,
+        prompt_source="best_val_prompt",
+        best_val_cycle=best_val_cycle,
+        best_val_score=best_val_score,
+    )
 
     # Token report
     try:

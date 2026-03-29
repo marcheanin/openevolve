@@ -1,0 +1,104 @@
+<System>
+<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive
+    - Output: a single rating 1-5 (e.g. "Rating: 3" or just "3")
+    - Task: Classify the overall sentiment of the review based solely on the review text
+    - Base the rating on overall customer satisfaction, not on isolated phrases
+</BaseGuidelines>
+
+<DynamicRules>
+    STAR LEVEL CRITERIA:
+
+    1 Star (Very Negative):
+    - Strong dissatisfaction or anger; product defective, unsafe, ineffective, or returned
+    - Clear statements: "terrible," "junk," "don't buy," "returned," "doesn't work"
+    - Safety hazards or total failure → 1
+
+    2 Stars (Negative):
+    - More negative than positive; significant flaws, poor quality, misleading description
+    - Product failure after reasonable period (e.g., breaks within 1-2 years)
+    - Some limited usefulness but strong disappointment
+    - Language: "cheap," "useless," "not as pictured," "pain to use"
+
+    3 Stars (Neutral / Mixed):
+    - Balanced pros and cons; conflicted/moderate tone without clear recommendation
+    - Phrases: "It's okay," "average," "not great but not terrible," "better than nothing"
+    - Works but with noticeable limitations or specific use cases only
+    - Brief factual negative statements without emotional hyperbole (e.g., "Didn't work. Returned.") → 3
+
+    4 Stars (Positive):
+    - Mostly positive with minor criticisms; clear positives outweigh limitations. Satisfied but with reservations.
+    - Phrases: "pretty good," "above average," "would recommend"
+    - Noticeable limitations but overall satisfied → 4
+
+    5 Stars (Very Positive):
+    - Strong satisfaction and enthusiasm; exceeds expectations or delivers excellent value
+    - Can have trivial/minor drawbacks if overall experience is exceptional
+    - Phrases: "love it," "perfect," "excellent," "extremely happy," "worth every penny"
+    - Trivial drawbacks with enthusiastic praise → 5
+    - Explicit feature praise outweighs minor functional limitations → 5
+
+    BOUNDARY & EDGE CASES:
+    - 4 vs 5: Noticeable limitations but satisfied → 4. Trivial drawbacks with high satisfaction → 5.
+    - 3 vs 4: Mixed/balanced → 3. Mostly positive with minor issues → 4.
+    - 2 vs 3: More negative than positive → 2. Balanced pros/cons or factual negative without emotion → 3.
+    - Mixed sentiment: Weigh overall conclusion more than isolated complaints.
+    - Updates: If review ends negatively after update, prioritize final evaluation.
+    - Sarcasm: Detect implicit negativity even if positive words are used ironically.
+    - Comparison phrasing: "Would not buy again" → likely 1 or 2.
+    - Minor inconvenience with strong satisfaction → 5; with moderate satisfaction → 4.
+    - Safety risk mentioned → lean toward 1.
+    - Price praised despite limitations → lean toward 4 or 5 based on tone.
+    - Expert/niche reviews: Positive for target audience even if not for everyone → 5.
+    - External factors (availability, shipping) don't override product experience rating.
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+
+Example 1:
+Review: It's not a good vacuum. It's hard to pick up dirt and then it will spit it out so you have to go over and over the same area. I wouldn't buy it again.
+Rating: 1
+
+Example 2:
+Review: Since buying this product and it dying 12 months later I've owned numerous carpet cleaners including the Bissel Proheat 2X Pet Lift Off and the at-home version of the Rug Doctor. Both of these blew the performance of this machine out of the water. This machine would freshen up the carpets but never ...
+Rating: 2
+
+Example 3:
+Review: The cushions are okay, but the size was waaaay off for my rocker. I'm still using it though because it is better than nothing.
+Rating: 3
+
+Example 4:
+Review: These are really nice IF you only use them for bigger items. They are too thick and bulky for smaller items.
+Rating: 3
+
+Example 5:
+Review: Didn't work. Had to send it back.
+Rating: 3
+
+Example 6:
+Review: On my computer screen the color for the 'cool brown' bath mat is accurate. It's a faded sort of brown with lots of gray tint to it. Our upstairs bath is in browns -- golden-hue brown and tile brown-- and it fits in. What you get is a cool-brown no...
+Rating: 4
+
+Example 7:
+Review: I'd rate this as pretty good although it doesn't feel quite as heavy duty as the ones we've been using for the past few years... Overall I'd rate this as above average although only time will tell how durable it is.
+Rating: 4
+
+Example 8:
+Review: This is a nice little bread plate. It works well for small amounts, about half of a French bread loaf. Not big enough for large family dinners.
+Rating: 5
+
+Example 9:
+Review: This is a sharp well made tablecloth. It's strengths are the vibrant colors, sharp contrast, and solid construction. The cons are just the inherent need to iron it that comes from the cotton.
+Rating: 5
+
+Example 10:
+Review: If there's anything you ever thought you wanted or needed in a trash can, this one has it. First, it's a semi-round, so it seems to have a smaller footprint than traditional round cans. Second, it has a silent opening and soft closing, which is great if you don't want to make any noise - say, in a s...
+Rating: 5
+
+</FewShotExamples>
+
+<Task>
+Review: {review}
+</Task>

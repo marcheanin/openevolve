@@ -9,6 +9,7 @@ pulling in new examples from Unseen that are semantically distant from Anchor.
 from __future__ import annotations
 
 import sys
+import warnings
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
@@ -343,9 +344,13 @@ class DataManager:
         batch_size: int = 80,
         hard_ratio: float = 0.7,
         seed: int = 42,
+        min_hard_ratio: Optional[float] = None,
     ) -> Tuple[List[int], List[int], List[int]]:
         """
         Assemble an active batch from current Hard and Anchor in Seen.
+
+        When topping up a short batch, prefer **remaining Hard** over Anchor so the
+        active batch keeps enough hard examples for evolution (when the pool allows).
 
         Returns (batch_indices, hard_in_batch, anchor_in_batch).
         """
@@ -363,9 +368,9 @@ class DataManager:
         if len(batch) < batch_size:
             rng = np.random.default_rng(seed + 999)
             used = set(batch)
-            # В приоритете остальные Anchor, затем Hard, затем любые Seen
-            remaining_anchor = [i for i in self.anchor_indices if i not in used]
+            # При нехватке слотов: сначала оставшиеся Hard, затем Anchor, затем прочие Seen
             remaining_hard = [i for i in self.hard_indices if i not in used]
+            remaining_anchor = [i for i in self.anchor_indices if i not in used]
             remaining_seen = [i for i in self.seen_indices if i not in used
                               and i not in set(self.hard_indices)
                               and i not in set(self.anchor_indices)]
@@ -378,15 +383,15 @@ class DataManager:
                 return rng.choice(src, size=needed, replace=False).tolist()
 
             shortfall = batch_size - len(batch)
-            extra_anchor = _take(remaining_anchor, shortfall)
-            batch.extend(extra_anchor)
-            used.update(extra_anchor)
+            extra_hard = _take(remaining_hard, shortfall)
+            batch.extend(extra_hard)
+            used.update(extra_hard)
 
             shortfall = batch_size - len(batch)
             if shortfall > 0:
-                extra_hard = _take(remaining_hard, shortfall)
-                batch.extend(extra_hard)
-                used.update(extra_hard)
+                extra_anchor = _take(remaining_anchor, shortfall)
+                batch.extend(extra_anchor)
+                used.update(extra_anchor)
 
             shortfall = batch_size - len(batch)
             if shortfall > 0 and remaining_seen:
@@ -397,7 +402,6 @@ class DataManager:
             # Last resort: promote from Unseen to meet batch_size
             shortfall = batch_size - len(batch)
             if shortfall > 0 and self.unseen_indices:
-                import warnings
                 warnings.warn(
                     f"build_active_batch: Seen pool too small, promoting {shortfall} from Unseen"
                 )
@@ -412,6 +416,14 @@ class DataManager:
         hard_set = set(self.hard_indices)
         hard_in = [i for i in batch if i in hard_set]
         anchor_in = [i for i in batch if i not in hard_set]
+        if min_hard_ratio is not None and batch_size > 0 and len(hard_in) / len(batch) < min_hard_ratio:
+            nh = len(self.hard_indices)
+            na = len(self.anchor_indices)
+            warnings.warn(
+                f"build_active_batch: hard fraction {len(hard_in) / len(batch):.2%} "
+                f"< min_hard_ratio {min_hard_ratio:.2%} (pool: {nh} Hard, {na} Anchor). "
+                "Consider pool expansion or lower min_hard_batch_ratio."
+            )
         return batch, hard_in, anchor_in
 
     # ------------------------------------------------------------------

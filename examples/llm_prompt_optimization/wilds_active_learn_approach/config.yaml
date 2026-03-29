@@ -69,9 +69,10 @@ prompt:
     them into one concise rule. Only merge rules that are genuinely near-identical
     in meaning — do NOT aggressively prune rules that address distinct concepts.
 
-    **Hard budget: aim for 25-40 rules total.** If the prompt already has ≥40
-    rules, your FIRST action must be to merge the most redundant pairs before
-    adding anything new.
+    **Soft budget: aim for 30-50 distinct rules/bullets in <DynamicRules>.**
+    If the prompt already has ≥50 rules, merge the most redundant pairs before
+    adding new ones — but do NOT collapse distinct boundary rules into one
+    vague bullet just to save space.
 
     **MANDATORY: cover ALL 5 rating categories.** The <DynamicRules> section
     MUST contain at least 2 rules for EACH star level (1, 2, 3, 4, 5).
@@ -147,7 +148,7 @@ prompt:
 
     ## Best Practices
     1. REFINE existing rules based on error artifacts before adding new ones.
-    2. MERGE near-duplicate rules to stay compact (25-40 rules target).
+    2. MERGE near-duplicate rules to stay compact (30-50 rules target).
     3. Use clear, generalizing rules (not rules for one specific review).
     4. Ensure DynamicRules covers ALL 5 rating levels with at least 2 rules each.
     5. Ensure FewShotExamples covers ALL 5 rating levels with diverse review styles.
@@ -208,12 +209,17 @@ active_learning:
   uncertainty_threshold: 0.0
   batch_size: 80
   hard_ratio: 0.7
+  min_hard_batch_ratio: 0.55      # Warn if active batch has fewer Hard than this fraction (when pool allows)
   expansion_trigger: 15
   soft_expansion_patience: 3      # Cycles without val improvement to trigger expansion
   soft_expansion_min_delta: 0.02  # Minimum val_combined_score improvement required
+  soft_expansion_skip_near_best: 0.005  # Skip soft-only expansion when seed_val is at/near best val so far
   seen_reeval_interval: 3         # Re-evaluate all Seen examples every N AL cycles (0 = off)
   refresh_per_cycle: 10           # Promote N Unseen→Seen/cycle; each is scored → Hard or Anchor (0 = off)
-  consolidation_gate_delta: 0.02  # Reject consolidated prompt if val score drops more than this
+  consolidation_gate_delta: 0.02  # Reject consolidated prompt if val drops vs evolution-best this cycle
+  consolidation_gate_vs_best_delta: 0.04  # Also reject if cons val is this far below global best val
+  al_early_stopping_patience: 2   # Stop AL loop after this many cycles with no new best val (0 = off)
+  al_early_stopping_min_cycles: 2  # Require at least this many AL cycles before AL early stop can fire
 dataset:
   config_path: "dataset.yaml"
   max_samples: null

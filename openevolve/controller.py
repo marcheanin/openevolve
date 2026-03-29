@@ -409,7 +409,7 @@ class OpenEvolve:
                 and self.parallel_controller.early_stopping_triggered
             ):
                 logger.info(
-                    f"🛑 Evolution complete via early stopping. Best program has metrics: "
+                    f"[EarlyStop] Evolution complete via early stopping. Best program has metrics: "
                     f"{format_metrics_safe(best_program.metrics)}"
                 )
             else:

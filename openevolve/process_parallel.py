@@ -727,7 +727,7 @@ class ProcessParallelController:
                                 ):
                                     self.early_stopping_triggered = True
                                     logger.info(
-                                        f"🛑 Early stopping triggered at iteration {completed_iteration}: "
+                                        f"[EarlyStop] Early stopping triggered at iteration {completed_iteration}: "
                                         f"No improvement for {iterations_without_improvement} iterations "
                                         f"(best score: {best_score:.4f})"
                                     )
@@ -738,7 +738,7 @@ class ProcessParallelController:
                                 if current_score == self.config.convergence_threshold:
                                     best_score = current_score
                                     logger.info(
-                                        f"🛑 Early stopping (event-based) triggered at iteration {completed_iteration}: "
+                                        f"[EarlyStop] Early stopping (event-based) triggered at iteration {completed_iteration}: "
                                         f"Task successfully solved with score {best_score:.4f}."
                                     )
                                     self.early_stopping_triggered = True
@@ -746,7 +746,7 @@ class ProcessParallelController:
 
             except FutureTimeoutError:
                 logger.error(
-                    f"⏰ Iteration {completed_iteration} timed out after {timeout_seconds}s "
+                    f"[Timeout] Iteration {completed_iteration} timed out after {timeout_seconds}s "
                     f"(evaluator timeout: {self.config.evaluator.timeout}s + 30s buffer). "
                     f"Canceling future and continuing with next iteration."
                 )
