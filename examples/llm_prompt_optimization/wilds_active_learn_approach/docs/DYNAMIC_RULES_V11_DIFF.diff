@@ -1,0 +1,65 @@
+--- results_v11/al_iter_0/best_prompt.txt
++++ results_v11/al_iter_4/best_prompt.txt
+@@ <DynamicRules>
+-    STAR LEVEL CRITERIA:
++STAR BOUNDARIES:
+@@ 1 STAR
+-    1 Star (Very Negative):
++1 STAR (Very Negative):
+     - Strong dissatisfaction, anger, or safety hazards
+     - Product defective, completely ineffective, or dangerous
+     - Clear negative statements: "terrible," "junk," "don't buy," "doesn't work at all"
+     - Returned due to major failure → 1
++    - Major failure revealed in an update overrides initial positive language → 1
+@@ 3 STARS
+-    3 Stars (Neutral / Mixed):
+-    - Balanced pros and cons
+-    - "It's okay," "average," "not great but not terrible"
+-    - Works but with noticeable limitations
+-    - If sentiment is clearly mixed and neither side dominates, choose 3
++3 STARS (Neutral/Mixed):
++- Balanced pros and cons, neither strongly positive nor negative
++- "Okay," "average," "works but with limitations," "better than nothing"
++- Short factual statements about returns/fit issues without strong emotion → 3
++- Mixed tone with notable complaints → 3 even if some positive language present
++- Positive but with notable functional limitations that impact usability → 3
+@@ 4 STARS
+-    4 Stars (Positive):
+-    - Mostly positive with minor criticisms
+-    - Product works well but not perfect
+-    - Phrases like "pretty good," "above average," "would recommend"
++4 STARS (Positive):
++- Mostly positive with minor criticisms
++- Works well but not perfect, "pretty good," "above average"
++- Would recommend despite small flaws
++- Positive but not enthusiastic; meets expectations without exceeding
++- Minor complaints that affect satisfaction or recommendation → 4 (not 5)
++- Words like "like", "works fine", "good" without strong emotion → 4
+@@ 5 STARS
+-    5 Stars (Very Positive):
+-    - Strong satisfaction and enthusiasm
+-    - Clear recommendation to others
+-    - Exceeds expectations
+-    - Entirely positive with no criticisms or reservations → 5
+-    - Phrases like "love it," "perfect," "excellent," "extremely happy"
++5 STARS (Very Positive):
++- Explicit statements of 5-star rating → 5, even with minor flaws (this overrides other considerations)
++- Strong satisfaction, enthusiasm, exceeds expectations
++- Clear, unequivocal recommendation to others
++- Entirely positive with no criticisms → 5
++- Short, purely positive reviews without criticism AND with either enthusiastic language or clear functional endorsement → 5
++- Overwhelmingly positive tone with trivial/minor criticisms that do not affect overall satisfaction → 5
++- Reviews that start with reservations but conclude with strong positive sentiment → 5
+@@ NEW SECTION
+-    EDGE CASE HANDLING:
+-    - Mixed sentiment: Weigh overall conclusion more heavily than isolated complaints.
+-    - Sarcasm: Detect implicit negativity even if positive words are used ironically.
+-    - If safety risk is mentioned → lean toward 1.
+-    - Minor inconvenience but strong satisfaction → 4.
+-    - "Better than nothing" → usually 3.
++KEY DECISIONS:
++- If the review explicitly states a star rating, use that rating.
++- 4 vs 5: Focus on enthusiasm and whether criticisms affect satisfaction.
++- 3 vs 4: Notable functional limitations impacting usability → 3; minor nitpicks → 4.
++- Short reviews: positive+vague → 4; positive+clear endorsement/enthusiasm → 5.
++- Weigh overall conclusion more than isolated phrases.

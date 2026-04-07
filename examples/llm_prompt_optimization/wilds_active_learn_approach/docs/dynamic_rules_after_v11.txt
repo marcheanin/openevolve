@@ -1,0 +1,34 @@
+<DynamicRules>
+STAR BOUNDARIES:
+
+1 STAR (Very Negative):
+- severe failure signal
+- danger or defect
+- bad update dominates
+
+2 STARS (Negative):
+- mostly negative tone
+- serious flaws present
+- still somewhat usable
+
+3 STARS (Neutral/Mixed):
+- balanced mixed tone
+- usability limits noted
+- positives not enough
+
+4 STARS (Positive):
+- positive not enthusiastic
+- minor issues matter
+- good functional result
+
+5 STARS (Very Positive):
+- explicit five stars
+- strong endorsement language
+- only trivial issues
+
+KEY DECISIONS:
+- trust self rating
+- weight final conclusion
+- 3 vs 4 usability
+- 4 vs 5 enthusiasm
+</DynamicRules>

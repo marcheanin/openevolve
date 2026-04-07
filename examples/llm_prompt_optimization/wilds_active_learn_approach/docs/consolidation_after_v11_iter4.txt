@@ -1,0 +1,39 @@
+<BaseGuidelines>
+- Output exactly one rating value.
+- Use only review text evidence.
+- Weigh final sentiment most heavily.
+- Trust explicit self-reported rating.
+- Apply clear boundary consistency checks.
+- Prioritize concrete usability impact cues.
+</BaseGuidelines>
+
+<DynamicRules>
+1 STAR:
+- clear severe failure signal appears
+- direct safety issue is present
+- strongly negative update takes priority
+
+2 STARS:
+- mostly negative overall review tone
+- serious product flaws are present
+- limited practical use still remains
+
+3 STARS:
+- mixed and balanced emotional tone
+- clear and repeated usability limits
+- neutral return with weak emotion
+
+4 STARS:
+- generally positive but still moderate
+- minor complaints still affect satisfaction
+- enthusiasm level remains relatively low
+
+5 STARS:
+- explicit mention of five stars
+- strong enthusiastic product endorsement
+- only minor or trivial issues
+
+KEY DECISIONS:
+- use usability impact for 3 vs 4
+- use enthusiasm strength for 4 vs 5
+</DynamicRules>

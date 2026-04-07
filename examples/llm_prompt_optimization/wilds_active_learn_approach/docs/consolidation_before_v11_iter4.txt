@@ -1,0 +1,40 @@
+<BaseGuidelines>
+- Output exactly one rating value.
+- Use only review text evidence.
+- Ignore isolated phrases without context.
+</BaseGuidelines>
+
+<DynamicRules>
+1 STAR:
+- clear severe failure signal appears
+- direct safety issue is present
+- strongly negative update takes priority
+
+2 STARS:
+- mostly negative overall review tone
+- serious product flaws are present
+- limited practical use still remains
+
+3 STARS:
+- mixed and balanced emotional tone
+- clear and repeated usability limits
+- positive cues are not enough
+- neutral factual return statements appear
+- overall emotional language stays weak
+
+4 STARS:
+- generally positive but still moderate
+- minor complaints still affect satisfaction
+- enthusiasm level remains relatively low
+- positive but mostly descriptive wording
+
+5 STARS:
+- explicit mention of five stars
+- strong enthusiastic product endorsement
+- only minor or trivial issues
+
+KEY DECISIONS:
+- trust explicit self-reported rating
+- use usability impact for 3 vs 4
+- use enthusiasm strength for 4 vs 5
+</DynamicRules>

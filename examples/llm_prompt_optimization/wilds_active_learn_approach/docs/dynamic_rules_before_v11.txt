@@ -1,0 +1,34 @@
+<DynamicRules>
+STAR LEVEL CRITERIA:
+
+1 Star (Very Negative):
+- strong failure tone
+- unsafe or defective
+- return after defect
+
+2 Stars (Negative):
+- mostly negative tone
+- serious quality flaws
+- limited practical use
+
+3 Stars (Neutral / Mixed):
+- mixed pros cons
+- neither side dominates
+- average usable outcome
+
+4 Stars (Positive):
+- mostly positive tone
+- minor issues remain
+- good not great
+
+5 Stars (Very Positive):
+- strong enthusiasm present
+- clear recommendation given
+- no major issues
+
+EDGE CASE HANDLING:
+- use final sentiment
+- detect sarcasm cues
+- safety risk -> 1
+- minor issue -> 4
+</DynamicRules>

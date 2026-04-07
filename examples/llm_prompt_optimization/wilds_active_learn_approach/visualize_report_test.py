@@ -3,7 +3,7 @@ Lightweight report plots for test metrics only.
 
 This script builds a compact 1x4 figure with the key per-cycle TEST metrics:
   - Global Accuracy (R_global)
-  - Hard-set Accuracy (Acc_Hard)
+  - Worst-group Accuracy (R_worst)
   - Test Combined Score
   - Mean Absolute Error (MAE)
 
@@ -61,7 +61,7 @@ def plot_test_report(save_dir: Path | None = None, results_dir: Path | None = No
 
     test_R_global = _field(entries, "test_R_global")
     test_combined = _field(entries, "test_combined_score")
-    test_Acc_Hard = _field(entries, "test_Acc_Hard")
+    test_R_worst = _field(entries, "test_R_worst")
     test_mae = _field(entries, "test_mae")
 
     # Build extended x-axis: ["Base", 0, 1, 2, ..., "Final"]
@@ -98,10 +98,17 @@ def plot_test_report(save_dir: Path | None = None, results_dir: Path | None = No
     ax.plot(x_pos, _extend_curve(test_R_global, "R_global"), color="tab:blue", marker="o", ms=5, label="test R_global")
     _setup(ax, ylabel="R_global", title="Global Accuracy (Test)")
 
-    # 2) Hard-set Accuracy
+    # 2) Worst-group Accuracy
     ax = axes[1]
-    ax.plot(x_pos, _extend_curve(test_Acc_Hard, "Acc_Hard"), color="tab:red", marker="o", ms=5, label="test Acc_Hard")
-    _setup(ax, ylabel="Acc_Hard", title="Hard-set Accuracy (Test)")
+    ax.plot(
+        x_pos,
+        _extend_curve(test_R_worst, "R_worst"),
+        color="tab:red",
+        marker="o",
+        ms=5,
+        label="test R_worst",
+    )
+    _setup(ax, ylabel="R_worst", title="Worst-group Accuracy (Test)")
 
     # 3) Test Combined Score
     ax = axes[2]
@@ -113,7 +120,7 @@ def plot_test_report(save_dir: Path | None = None, results_dir: Path | None = No
     ax.plot(x_pos, _extend_curve(test_mae, "mae"), color="tab:gray", marker="o", ms=5, label="test MAE")
     _setup(ax, ylabel="MAE", title="Mean Absolute Error (Test, ↓ better)")
 
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    plt.tight_layout(rect=(0, 0, 1, 0.95))
     p = out / "active_evolution_test_report.png"
     plt.savefig(p, dpi=150)
     plt.close()

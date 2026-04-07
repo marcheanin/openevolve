@@ -834,7 +834,7 @@ def run_active_loop(
         best_evolution_score = -1.0
         if is_resume_cycle:
             # Skip evolution; keep current_prompt (already loaded from best_prompt.txt)
-            (out_dir / "start_prompt.txt").write_text(current_prompt, encoding="utf-8")
+        (out_dir / "start_prompt.txt").write_text(current_prompt, encoding="utf-8")
             best_info_path = out_dir / "openevolve_output" / "best" / "best_program_info.json"
             if best_info_path.exists():
                 with open(best_info_path, "r", encoding="utf-8") as f:
@@ -850,31 +850,31 @@ def run_active_loop(
 
             if smoke_mode:
                 t0_evo = _time.time()
-            try:
-                result = run_evolution(
-                    initial_program=current_prompt,
-                    evaluator=evaluator_path,
-                    config=evolve_config,
-                    iterations=n_evolve_iterations,
+        try:
+            result = run_evolution(
+                initial_program=current_prompt,
+                evaluator=evaluator_path,
+                config=evolve_config,
+                iterations=n_evolve_iterations,
                     output_dir=oe_output_dir,
-                    cleanup=False,
-                )
+                cleanup=False,
+            )
                 best_code = current_prompt
                 if result:
                     if result.best_program and hasattr(result.best_program, "code"):
-                        best_code = result.best_program.code
+                best_code = result.best_program.code
                         best_evolution_score = result.best_score
                     elif result.best_code:
                         best_code = result.best_code
                         best_evolution_score = result.best_score
-                current_prompt = best_code
+            current_prompt = best_code
                 (out_dir / "best_prompt.txt").write_text(current_prompt, encoding="utf-8")
                 diag.log("evolution_done", al_iter=al_iter, best_score=best_evolution_score,
                          best_prompt_len=len(current_prompt))
-            except Exception as e:
-                print(f"  Evolution failed: {e}")
-                import traceback
-                traceback.print_exc()
+        except Exception as e:
+            print(f"  Evolution failed: {e}")
+            import traceback
+            traceback.print_exc()
                 diag.log("evolution_error", al_iter=al_iter, error=str(e))
         if smoke_mode and not is_resume_cycle:
             dur = _time.time() - t0_evo
