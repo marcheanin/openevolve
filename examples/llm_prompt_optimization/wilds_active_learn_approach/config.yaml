@@ -12,12 +12,12 @@ convergence_threshold: 0.001
 llm:
   api_base: "https://openrouter.ai/api/v1"
   models:
-    - name: "deepseek/deepseek-r1"
+    - name: "google/gemini-2.5-pro"
       weight: 1.0
-  temperature: 0.8
+  temperature: 0.6
   max_tokens: 8192
-  timeout: 240
-  retries: 3
+  timeout: 300
+  retries: 5
 
 prompt:
   template_dir: null
@@ -114,6 +114,9 @@ prompt:
       workers may avoid predicting 2.
     - Quality over quantity. 7-12 diverse, well-chosen examples beat 15
       mediocre ones while keeping the prompt shorter.
+    - If a **Suggested synthetic FewShot (draft)** section appears in your context, treat it
+      as optional: merge with current <FewShotExamples>, replace them, take a subset, or
+      ignore — pick what improves fitness (Hard/Anchor/kappa).
 
     **On prompt length:**
     - There's a real cost to being long: length_penalty in fitness, plus
@@ -187,14 +190,14 @@ worker_defaults:
   api_base: "https://openrouter.ai/api/v1"
   temperature: 0.0
   max_tokens: 64
-  timeout: 60
-  max_retries: 3
-  max_parallel: 15
+  timeout: 75
+  max_retries: 4
+  max_parallel: 8
 
 workers:
-  - name: "deepseek-chat-v3"
-  - name: "gemma3-27b"
-  - name: "gpt-4o-mini"
+  - name: "openai/gpt-4o-mini"
+  - name: "google/gemini-2.5-flash"
+  - name: "anthropic/claude-3.5-haiku"
 
 # Active learning pool management.
 # uncertainty_threshold: disagreement_score threshold for Hard classification.
@@ -207,6 +210,19 @@ active_learning:
   uncertainty_threshold: 0.0
   batch_size: 80
   hard_ratio: 0.7
+  synthetic_fewshot:
+    enabled: true
+    # replace: write generated block into <FewShotExamples> before evolution.
+    # inject_as_hint: keep seed few-shot in the program; append draft to system message only.
+    mode: inject_as_hint
+    # If true, mutator must not edit <FewShotExamples> (v12-style lock). Default false: mutator may edit/mix.
+    mutator_lock_fewshot: false
+    n_examples: 8
+    n_boundary_pairs: 4
+    model: null
+    temperature: 0.7
+    max_tokens: 4096
+    max_retries: 2
   min_hard_batch_ratio: 0.55      # Warn if active batch has fewer Hard than this fraction (when pool allows)
   expansion_trigger: 15
   soft_expansion_patience: 3      # Cycles without val improvement to trigger expansion
@@ -217,7 +233,7 @@ active_learning:
   consolidation_gate_delta: 0.01  # Reject consolidated prompt if val drops vs evolution-best this cycle
   consolidation_gate_vs_best_delta: 0.04  # Also reject if cons val is this far below global best val
   al_early_stopping_patience: 2   # Stop AL loop after this many cycles with no new best val (0 = off)
-  al_early_stopping_min_cycles: 2  # Require at least this many AL cycles before AL early stop can fire
+  al_early_stopping_min_cycles: 6  # Require at least this many AL cycles before AL early stop can fire
 dataset:
   config_path: "dataset.yaml"
   max_samples: null

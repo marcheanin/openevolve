@@ -1,0 +1,75 @@
+<System>
+<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive.
+    - Output: a single rating 1-5 (e.g. "Rating: 3").
+    - Base the rating on the reviewer's overall satisfaction, prioritizing their final conclusion.
+    - **Meets vs. Exceeds Expectations:** A product that meets expectations is a 4; one that delights the user is a 5.
+    - **Review Updates:** An "UPDATE" describing product failure or a major negative change of opinion OVERRIDES all previous text. Rate the update alone.
+    - **Rate the Product Itself:** Ignore complaints about shipping, packaging, or price if the product is reviewed positively. If a product arrives broken but customer service resolves it to the user's satisfaction, rate the final sentiment.
+</BaseGuidelines>
+
+<DynamicRules>
+    **5 Stars (Excellent / Fully Satisfied):**
+    - The user is enthusiastic ("love it," "perfect," "exceeded expectations"), or the product perfectly solved their problem.
+    - Lean 5-star for "happy" or "no problems," even without gushing praise.
+    - The product **meets all the user's stated criteria** (e.g., "met each and every one of my conditions").
+    - A review is 5 stars if the conclusion is positive, even with minor quirks, IF the reviewer **explicitly dismisses** the issue (e.g., "...either way, no problems with it").
+    - Short, *enthusiastic* reviews ("Works great!", "Perfect!") are 5 stars.
+    - Positive first impressions ("only used once so far, but I really like it") are 5 stars.
+
+    **4 Stars (Good / Satisfied with Minor Flaws):**
+    - The product is good and the user is generally happy, but they mention a **minor, specific, undismissed flaw**. This is the key difference from 5 stars.
+    - Descriptive positive reviews ("nice color," "good size") without strong enthusiasm ("happy," "love it") are a 4.
+    - Short, neutral positive reviews ("They work," "Works as expected," "No issues") are 4 stars.
+
+    **3 Stars (Mixed / Okay / Limited):**
+    - The product works, but a flaw presents a *significant limitation* that balances out the pros (e.g., "lids are unreliable").
+    - The user's feeling is ambivalent ("it's okay, but...").
+    - Good for a specific, limited use but has major drawbacks for general use (e.g., "good for guests, but doesn't last long").
+    - The user has strongly mixed feelings (e.g., loves the design but it arrived broken, with no resolution mentioned).
+    - Brief, negative reviews about incompatibility or simple returns ("returned, will not fit") are 3 stars, as they don't describe a catastrophic failure.
+
+    **2 Stars (Disappointing / Frustrating):**
+    - The product functions, but its flaws cause significant frustration (e.g., "incredibly slow," "handle gets uncomfortably hot").
+    - The user is actively disappointed and would not buy it again.
+
+    **1 Star (Failed / Useless / Dangerous):**
+    - The product is broken on arrival, dangerous ("fire hazard"), or completely non-functional.
+    - It fails its core purpose entirely (e.g., a peeler that can't peel), is fundamentally unusable as intended (e.g., too awkward to use), or makes the problem worse. This is a 1, even if it technically "turns on".
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: This machine seems determined to foil every effort I make to clean my carpets. The bottom section never works. It's job is to collect the dirty water, but since the top section hardly puts any water out at all, it doesn't have much to do. I have laboriously made sure the containers were properly inserted, yet still cannot get a good clean.
+Rating: 1
+
+Example 2:
+Review: This electric kettle is a huge disappointment. It technically boils water, but it's incredibly slow, taking almost 10 minutes to heat a full pot. The handle also gets uncomfortably hot to the touch, making it awkward to pour. It works, but the experience is so frustrating that I'm already shopping for a replacement.
+Rating: 2
+
+Example 3:
+Review: These mats are fine if you like to switch them out a lot. If you refer to have a very fresh and new bathmat for the bathroom when guests are staying for a visit, then these have a fun knobbly like texture to them and are cheap enough to pick up for short term use. But they don't last more than a few weeks/months depending on how much use they see.
+Rating: 3
+
+Example 4:
+Review: This is a pretty good cordless vacuum for the price. It's lightweight and has decent suction for hard floors and daily crumbs. My only real complaint is that the dustbin is tricky to empty; the latch feels a bit cheap and I often have to jiggle it to get it to open. It's a minor annoyance on an otherwise solid product, so I'm happy overall.
+Rating: 4
+
+Example 5:
+Review: This 100% cotton table runner is a great fall color for your home. It has fall colors and is a nice pattern. It is easy care, machine washable and if you follow manufacture directions, should last a long time. I really like the colors in this runner. It matches many of the existing colors in my home.
+Rating: 4
+
+Example 6:
+Review: There are a few different things I look for in a bed frame in order for me to consider it a win in my book. These include ease of assembly, all parts being included, and the sturdiness of the frame once it is assembled. This bed frame met each and every one of my conditions. The frame arrived in a box that was easy to move and handle, even with my...
+Rating: 5
+
+Example 7:
+Review: EDIT: A year of use later it's still humming along and doing its job just fine. Sometimes it seems like it doesn't pick up quickly that it should be upping its speed on its own in the auto setting, but maybe it's just taking longer for the air to reach it than I expect. Either way, no problems with it. It's a bit bigger than I pictured it, but the...
+Rating: 5
+</FewShotExamples>
+
+<Task>
+Review: {review}
+</Task>

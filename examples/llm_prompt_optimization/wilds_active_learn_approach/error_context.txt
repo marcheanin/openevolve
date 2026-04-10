@@ -1,17 +1,55 @@
-Examples where the model made errors (review + gold label):
-  - Review: Great size, convenient for one-skillet meals.
+BATCH COMPOSITION: 56 Hard / 24 Anchor (batch=80, hard_frac=70.0%); Seen=145, Unseen=368; Pool Hard=66, Anchor=79.
+CONFUSION MATRIX (from previous cycle batch):
+  - gold=5 -> pred=5: 23
+  - gold=4 -> pred=4: 13
+  - gold=5 -> pred=4: 12
+  - gold=4 -> pred=5: 10
+  - gold=3 -> pred=3: 9
+
+REPRESENTATIVE EXAMPLES BY CONFUSION TYPE:
+* Pair gold=5 -> pred=5:
+  - Review: "My grandmother gave me a version of this bird clock waaaay back in the last century and two months ago it finally died.  Being the sentimental soul that I am I knew my family needed another one.  (I know what I'm going to get the kids when they finally leave home. It's a tradition, lol.)
+
+This clock..."
+    Gold=5, Pred=5, Workers=[5, 5, 4]
+  - Review: "This is a sharp well made tablecloth. It's strengths are the vibrant colors, sharp contrast, and solid construction. The cons are just the inherent need to iron it that comes from the cotton."
+    Gold=5, Pred=5, Workers=[4, 5, 5]
+* Pair gold=4 -> pred=4:
+  - Review: "I would have given this a five star rating had it fit the appliance it was purchased for. It didn't. With that being said, make sure you are positive of the model number of your ice tea maker before ordering and don't order based on how it "looks". However, even though we can't use it with our ice t..."
+    Gold=4, Pred=4, Workers=[4, 3, 4]
+  - Review: "Wish I had ordered the small ones. These are quite large for most kitchen counters. They will do the job but I will put them in a drawer. I like the colors.and the material."
+    Gold=4, Pred=4, Workers=[4, 4, 4]
+* Pair gold=5 -> pred=4:
+  - Review: "This is a coffee pot for coffee geeks.  Most discerning coffee aficionados likely wouldn't notice much if any difference from a a great less complicated coffee make, such as a Bonavita.  To cut to the point, this probably isn't for you, but who knows, so read on ...
+
+If you look at it and think: "OM..."
+    Gold=5, Pred=4, Workers=[4, 5, 4]
+  - Review: "This table runner gets 5 Stars from me as it's better than I expected.
+
+There are two basic pieces of fabric.  One is the backing, which is a solid blue; and the other is the front, decorative in a flag motief.  The blue backing is sturdy and gives the table runner some body.  After I washed the run..."
+    Gold=5, Pred=4, Workers=[4, 4, 5]
+* Pair gold=4 -> pred=5:
+  - Review: "This 100% cotton table runner is a great fall color for your home. It has fall colors and is a nice pattern. It is easy care, machine washable and if you follow manufacture directions, should last a long time. I really like the colors in this runner. It matches many of the existing colors in my home..."
+    Gold=4, Pred=5, Workers=[5, 5, 5]
+  - Review: "Love the aqua and white chevron design on this 11x11x11 cube. It is foldable when not in use and when in use, it is sturdy with sturdy handholds. You can store a variety of items in these cubes and they make for a great way to organize a bunch of small things. It also adds just the right pop of colo..."
+    Gold=4, Pred=5, Workers=[5, 5, 5]
+
+CLUSTERED HARD EXAMPLES (review + gold label):
+  - Review: This is a good tablecloth if you have kids. It wipes clean because it is vinyl. It also has a nice royal blue color with white polka dots. Very retro. This is great for outdoor use but you can easily use it indoors. After it isn't as new looking but still functional, it can be used for kids to make ...
+    Gold: 4
+  - Review: This is a really cute ornament.
     Gold: 5
-  - Review: Very nice set of skillets - and what a lovely color.  Quite a bargain, and I was glad to find it as I provide my husband his "own" skillets.  He tends to be a "high heat" cook, and so I don't let him use my expensive skillets.  Was nice to find Farberware quality at this great price.  I hope I can g...
+  - Review: We are both tough on dish towels and use them constantly. Not only do we cook 90% of our meals at home but we also use fresh fruits and veggies with pretty much every meal and that means a lot of washing, drying and carrying things around...why carrying? I'm one of those people that walk around with...
     Gold: 5
-  - Review: These are really nice washcloths. They are soft, big enough to get nice and sudsy, and fairly thick.  They have held up well in the wash so far (color and material) and seem to be well made.
+  - Review: We own a huge amount of Lodge cast iron cook and bake ware plus a few odd pieces collected over the years. Although I've tried other brands in the past, Lodge remained the best. Now, I'd like to say this was equal or better than Lodge but it's not...although it comes close. Compared to my current 12...
     Gold: 5
-  - Review: This is a 100% cotton runner that is fantastic for a sweetheart, anniversary or Valentine's Day dinner. It feels like a table napkin. It is a bit on the thin side. After using and washing, you may get shrinkage if you use warm or hot water and stick it in the dryer. You will have to iron this runner...
-    Gold: 3
-  - Review: I have only used this once so far, but I really like it. It is easy to operate once you figure out the steam buttons...lol! The scrubber was effective and it cleaned a pretty sticky kitchen floor. Next..on to my tile.
-    Gold: 5
-  - Review: Living in northern Minnesota, our family and friends do a lot of fishing and hunting. In our rural area, people still hunt every year for food (instead of purely for sport), so everything is frozen and saved for meals throughout the year. A big issue for those who are trying to store their meats is ...
+  - Review: I hardly drink carbonated drinks, but had to try this one. Was pleasantly surprised at the aftertaste and the overall quality of the final product. Overall, it is a cool gift that makes for a lovely Christmas surprise. Consider this one if you have relatives, or friends that love soda drinks.
     Gold: 5
   - Review: This mattress get 4 stars for comfort, but there's so many other nice features about it that it gets 5 starts for everything else. To begin with, I wouldn't suggest using this as a long term every day bed for someone. The shallow design and budget price make this a good mattress for the trundle bed ...
     Gold: 5
-  - Review: This is a good, though not extra ordinary storage bin. It lacks exceptional build quality, exceptional attention to detail, or anything that's all that remarkable. It looks good, and the pattern is timeless, plus it keeps stuff together. You could do worse, though perhaps you could do just as well a...
+  - Review: The shower rod in my main bathroom is adjustable, so it has a bit of a bump where the two pieces.  My old shower hooks had a terrible time getting past this bump.  It was a hassle to close the curtain on account of this.
+
+Not the case with these roller hooks.  They breeze right past the bump as if i...
+    Gold: 5
+  - Review: I bought these mainly for sending leftovers. It is easier than sending my rubbermaid containers because I am not out much money if they don't come back.
     Gold: 5

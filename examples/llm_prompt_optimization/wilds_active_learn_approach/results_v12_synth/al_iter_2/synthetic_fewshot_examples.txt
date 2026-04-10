@@ -1,0 +1,39 @@
+Example 1:
+Review: This electric kettle malfunctioned after only two uses, leaking water and posing a safety risk. I'm furious and will be returning it for a refund immediately.
+Rating: 1
+
+Example 2:
+Review: These silicone oven mitts are disappointing. They provide inadequate heat resistance, leading to burns, and though they clean easily, the safety issue makes them unreliable and poor quality.
+Rating: 2
+
+Example 3:
+Review: The silicone oven mitts offer decent heat protection and are flexible for handling pots. However, they stain easily and are a bit bulky. They serve their purpose adequately for everyday use.
+Rating: 3
+
+Example 4:
+Review: This digital kitchen scale is accurate most of the time and has a sleek design. But it occasionally gives fluctuating readings, and the buttons are not very responsive. It's an okay tool with some flaws.
+Rating: 3
+
+Example 5:
+Review: I'm happy with this kitchen scale. It measures accurately and looks modern on my counter. The battery life could be better, but it doesn't detract from my overall satisfaction. I would buy it again.
+Rating: 4
+
+Example 6:
+Review: The stainless steel mixing bowls are very good. They stack well and are durable for baking tasks. However, the sizes are slightly off from the description, which is annoying. Still, I'm satisfied and recommend them.
+Rating: 4
+
+Example 7:
+Review: These stainless steel mixing bowls are excellent. They stack perfectly, are dishwasher safe, and have a non-slip base. I have no criticisms and love using them for all my cooking needs.
+Rating: 5
+
+Example 8:
+Review: This bamboo cutting board is flawless! It's durable, prevents slipping, and cleans easily without retaining odors. I have no complaints and it has become an essential in my kitchen.
+Rating: 5
+
+Example 9:
+Review: This blender is very good for making smoothies. It crushes ice efficiently and is easy to clean. The only issue is it takes up considerable counter space. Overall, I'm pleased with its performance.
+Rating: 4
+
+Example 10:
+Review: This food processor has powerful blades that chop quickly, but it's quite loud and the bowl is smaller than expected. It gets the job done for basic tasks, though it's not outstanding.
+Rating: 3

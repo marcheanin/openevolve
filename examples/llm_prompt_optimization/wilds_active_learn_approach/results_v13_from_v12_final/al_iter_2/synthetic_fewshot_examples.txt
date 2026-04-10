@@ -1,0 +1,39 @@
+Example 1:
+Review: This non-stick frying pan is excellent! Food never sticks, and it cleans up with a simple wipe. I use it daily and love the results.
+Rating: 5
+
+Example 2:
+Review: This non-stick frying pan performs well and is easy to clean, but the handle tends to get warm during extended cooking. Still, it's a reliable pan for most tasks.
+Rating: 4
+
+Example 3:
+Review: After several months of use, this vegetable spiralizer has been a game-changer for healthy meals. It creates perfect zucchini noodles quickly. The only downside is that it's a bit difficult to disassemble for cleaning. Overall, very satisfied.
+Rating: 4
+
+Example 4:
+Review: This vegetable spiralizer works adequately for making noodles, but it often clogs with larger vegetables and the blades dull quickly. It's okay for occasional use, but not as efficient as I hoped.
+Rating: 3
+
+Example 5:
+Review: The countertop microwave heats food evenly and has a sleek design. However, the control panel is confusing and the interior light is dim. It serves its purpose, but I have mixed feelings.
+Rating: 3
+
+Example 6:
+Review: This countertop microwave looks stylish but frequently overheats leftovers, making them rubbery. The turntable is noisy and sometimes stops spinning. More frustrating than useful, and I wouldn't recommend it.
+Rating: 2
+
+Example 7:
+Review: These glass food storage containers are attractive and stack neatly, but the lids crack easily and don't seal properly, leading to leaks. They're functional for dry goods, but disappointing for liquids.
+Rating: 2
+
+Example 8:
+Review: These glass food storage containers arrived with multiple chips and one shattered when I placed it in the cabinet. Clearly defective and a safety hazard. I'm requesting a refund immediately.
+Rating: 1
+
+Example 9:
+Review: I absolutely love this electric kettle. It boils water in under a minute, has a comfortable handle, and the automatic shut-off works flawlessly. A perfect addition to my kitchen.
+Rating: 5
+
+Example 10:
+Review: This stand mixer is powerful and handles heavy dough with ease, making baking a breeze. It is quite heavy and takes up counter space, but the performance outweighs the bulk. Highly recommend for serious bakers.
+Rating: 4

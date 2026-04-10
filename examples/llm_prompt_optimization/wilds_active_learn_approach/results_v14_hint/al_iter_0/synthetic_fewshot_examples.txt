@@ -1,0 +1,31 @@
+Example 1:
+Review: The toaster oven arrived with a shattered glass door and doesn't heat up at all. Completely defective and a safety hazard. Returning it right away.
+Rating: 1
+
+Example 2:
+Review: The toaster oven arrived with a small scratch on the side, but it works. However, it heats unevenly and the timer is unreliable. Frustrating for daily use.
+Rating: 2
+
+Example 3:
+Review: This cutting board looks nice but warped after the first wash. The non-slip feet fell off too. More trouble than it's worth.
+Rating: 2
+
+Example 4:
+Review: This cutting board is sturdy and does the job, though it warped slightly after washing. It's fine for light use, but I expected better.
+Rating: 3
+
+Example 5:
+Review: The air fryer cooks food evenly, but it's very loud and the basket is hard to clean. It's okay, not great.
+Rating: 3
+
+Example 6:
+Review: The air fryer cooks food quickly and evenly, though it can be a bit noisy. Minor issue for an otherwise excellent appliance.
+Rating: 4
+
+Example 7:
+Review: This rug is soft, stylish, and holds up well to foot traffic. The colors are vibrant, but it sheds a little initially. Still, a great buy.
+Rating: 4
+
+Example 8:
+Review: This rug is plush, beautifully designed, and sheds minimally. It transformed our living room and was worth every cent. Absolutely love it!
+Rating: 5

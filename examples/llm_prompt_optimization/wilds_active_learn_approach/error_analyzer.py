@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 import numpy as np
 
@@ -108,16 +108,82 @@ class ErrorAnalyzer:
         analysis: Dict[str, Any],
         max_examples: int = 15,
         max_text_len: int = 300,
+        *,
+        predictions: Optional[List[int]] = None,
+        worker_predictions: Optional[List[List[int]]] = None,
+        batch_indices: Optional[List[int]] = None,
+        batch_stats: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Format error analysis as text for the LLM mutation prompt.
         """
         clusters = analysis.get("clusters", [])
+        lines: List[str] = []
+
+        if batch_stats:
+            bsz = int(batch_stats.get("batch_size", 0))
+            b_hard = int(batch_stats.get("batch_hard", 0))
+            b_anchor = int(batch_stats.get("batch_anchor", 0))
+            seen = int(batch_stats.get("n_seen", 0))
+            unseen = int(batch_stats.get("n_unseen", 0))
+            h_total = int(batch_stats.get("n_hard_total", 0))
+            a_total = int(batch_stats.get("n_anchor_total", 0))
+            hard_frac = (b_hard / bsz) if bsz > 0 else 0.0
+            lines.append(
+                "BATCH COMPOSITION: "
+                f"{b_hard} Hard / {b_anchor} Anchor (batch={bsz}, hard_frac={hard_frac:.1%}); "
+                f"Seen={seen}, Unseen={unseen}; Pool Hard={h_total}, Anchor={a_total}."
+            )
+
+        if (
+            predictions is not None
+            and worker_predictions is not None
+            and batch_indices is not None
+            and len(predictions) == len(batch_indices)
+        ):
+            # Rich mode: include confusion matrix and representative examples from previous cycle.
+            confusion: Dict[tuple, int] = {}
+            grouped_examples: Dict[tuple, List[str]] = {}
+
+            n_workers = len(worker_predictions)
+            for j, idx in enumerate(batch_indices):
+                gold = int(self.dm.labels[idx])
+                pred = int(predictions[j])
+                pair = (gold, pred)
+                confusion[pair] = confusion.get(pair, 0) + 1
+                if len(grouped_examples.get(pair, [])) >= 2:
+                    continue
+                review = self.dm.texts[idx]
+                short_review = review[:max_text_len] + ("..." if len(review) > max_text_len else "")
+                workers_here = []
+                for w in range(n_workers):
+                    if j < len(worker_predictions[w]):
+                        workers_here.append(int(worker_predictions[w][j]))
+                grouped_examples.setdefault(pair, []).append(
+                    f'  - Review: "{short_review}"\n'
+                    f"    Gold={gold}, Pred={pred}, Workers={workers_here}"
+                )
+
+            if confusion:
+                sorted_pairs = sorted(confusion.items(), key=lambda kv: kv[1], reverse=True)
+                lines.append("CONFUSION MATRIX (from previous cycle batch):")
+                for (gold, pred), count in sorted_pairs[:5]:
+                    lines.append(f"  - gold={gold} -> pred={pred}: {count}")
+                lines.append("")
+                lines.append("REPRESENTATIVE EXAMPLES BY CONFUSION TYPE:")
+                for (gold, pred), _count in sorted_pairs[:4]:
+                    lines.append(f"* Pair gold={gold} -> pred={pred}:")
+                    for ex in grouped_examples.get((gold, pred), []):
+                        lines.append(ex)
+                lines.append("")
+
         if not clusters:
+            if lines:
+                return "\n".join(lines)
             return "No error examples available."
 
-        lines = []
         examples_added = 0
+        lines.append("CLUSTERED HARD EXAMPLES (review + gold label):")
         for cluster in clusters:
             if examples_added >= max_examples:
                 break
@@ -137,5 +203,4 @@ class ErrorAnalyzer:
             if examples_added >= max_examples:
                 break
 
-        header = "Examples where the model made errors (review + gold label):\n"
-        return header + "\n".join(lines)
+        return "\n".join(lines)

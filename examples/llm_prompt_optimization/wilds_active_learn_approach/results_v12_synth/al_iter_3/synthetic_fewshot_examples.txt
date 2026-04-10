@@ -1,0 +1,39 @@
+Example 1:
+Review: This ceramic knife arrived with a chipped blade and a loose handle, making it unsafe for use. I'm extremely dissatisfied and will be returning it for a refund.
+Rating: 1
+
+Example 2:
+Review: This bread maker often produces undercooked loaves and has a confusing interface. The few times it worked were okay, but the inconsistency makes it a poor investment.
+Rating: 2
+
+Example 3:
+Review: This bread maker bakes decent bread with a good crust, but it's noisy and the cycles are longer than advertised. It's adequate for occasional use, though not reliable.
+Rating: 3
+
+Example 4:
+Review: I'm happy with this stainless steel cookware set. It heats evenly and cleans easily, though the lids fit loosely at times. Overall, it's a good value and I recommend it.
+Rating: 4
+
+Example 5:
+Review: This stainless steel cookware set performs well and looks stylish, but the handles get hot and the pans are heavier than expected. It's functional but has notable flaws.
+Rating: 3
+
+Example 6:
+Review: This programmable slow cooker is perfect. It maintains temperature accurately, has intuitive controls, and cleans up without hassle. I have no issues and love it.
+Rating: 5
+
+Example 7:
+Review: This programmable slow cooker is very good. It cooks evenly and is convenient, but the digital display is dim in bright light. Still, I'm satisfied and would buy again.
+Rating: 4
+
+Example 8:
+Review: This dish drying rack is excellent. It holds plenty of dishes, drains efficiently, and is compact. No complaints—it works exactly as needed.
+Rating: 5
+
+Example 9:
+Review: These oven-safe bowls are nice for baking and serving. They withstand heat well, but the edges are sharp and the colors fade over time. They're decent for the price.
+Rating: 4
+
+Example 10:
+Review: This electric kettle heats water quickly and has an auto-shutoff, but it's bulky and the plastic parts feel cheap. It's okay for basic use, though not impressive.
+Rating: 3

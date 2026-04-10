@@ -1,0 +1,31 @@
+Example 1:
+Review: The electric kettle arrived with a cracked base and leaked water immediately upon testing. It's completely defective and a serious safety hazard. I'm returning it and warning others not to buy.
+Rating: 1
+
+Example 2:
+Review: This electric kettle heats water unevenly and the auto shut-off fails half the time, making it risky to leave unattended. It's frustrating and feels cheaply constructed. I wouldn't purchase it again.
+Rating: 2
+
+Example 3:
+Review: The non-stick frying pan cooks evenly and cleans up easily, but the handle gets uncomfortably hot and the coating seems less durable than advertised. It's okay for occasional use, but not for daily cooking.
+Rating: 3
+
+Example 4:
+Review: The non-stick frying pan's coating started flaking after just a few washes, ruining its non-stick properties. It's disappointing and now food sticks constantly. I regret buying this.
+Rating: 2
+
+Example 5:
+Review: I absolutely love this stand mixer! It powers through heavy dough effortlessly, has precise speed control, and cleans up in minutes. It has exceeded all my expectations, and I would buy it again without hesitation.
+Rating: 5
+
+Example 6:
+Review: This stand mixer is very powerful and performs well for most baking needs. The only drawback is that it's quite large and takes up significant counter space. Still, it's a reliable appliance and I recommend it.
+Rating: 4
+
+Example 7:
+Review: The memory foam pillow is perfect—it provides excellent support for my neck and has drastically improved my sleep. No issues at all, and it's worth every penny. I've already told friends to get one.
+Rating: 5
+
+Example 8:
+Review: This memory foam pillow is comfortable and supportive, but it tends to retain heat, which can be bothersome on warmer nights. However, it's still a good product and I'm satisfied with the purchase.
+Rating: 4

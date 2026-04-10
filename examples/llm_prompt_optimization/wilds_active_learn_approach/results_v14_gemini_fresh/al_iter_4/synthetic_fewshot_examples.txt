@@ -1,0 +1,31 @@
+Example 1:
+Review: This coffee maker is fantastic. It brews a full, hot pot in just a few minutes and the coffee tastes great. The power cord is a bit short, which could be an issue for some kitchen layouts, but my outlet is right behind it so it's a non-issue for me. I absolutely love it!
+Rating: 5
+
+Example 2:
+Review: This is a decent coffee maker that gets the job done. My only real complaint is that the power cord is very short, so I had to rearrange my counter and use an extension cord to make it work. Other than that specific annoyance, it brews a good cup of coffee.
+Rating: 4
+
+Example 3:
+Review: These food storage containers work pretty well. They're a good size for leftovers and seem durable. The lids can be a little tough to snap on, requiring a bit of extra force, but once they are on they provide a good seal. Overall, I'm satisfied with them.
+Rating: 4
+
+Example 4:
+Review: The container part is fine, but the lids are a real problem. Half of them don't create a reliable seal, no matter how much I press down. It makes them completely untrustworthy for carrying liquids or anything I need to stay fresh. They're okay for storing dry pasta in the pantry, but that's about it.
+Rating: 3
+
+Example 5:
+Review: This electric can opener is so frustrating. It technically opens cans, but you have to hold it at a perfect angle and it often slips off, leaving sharp, jagged edges. It takes three times as long as my old manual one. It works, eventually, but I would not recommend it to anyone.
+Rating: 2
+
+Example 6:
+Review: DOA. The motor makes a whirring sound when I press the button, but it absolutely will not engage with or puncture any can I've tried. It just spins uselessly against the rim. It has one single job and it fails completely. A total piece of junk.
+Rating: 1
+
+Example 7:
+Review: I am obsessed with this air fryer! It's a total game-changer for weeknight meals. Everything comes out perfectly crispy and it's incredibly easy to clean. I've used it almost every single day since I got it. If you're on the fence, just buy it!
+Rating: 5
+
+Example 8:
+Review: I've only had this for a couple of days, but I love it so far. I was a bit worried about buying a refurbished vacuum, but it looks and performs like it's brand new. It came in a plain brown box, which might not be great for a gift, but for my own use it's perfect.
+Rating: 5

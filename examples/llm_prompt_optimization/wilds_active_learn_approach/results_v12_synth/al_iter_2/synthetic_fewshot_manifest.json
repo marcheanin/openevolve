@@ -1,0 +1,10 @@
+{
+  "enabled": true,
+  "status": "ok",
+  "reason": "",
+  "meta": {
+    "n_hard_samples": 8,
+    "n_examples_target": 10,
+    "n_boundary_pairs_target": 3
+  }
+}

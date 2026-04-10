@@ -1,0 +1,80 @@
+<System>
+<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive
+    - Output: a single rating 1-5 (e.g. "Rating: 3" or just "3")
+    - Task: Classify the overall sentiment based solely on the review text
+    - Base the rating on overall customer satisfaction and the review's concluding sentiment
+    - Critical: If a review contains NO criticism or negative comments → 5 stars, even if brief or measured in praise.
+    - Statements about personal usage ("I use this for...") or wanting more units are NOT criticism unless they indicate a product flaw.
+</BaseGuidelines>
+
+<DynamicRules>
+**DEFINITION OF CRITICISM:**
+- **Criticism:** Any expressed dissatisfaction, flaw, defect, or negative experience about the product.
+- **NOT criticism:** Neutral feature descriptions, personal usage notes without complaint, wanting/buying more units, mild preferences without disappointment, or neutral observations about suitability (e.g., "depends on your needs").
+
+**STAR RATING DECISION TREE:**
+1. **1 STAR (Very Negative):** Product is defective, unsafe, or a complete failure. Expresses anger, regret, or explicit warnings not to buy. Mentions returning or requesting a refund.
+2. **2 STARS (Negative):** More negative than positive; significant flaws impact usability. Clear disappointment, poor quality, or misleading description.
+3. **3 STARS (Neutral/Mixed):** Balanced pros and cons; neither clearly dominates. Mixed tone with reservations (e.g., "okay", "average", "gets the job done").
+4. **4 STARS (Positive):** Mostly positive with minor/notable criticisms that do NOT override the positive experience. Positive aspects clearly outweigh the negative. Reviewer would recommend or buy again despite flaws.
+5. **5 STARS (Very Positive):** **No criticism → 5 stars, regardless of enthusiasm level.** Overwhelmingly positive tone with strong endorsement ("love", "perfect"). If minor criticisms are present, rate 5 **only** if they are explicitly dismissed as trivial ("still 5 stars") OR accompanied by strong endorsing phrases that clearly override them.
+
+**BOUNDARY GUIDES:**
+- **5 vs 4:** No criticism → 5. **Any undismissed criticism → 4.** Mild preferences without disappointment are not criticism → 5. Purely descriptive reviews with positive facts but no evaluative praise → 4. If descriptive review includes positive sentiment → 5.
+- **4 vs 3:** Positive outweighs negative → 4. Balanced → 3. "Would have been 5 stars but for [flaw]" is usually 4, unless the flaw is severe.
+- **3 vs 2:** Balanced → 3. Negative outweighs positive → 2.
+
+**COMMON PITFALLS & CLARIFICATIONS:**
+- A review that notes a minor issue (e.g., "had a plastic smell") without dismissing it → 4 stars.
+- A review that says "depends on your use" but is positive for the reviewer → 4 stars (not a criticism of the product).
+- A review that is purely descriptive with positive facts but no criticism → 5 stars if it includes positive sentiment (e.g., "this is the better style"), 4 stars if purely neutral/feature listing.
+- A single minor flaw in an otherwise positive review → 4, not 3.
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: This ceramic knife arrived with a chipped blade and a loose handle, making it unsafe for use. I'm extremely dissatisfied and will be returning it for a refund.
+Rating: 1
+
+Example 2:
+Review: This bread maker often produces undercooked loaves and has a confusing interface. The few times it worked were okay, but the inconsistency makes it a poor investment.
+Rating: 2
+
+Example 3:
+Review: This bread maker bakes decent bread with a good crust, but it's noisy and the cycles are longer than advertised. It's adequate for occasional use, though not reliable.
+Rating: 3
+
+Example 4:
+Review: I'm happy with this stainless steel cookware set. It heats evenly and cleans easily, though the lids fit loosely at times. Overall, it's a good value and I recommend it.
+Rating: 4
+
+Example 5:
+Review: I really like these potholders. They look great and do a good job of keeping hot pots and pans off the table. They had a bit of a plastic smell when they arrived but after I washed them they held up fine.
+Rating: 4
+
+Example 6:
+Review: This programmable slow cooker is perfect. It maintains temperature accurately, has intuitive controls, and cleans up without hassle. I have no issues and love it.
+Rating: 5
+
+Example 7:
+Review: This programmable slow cooker is very good. It cooks evenly and is convenient, but the digital display is dim in bright light. Still, I'm satisfied and would buy again.
+Rating: 4
+
+Example 8:
+Review: This dish drying rack is excellent. It holds plenty of dishes, drains efficiently, and is compact. No complaints—it works exactly as needed.
+Rating: 5
+
+Example 9:
+Review: These oven-safe bowls are nice for baking and serving. They withstand heat well, but the edges are sharp and the colors fade over time. They're decent for the price.
+Rating: 4
+
+Example 10:
+Review: This bathroom rug is so plush and soft. One of my dogs tried to claim it. It is 100% organic cotton, sustainable, and machine washable. A great addition to any home.
+Rating: 5
+</FewShotExamples>
+<Task>
+Review: {review}
+</Task>

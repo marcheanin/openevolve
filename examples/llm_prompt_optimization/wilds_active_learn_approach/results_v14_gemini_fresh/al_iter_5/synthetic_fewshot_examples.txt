@@ -1,0 +1,31 @@
+Example 1:
+Review: This coffee maker is fantastic and brews a delicious, hot cup of coffee in just a few minutes. I saw some people mention the power light is bright, but I actually find it helpful as a reminder to turn it off before I leave the house. It's sturdy, easy to clean, and perfect for my morning routine.
+Rating: 5
+
+Example 2:
+Review: This is a pretty good coffee maker. It brews quickly and the coffee tastes great. It's easy to use and I'm generally happy with it. My only complaint is that the blue 'on' light is surprisingly bright, almost like a nightlight. It's a minor annoyance on an otherwise solid product.
+Rating: 4
+
+Example 3:
+Review: These food storage containers are a complete waste of money. The core feature, the lid, is a total failure. The plastic is so brittle that two lids cracked and broke the very first time I tried to snap them onto the container bases. They are completely unusable for storing food.
+Rating: 1
+
+Example 4:
+Review: I wanted to like these containers, but they are a massive headache. They do technically seal and are leakproof once you get the lid on. However, getting the lid on requires an absurd amount of force and several minutes of wrestling with it. The process is so frustrating that I avoid using them.
+Rating: 2
+
+Example 5:
+Review: The non-stick surface on this pan works beautifully for eggs and fish, and it heats up very evenly. However, the handle gets dangerously hot after only a few minutes on my gas stove. You absolutely cannot touch it without an oven mitt, which is a major design flaw that makes it very inconvenient for everyday cooking. It's just okay.
+Rating: 3
+
+Example 6:
+Review: A really nice pan for the price. The non-stick has held up well and it cooks very evenly. My only small gripe is that the included glass lid doesn't have a steam vent, so you have to keep it slightly ajar to prevent boil-overs. It’s a minor thing, and otherwise the pan is great.
+Rating: 4
+
+Example 7:
+Review: I am thrilled with this bed frame! All the parts were included and clearly labeled, and the instructions were a breeze to follow. I put it together by myself in under 30 minutes. Most importantly, it's completely silent and sturdy - no squeaks or wobbles at all. It exceeded all my expectations.
+Rating: 5
+
+Example 8:
+Review: These kitchen towels are fine. The color is as pictured and they absorb water. They do the job. No issues.
+Rating: 4

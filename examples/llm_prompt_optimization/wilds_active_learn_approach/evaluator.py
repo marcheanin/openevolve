@@ -373,9 +373,9 @@ def _format_error_artifacts(
     worker_predictions: list,
     texts: list,
     prompt_text: str = "",
-    max_errors: int = 7,
-    max_borderline: int = 3,
-    max_text_len: int = 250,
+    max_errors: int = 10,
+    max_borderline: int = 5,
+    max_text_len: int = 350,
 ) -> str:
     """Format error and borderline examples as artifact text for the LLM mutator."""
     from data_manager import disagreement_score

@@ -1,0 +1,39 @@
+Example 1:
+Review: This ceramic mixing bowl arrived cracked and shattered upon first use, sending shards across my kitchen. It's completely unsafe and a waste of money. I'm returning it immediately and do not recommend.
+Rating: 1
+
+Example 2:
+Review: This silicone oven mitt is heat-resistant and flexible, but it tore at the seams after just a few uses. While it protected my hands initially, the poor durability makes it unreliable for regular cooking.
+Rating: 2
+
+Example 3:
+Review: This programmable slow cooker has convenient settings and cooks meals evenly, but the lid doesn't seal well, leading to moisture loss. It's functional for simple recipes, though inconsistent for long stews.
+Rating: 3
+
+Example 4:
+Review: I'm very happy with this stainless steel cookware set. It distributes heat uniformly and cleans up easily, although the handles can get hot during prolonged use. Overall, it's a solid purchase for my kitchen.
+Rating: 4
+
+Example 5:
+Review: This collapsible dish rack is perfect for small spaces. It drains efficiently, folds flat for storage, and holds plenty of dishes. No complaints—it works exactly as advertised.
+Rating: 5
+
+Example 6:
+Review: This fabric storage cube is excellent. It's sturdy, foldable, and the pattern adds a nice touch to my room. Holds all my items securely without tipping over.
+Rating: 5
+
+Example 7:
+Review: This fabric storage cube is very good. It's sturdy and foldable, but the material feels thin and developed a slight odor after unpacking. Still, it serves its purpose well for organization.
+Rating: 4
+
+Example 8:
+Review: This electric kettle boils water quickly and has an auto-shutoff feature for safety. The only issue is that the display is hard to read in bright light. I'd recommend it for its efficiency.
+Rating: 4
+
+Example 9:
+Review: This electric kettle heats fast and has a sleek design, but it's noisy and the plastic parts feel cheap. It gets the job done, but I'm not impressed with the build quality.
+Rating: 3
+
+Example 10:
+Review: This cutting board looks elegant and is easy to wipe clean, but it warped significantly after dishwasher cycles and shows deep knife scars quickly. The aesthetic appeal doesn't compensate for the poor durability.
+Rating: 2

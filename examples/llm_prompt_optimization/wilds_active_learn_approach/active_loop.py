@@ -3,6 +3,7 @@ Active Learning Loop Controller for Active Prompt Evolution.
 
 Two-level evolution:
   Level 1 (inner, fast): Evolve <DynamicRules> + <FewShotExamples> via OpenEvolve
+      (optional synthetic few-shot replace or draft-in-system; mutator lock is configurable)
       with per-evaluation error artifacts fed back to the mutator.
   Level 2 (outer, between cycles): Consolidation step — analyze top-K prompts
       from the MAP-Elites archive, allow modification of ALL sections including
@@ -46,6 +47,10 @@ from collections import Counter
 from data_manager import DataManager, disagreement_score
 from error_analyzer import ErrorAnalyzer
 from evaluator import _build_workers, _load_split_data, _parallel_predict, DEFAULT_MAX_PARALLEL
+from synthetic_fewshot_generator import (
+    SyntheticFewShotGenerator,
+    save_synthetic_manifest,
+)
 
 
 class MajorityVoteAggregator:
@@ -414,6 +419,40 @@ def _evaluate_batch(
     }
 
 
+def _sample_hard_examples(
+    data_manager: DataManager,
+    max_n: int = 8,
+) -> List[Tuple[str, int]]:
+    """Return a small sample of current hard examples: (text, gold_label)."""
+    out: List[Tuple[str, int]] = []
+    for idx in data_manager.hard_indices[:max_n]:
+        out.append((data_manager.texts[idx], int(data_manager.labels[idx])))
+    return out
+
+
+def _top_confusion_pairs_from_batch(
+    data_manager: DataManager,
+    batch_indices: Optional[List[int]],
+    predictions: Optional[List[int]],
+    top_k: int = 4,
+) -> List[Tuple[int, int, int]]:
+    """Return top confusion pairs (gold, pred, count) from previous batch eval."""
+    if not batch_indices or not predictions:
+        return []
+    if len(batch_indices) != len(predictions):
+        return []
+
+    from collections import Counter
+
+    confusion = Counter()
+    for j, idx in enumerate(batch_indices):
+        gold = int(data_manager.labels[idx])
+        pred = int(predictions[j])
+        if gold != pred:
+            confusion[(gold, pred)] += 1
+    return [(g, p, c) for ((g, p), c) in confusion.most_common(top_k)]
+
+
 def _evaluate_split_full(
     prompt_template: str,
     config: dict,
@@ -591,6 +630,9 @@ def run_active_loop(
     results_dir: Optional[Path] = None,
     smoke_mode: bool = False,
     resume_start_cycle: Optional[int] = None,
+    config_path: Optional[Path] = None,
+    no_evolve_early_stop: bool = False,
+    no_al_early_stop: bool = False,
 ) -> None:
     """
     Run the Active Prompt Evolution loop with pool expansion.
@@ -602,9 +644,13 @@ def run_active_loop(
     from openevolve.api import run_evolution
     from openevolve.config import load_config
 
-    config_path = SCRIPT_DIR / "config.yaml"
+    config_path = Path(config_path) if config_path else (SCRIPT_DIR / "config.yaml")
+    config_path = config_path.resolve()
     with open(config_path, "r", encoding="utf-8") as f:
         cfg_dict = yaml.safe_load(f)
+    if no_al_early_stop:
+        al_sec = cfg_dict.setdefault("active_learning", {})
+        al_sec["al_early_stopping_patience"] = 0
     config = load_config(str(config_path))
     prompt_path = initial_prompt_path or (SCRIPT_DIR / "initial_prompt.txt")
     results_dir = Path(results_dir) if results_dir else (SCRIPT_DIR / "results")
@@ -640,9 +686,12 @@ def run_active_loop(
     consolidation_gate_delta = al_cfg.get("consolidation_gate_delta", 0.02)
     consolidation_gate_vs_best = al_cfg.get("consolidation_gate_vs_best_delta", 0.04)
     soft_skip_near_best = al_cfg.get("soft_expansion_skip_near_best", 0.005)
-    al_stop_patience = al_cfg.get("al_early_stopping_patience", 0)
+    al_stop_patience = (cfg_dict.get("active_learning") or {}).get("al_early_stopping_patience", 0)
     al_stop_min_cycles = al_cfg.get("al_early_stopping_min_cycles", 2)
     min_hard_batch_ratio = al_cfg.get("min_hard_batch_ratio", 0.55)
+    synthetic_gen = SyntheticFewShotGenerator.from_config_dict(cfg_dict)
+    sf_cfg_loop = al_cfg.get("synthetic_fewshot") or {}
+    mutator_lock_fewshot = bool(sf_cfg_loop.get("mutator_lock_fewshot", False))
 
     with open(prompt_path, "r", encoding="utf-8") as f:
         current_prompt = f.read()
@@ -762,6 +811,11 @@ def run_active_loop(
         if best_val_prompt_path.exists():
             best_val_prompt = best_val_prompt_path.read_text(encoding="utf-8")
 
+    last_cycle_predictions: Optional[List[int]] = None
+    last_cycle_worker_preds: Optional[List[List[int]]] = None
+    last_cycle_batch_indices: Optional[List[int]] = None
+    last_cycle_seed_val_score: Optional[float] = None
+
     for al_iter in range(al_start, n_al_iterations):
         t_cycle_start = _time.time()
         print(f"\n{'=' * 60}")
@@ -792,14 +846,105 @@ def run_active_loop(
                  n_hard_total=data_manager.n_hard, n_anchor_total=data_manager.n_anchor,
                  n_unseen=data_manager.n_unseen, seed_prompt_len=len(current_prompt))
 
+        out_dir = results_dir / f"al_iter_{al_iter}"
+        out_dir.mkdir(parents=True, exist_ok=True)
+
         # Error analysis for system message
         error_analysis = error_analyzer.analyze_errors(
             data_manager.hard_indices,
             k_clusters=min(6, max(1, data_manager.n_hard // 2)),
             seed=42,
         )
-        error_context = error_analyzer.format_for_evolution(error_analysis)
+        batch_stats = {
+            "batch_size": len(batch_indices),
+            "batch_hard": len(hard_in_batch),
+            "batch_anchor": len(anchor_in_batch),
+            "n_seen": data_manager.n_seen,
+            "n_unseen": data_manager.n_unseen,
+            "n_hard_total": data_manager.n_hard,
+            "n_anchor_total": data_manager.n_anchor,
+        }
+        error_context = error_analyzer.format_for_evolution(
+            error_analysis,
+            predictions=last_cycle_predictions,
+            worker_predictions=last_cycle_worker_preds,
+            batch_indices=last_cycle_batch_indices,
+            batch_stats=batch_stats,
+        )
         error_context_path.write_text(error_context, encoding="utf-8")
+
+        # Synthetic FewShotExamples: optional replace in prompt, or inject_as_hint in system message.
+        synth_raw_path = out_dir / "synthetic_fewshot_examples.txt"
+        synth_manifest_path = out_dir / "synthetic_fewshot_manifest.json"
+        synthetic_fewshot_system_hint = ""
+        if synthetic_gen.cfg.enabled:
+            hard_samples = _sample_hard_examples(data_manager, max_n=8)
+            prompt_after_synth, synth_err, synth_system_hint = synthetic_gen.generate(
+                current_prompt=current_prompt,
+                error_context=error_context,
+                hard_examples=hard_samples,
+                confusion_pairs=_top_confusion_pairs_from_batch(
+                    data_manager,
+                    last_cycle_batch_indices,
+                    last_cycle_predictions,
+                    top_k=max(3, int(synthetic_gen.cfg.n_boundary_pairs)),
+                ),
+                save_raw_to=synth_raw_path,
+            )
+            if synth_system_hint:
+                synthetic_fewshot_system_hint = synth_system_hint
+            if prompt_after_synth is not None:
+                current_prompt = prompt_after_synth
+                save_synthetic_manifest(
+                    synth_manifest_path,
+                    enabled=True,
+                    status="ok",
+                    meta={
+                        "mode": synthetic_gen.cfg.mode,
+                        "mutator_lock_fewshot": mutator_lock_fewshot,
+                        "hint_in_system_message": bool(synth_system_hint),
+                        "n_hard_samples": len(hard_samples),
+                        "n_examples_target": synthetic_gen.cfg.n_examples,
+                        "n_boundary_pairs_target": synthetic_gen.cfg.n_boundary_pairs,
+                    },
+                )
+                diag.log(
+                    "synthetic_fewshot",
+                    al_iter=al_iter,
+                    status="ok",
+                    mode=synthetic_gen.cfg.mode,
+                    hint_in_system=bool(synth_system_hint),
+                    n_hard_samples=len(hard_samples),
+                )
+                if synth_system_hint:
+                    print("  Synthetic FewShotExamples: draft appended to evolution system message (inject_as_hint).")
+                else:
+                    print("  Synthetic FewShotExamples: generated and replaced current block.")
+            else:
+                save_synthetic_manifest(
+                    synth_manifest_path,
+                    enabled=True,
+                    status="failed",
+                    reason=synth_err or "unknown",
+                    meta={
+                        "mode": synthetic_gen.cfg.mode,
+                        "mutator_lock_fewshot": mutator_lock_fewshot,
+                    },
+                )
+                diag.log(
+                    "synthetic_fewshot",
+                    al_iter=al_iter,
+                    status="failed",
+                    reason=synth_err or "unknown",
+                )
+                print(f"  Synthetic FewShotExamples: generation failed ({synth_err}); using previous block.")
+        else:
+            save_synthetic_manifest(
+                synth_manifest_path,
+                enabled=False,
+                status="disabled",
+                meta={"mutator_lock_fewshot": mutator_lock_fewshot},
+            )
 
         # Write active_batch.json for the evaluator
         _write_active_batch(batch_indices, hard_in_batch, anchor_in_batch, active_batch_path)
@@ -812,13 +957,57 @@ def run_active_loop(
 
         # Build evolution config for this cycle
         base_system = cfg_dict.get("prompt", {}).get("system_message", "")
-        augmented_system = base_system + "\n\n## Error Pattern Summary (from batch analysis):\n" + error_context
+        synthetic_lock = ""
+        if mutator_lock_fewshot:
+            synthetic_lock = (
+                "\n\n## FewShotExamples lock for this cycle:\n"
+                "Do NOT modify <FewShotExamples> in this mutation cycle. "
+                "Focus changes on <DynamicRules> and, if useful, <BaseGuidelines>. "
+                "(Few-shot may come from a synthetic step, consolidation, or the seed prompt.)"
+            )
+        hint_section = ""
+        if synthetic_fewshot_system_hint:
+            hint_section = (
+                "\n\n## Suggested synthetic FewShot (draft)\n"
+                + synthetic_fewshot_system_hint
+            )
+        cycle_context_lines = [
+            "\n\n## Cycle Context",
+            (
+                f"AL cycle: {al_iter + 1}/{n_al_iterations}. Batch: "
+                f"{len(hard_in_batch)} Hard + {len(anchor_in_batch)} Anchor = {len(batch_indices)}."
+            ),
+            (
+                f"Pool snapshot: Seen={data_manager.n_seen}, Unseen={data_manager.n_unseen}, "
+                f"Hard={data_manager.n_hard}, Anchor={data_manager.n_anchor}."
+            ),
+            (
+                f"Global best seed_val so far: {best_val_score:.4f}"
+                if best_val_score >= 0
+                else "Global best seed_val so far: n/a (first cycle)."
+            ),
+            (
+                f"Previous cycle seed_val: {last_cycle_seed_val_score:.4f}"
+                if last_cycle_seed_val_score is not None
+                else "Previous cycle seed_val: n/a."
+            ),
+            "Prompt budget hint: length penalty grows above ~2000 tokens; be concise unless accuracy clearly improves.",
+        ]
+        cycle_context = "\n".join(cycle_context_lines)
+        augmented_system = (
+            base_system
+            + synthetic_lock
+            + hint_section
+            + cycle_context
+            + "\n\n## Error Pattern Summary (from batch analysis):\n"
+            + error_context
+        )
         evolve_config = load_config(str(config_path))
+        if no_evolve_early_stop:
+            evolve_config.early_stopping_patience = None
         if evolve_config.prompt:
             evolve_config.prompt.system_message = augmented_system
 
-        out_dir = results_dir / f"al_iter_{al_iter}"
-        out_dir.mkdir(parents=True, exist_ok=True)
         db_dir = out_dir / "database"
         is_resume_cycle = (resume_start_cycle is not None and al_iter == resume_start_cycle)
         if not is_resume_cycle and db_dir.exists():
@@ -834,7 +1023,7 @@ def run_active_loop(
         best_evolution_score = -1.0
         if is_resume_cycle:
             # Skip evolution; keep current_prompt (already loaded from best_prompt.txt)
-        (out_dir / "start_prompt.txt").write_text(current_prompt, encoding="utf-8")
+            (out_dir / "start_prompt.txt").write_text(current_prompt, encoding="utf-8")
             best_info_path = out_dir / "openevolve_output" / "best" / "best_program_info.json"
             if best_info_path.exists():
                 with open(best_info_path, "r", encoding="utf-8") as f:
@@ -850,31 +1039,35 @@ def run_active_loop(
 
             if smoke_mode:
                 t0_evo = _time.time()
-        try:
-            result = run_evolution(
-                initial_program=current_prompt,
-                evaluator=evaluator_path,
-                config=evolve_config,
-                iterations=n_evolve_iterations,
+            try:
+                result = run_evolution(
+                    initial_program=current_prompt,
+                    evaluator=evaluator_path,
+                    config=evolve_config,
+                    iterations=n_evolve_iterations,
                     output_dir=oe_output_dir,
-                cleanup=False,
-            )
+                    cleanup=False,
+                )
                 best_code = current_prompt
                 if result:
                     if result.best_program and hasattr(result.best_program, "code"):
-                best_code = result.best_program.code
+                        best_code = result.best_program.code
                         best_evolution_score = result.best_score
                     elif result.best_code:
                         best_code = result.best_code
                         best_evolution_score = result.best_score
-            current_prompt = best_code
+                current_prompt = best_code
                 (out_dir / "best_prompt.txt").write_text(current_prompt, encoding="utf-8")
-                diag.log("evolution_done", al_iter=al_iter, best_score=best_evolution_score,
-                         best_prompt_len=len(current_prompt))
-        except Exception as e:
-            print(f"  Evolution failed: {e}")
-            import traceback
-            traceback.print_exc()
+                diag.log(
+                    "evolution_done",
+                    al_iter=al_iter,
+                    best_score=best_evolution_score,
+                    best_prompt_len=len(current_prompt),
+                )
+            except Exception as e:
+                print(f"  Evolution failed: {e}")
+                import traceback
+                traceback.print_exc()
                 diag.log("evolution_error", al_iter=al_iter, error=str(e))
         if smoke_mode and not is_resume_cycle:
             dur = _time.time() - t0_evo
@@ -918,6 +1111,10 @@ def run_active_loop(
         print(f"  After evolution: Hard: {len(hard_now)}, Anchor: {len(anchor_now)}")
         diag.log("reclassify", al_iter=al_iter, hard=len(hard_now), anchor=len(anchor_now))
 
+        last_cycle_predictions = list(batch_results["predictions"])
+        last_cycle_worker_preds = [list(wp) for wp in batch_results["worker_predictions"]]
+        last_cycle_batch_indices = list(batch_indices)
+
         # Validation
         print("  Validation...")
         if smoke_mode:
@@ -943,6 +1140,7 @@ def run_active_loop(
 
         # Текущая оценка промпта на validation (для трекинга лучшего по val)
         seed_val_score = float(val_ha.get("combined_score", 0.0))
+        last_cycle_seed_val_score = seed_val_score
 
         # --- Consolidation (Level 2) — accept only if not much worse than best ---
         consolidated = False
@@ -1493,6 +1691,22 @@ def main():
     parser.add_argument("--prompt", type=str, default=None)
     parser.add_argument("--results-dir", type=str, default=None,
                         help="Output directory (default: results). Use results_smoke for smoke run.")
+    parser.add_argument(
+        "--config",
+        type=str,
+        default=None,
+        help="Path to YAML config (default: config.yaml next to active_loop.py).",
+    )
+    parser.add_argument(
+        "--no-evolve-early-stop",
+        action="store_true",
+        help="Disable OpenEvolve early stopping: run the full --n-evolve iterations each AL cycle.",
+    )
+    parser.add_argument(
+        "--no-al-early-stop",
+        action="store_true",
+        help="Disable AL early stopping (sets al_early_stopping_patience to 0 for this run).",
+    )
     parser.add_argument("--smoke", action="store_true",
                         help="Smoke run: 2 AL cycles, 4 evolve iter, results_smoke/.")
     parser.add_argument(
@@ -1559,6 +1773,9 @@ def main():
         results_dir=out_dir,
         smoke_mode=args.smoke,
         resume_start_cycle=resume_start_cycle,
+        config_path=Path(args.config).resolve() if args.config else None,
+        no_evolve_early_stop=args.no_evolve_early_stop,
+        no_al_early_stop=args.no_al_early_stop,
     )
 
 

@@ -1,0 +1,31 @@
+Example 1:
+Review: This coffee maker is a huge disappointment. It brews lukewarm coffee and the carafe dribbles everywhere, making a mess on the counter every single time. It technically works, but the experience is so frustrating I'm already looking for a replacement.
+Rating: 2
+
+Example 2:
+Review: This coffee maker is a fire hazard. On the third use, I smelled burning plastic and it started smoking. It's completely unusable and frankly, dangerous. I've unplugged it and am returning it immediately. Do not buy.
+Rating: 1
+
+Example 3:
+Review: I'm pretty happy with these new kitchen chairs. They look great and were easy to assemble. The seat cushion is a little firmer than I'd like, but it's not uncomfortable. Overall, a solid purchase and I would recommend them.
+Rating: 4
+
+Example 4:
+Review: I absolutely love these new kitchen chairs! The design is perfect, they were a breeze to put together, and they are incredibly comfortable. They feel very sturdy and have completely elevated the look of my dining area. Worth every penny!
+Rating: 5
+
+Example 5:
+Review: This bath mat is okay. The color is nice and it's soft, but it absorbs water and takes forever to dry, leaving it soggy for hours. It does the basic job of a mat, but I'll probably replace it with a quick-dry one soon. It's fine for now.
+Rating: 3
+
+Example 6:
+Review: This bath mat is fantastic. The color is exactly as pictured, it's super soft, and it dries surprisingly quickly. It feels much more expensive than it was. Very pleased with this purchase.
+Rating: 5
+
+Example 7:
+Review: I was so excited for this blender. It worked great for about a month, making perfect smoothies. UPDATE: The motor suddenly died. It just hums now and won't spin the blades at all. For this price, I expect it to last longer than 30 days. Useless piece of junk.
+Rating: 1
+
+Example 8:
+Review: This blender is decent. It handles soft fruits and liquids just fine for my morning smoothies. However, it really struggles with frozen fruit or ice, leaving large chunks behind. It gets the job done, but only if you're not asking too much of it.
+Rating: 3

@@ -1,0 +1,31 @@
+Example 1:
+Review: This is a pretty good coffee maker. It brews quickly and the coffee tastes great. My only real complaint is that the carafe design is poor, and it tends to dribble coffee down the side when I pour unless I do it very, very slowly. It's a daily annoyance on an otherwise solid machine.
+Rating: 4
+
+Example 2:
+Review: I absolutely love this coffee maker! It makes a fantastic cup of coffee, and it looks great on my counter. The power cord could be a little longer, but I just plugged it into a power strip and it's no big deal at all. It's the best machine I've owned. Perfect!
+Rating: 5
+
+Example 3:
+Review: These food storage containers are decent, but not great. The plastic is sturdy and they are a good size. However, the lids just don't create a reliable seal. They feel loose and I wouldn't trust them with soup or anything liquid. They're okay for storing leftovers in the fridge, but they aren't truly airtight.
+Rating: 3
+
+Example 4:
+Review: I'm very happy with this set of glass food storage containers. They feel durable and clean up easily in the dishwasher. The lids are a bit stiff to snap on at first, but after a few uses they've gotten easier. It's a minor point on a high-quality product.
+Rating: 4
+
+Example 5:
+Review: This mixer is a huge disappointment. It technically works, but the motor is so weak it struggles with anything thicker than pancake batter. It also gets incredibly hot after just a minute of use, to the point where I'm worried it's a hazard. The whole experience is frustrating and I'm already looking for a replacement.
+Rating: 2
+
+Example 6:
+Review: It's an okay stand mixer for the price. It handles simple tasks like whipping cream or cake batter fine. The main issue is that the bowl doesn't lock into the base securely, so you have to hold it in place while it's running to stop it from rattling. It works, but this design flaw is a significant limitation.
+Rating: 3
+
+Example 7:
+Review: This is a fantastic little vacuum. It's lightweight, powerful, and the battery lasts long enough for me to clean my entire apartment. I am so happy with this purchase.
+Rating: 5
+
+Example 8:
+Review: Do not buy. I used this "non-stick" skillet once to fry an egg, following all instructions, and the egg welded itself to the pan. I had to scrape it out with a spatula, ruining the surface. The pan completely failed at its one and only job. It is now in the trash.
+Rating: 1

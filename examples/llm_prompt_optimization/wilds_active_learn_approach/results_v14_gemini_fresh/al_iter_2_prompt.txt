@@ -1,0 +1,72 @@
+<System>
+<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+<BaseGuidelines>
+    - Star rating scale: 1 = very negative, 2 = negative, 3 = neutral/mixed, 4 = positive, 5 = very positive
+    - Output: a single rating 1-5 (e.g. "Rating: 3")
+    - Base the rating on the reviewer's overall satisfaction, prioritizing their final conclusion.
+    - **Review Updates:** An "UPDATE" describing product failure or a major negative change of opinion OVERRIDES all previous text. A review that starts positive but ends with a negative update is rated on the update alone.
+</BaseGuidelines>
+
+<DynamicRules>
+    **5 Stars (Excellent / Fully Satisfied):**
+    - The user is enthusiastic ("love it," "perfect," "this is it!"), says the product exceeded expectations, or that it perfectly solved their problem.
+    - **Crucial: Trust the final verdict.** A review is 5 stars if the overall conclusion is positive, even if minor quirks are mentioned. Do NOT downgrade if:
+       - The reviewer **explicitly dismisses** the issue (e.g., "...but either way, no problems with it").
+       - The product **meets all the user's stated criteria** (e.g., "met each and every one of my conditions").
+       - The "flaw" is an **inherent property** of the item (e.g., "it's cotton, so it needs ironing").
+       - The "flaw" is an **accepted trade-off** (e.g., "less suction, but that's expected for convenience").
+    - Short, purely positive reviews ("Works great") are 5 stars.
+
+    **4 Stars (Good / Satisfied with Minor Flaws):**
+    - The product is good and the user is generally happy, but they mention a **minor, specific, and undismissed flaw** that makes the product less than perfect.
+    - This is the key difference from 5 stars: the flaw is a real, albeit minor, drawback, not an expected trade-off or a dismissed issue.
+    - A positive review that just describes features without enthusiasm is a 4. A product that simply meets expectations is a 4; one that delights is a 5.
+
+    **3 Stars (Mixed / Okay / Limited):**
+    - The product works, but a flaw presents a *significant limitation* that balances out the pros (e.g., "lids are unreliable").
+    - The user's feeling is ambivalent ("it's okay, but...").
+    - **Brief, ambiguous negative reviews** (e.g., "Didn't work. Had to send it back.") without details of a catastrophic failure are 3 stars.
+
+    **2 Stars (Disappointing / Frustrating):**
+    - The product's flaws cause significant frustration, even if it technically functions (e.g., "incredibly slow," "handle gets uncomfortably hot").
+    - The user is actively disappointed and would not buy it again.
+
+    **1 Star (Failed / Useless / Dangerous):**
+    - The product is broken on arrival, dangerous ("fire hazard"), or completely non-functional.
+    - It fails its core purpose entirely (e.g., a peeler that can't peel). This is a 1, even if it technically "turns on".
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: This kettle is a fire hazard. On its third use, it started making a crackling sound and I saw a spark near the base. It tripped my circuit breaker and now it's completely dead. It smells of burnt electronics. This is a dangerous piece of junk being returned immediately.
+Rating: 1
+
+Example 2:
+Review: This electric kettle is a huge disappointment. It technically boils water, but it's incredibly slow, taking almost 10 minutes to heat a full pot. The handle also gets uncomfortably hot to the touch, making it awkward to pour. It works, but the experience is so frustrating that I'm already shopping for a replacement.
+Rating: 2
+
+Example 3:
+Review: I really wanted to like these glass storage containers, but the lids are a dealbreaker. They are incredibly difficult to seal properly, and even when you think they're on, they can pop open. I had one leak soup all over my lunch bag. The glass itself is high quality, but because the lids are so unreliable, I can't trust them for travel. They're just okay for home use.
+Rating: 3
+
+Example 4:
+Review: This is a pretty good cordless vacuum for the price. It's lightweight and has decent suction for hard floors and daily crumbs. My only real complaint is that the dustbin is tricky to empty; the latch feels a bit cheap and I often have to jiggle it to get it to open. It's a minor annoyance on an otherwise solid product, so I'm happy overall.
+Rating: 4
+
+Example 5:
+Review: The towels are definitely cute and well made. Very attractive. The only reason Im not giving them five stars is because they aren't very absorbent. Out of the package they aren't really absorbent at all. Throw them in the wash with some fabric softener and they get better in terms of absorbency.
+Rating: 4
+
+Example 6:
+Review: EDIT: A year of use later it's still humming along and doing its job just fine. Sometimes it seems like it doesn't pick up quickly that it should be upping its speed on its own in the auto setting, but maybe it's just taking longer for the air to reach it than I expect. Either way, no problems with it.
+Rating: 5
+
+Example 7:
+Review: There are a few different things I look for in a bed frame in order for me to consider it a win in my book. These include ease of assembly, all parts being included, and the sturdiness of the frame once it is assembled. This bed frame met each and every one of my conditions.
+Rating: 5
+</FewShotExamples>
+
+<Task>
+Review: {review}
+</Task>
