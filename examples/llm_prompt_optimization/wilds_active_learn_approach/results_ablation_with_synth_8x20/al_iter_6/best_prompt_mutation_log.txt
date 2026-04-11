@@ -1,0 +1,5 @@
+- The top error is `gold=4 -> pred=5`, where utilitarian, positive-but-not-perfect reviews are being overrated. I added a rule to the 4-star section clarifying that products described as good for a specific, limited use-case (e.g. "for kids") are typically a 4.
+- The second top error is `gold=5 -> pred=4`, often triggered by comparisons. I strengthened the 5-star rule for comparisons to explicitly state that "almost as good as X" is still a very positive signal.
+- Workers sometimes ignored explicit ratings like "I give this 5 Stars". I moved the explicit rating instruction to the top of the BaseGuidelines and made it a high-priority override to fix this.
+- To address the 4-vs-3 confusion (e.g., the "skinny pillows" example), I added an example to the 4-star inconvenience rule about odd sizing.
+- I replaced the entire `<FewShotExamples>` section with the provided synthetic draft. The new examples are more diverse and provide clearer contrasts for the difficult 3-vs-4 and 4-vs-5 boundaries, which are the primary sources of error.

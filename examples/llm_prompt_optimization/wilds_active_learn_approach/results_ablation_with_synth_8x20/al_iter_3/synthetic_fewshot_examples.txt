@@ -1,0 +1,31 @@
+Example 1:
+Review: These glasses look great and have a nice heavy base. My only issue, and the reason for 4 stars, is that the bottom of one of the glasses isn't perfectly flat, so it has a slight wobble on the table. It's not enough to spill, but it's a noticeable little imperfection. Otherwise, a very nice set.
+Rating: 4
+
+Example 2:
+Review: I love these glasses! They have a great weight, feel sturdy in the hand, and look very elegant for the price. I checked them all on a flat counter and none of them have any wobble. They are perfect. No complaints at all.
+Rating: 5
+
+Example 3:
+Review: This toaster oven is a complete piece of junk. It looks nice on the counter, but it fails at its most basic function. It burns everything on one side while leaving the other side completely untoasted. I've tried every setting. It's impossible to get an even piece of toast. I am returning it and warning others not to waste their money.
+Rating: 1
+
+Example 4:
+Review: This spatula is okay, but not great. The head is a good size and shape, but the handle is very thin and feels like it could snap if I try to lift anything heavy. It works for light tasks like scrambling eggs, but I don't trust it for flipping a burger. It's a mixed bag.
+Rating: 3
+
+Example 5:
+Review: This is a fantastic little coffee maker. It does exactly what it's supposed to do: it brews a hot, tasty pot of coffee quickly and without any fuss. It's easy to clean and doesn't take up much counter space. Very happy with this purchase.
+Rating: 5
+
+Example 6:
+Review: I wanted to like this coffee maker, but the warming plate gets way too hot. If the coffee sits for more than 15 minutes, it develops a burnt, acrid taste. This means I have to drink the whole pot immediately or pour it into a separate thermos. It's a decent brewer, but this flaw is a real annoyance.
+Rating: 4
+
+Example 7:
+Review: The non-stick coating on this pan works well, but after only a month of use, the pan has warped badly. It no longer sits flat on my glass cooktop, causing it to rock back and forth and heat very unevenly. It's incredibly frustrating to cook with now. I'm already shopping for a replacement.
+Rating: 2
+
+Example 8:
+Review: Worthless. The blade is so dull it can't even open a can of beans. It just slips off the rim and mangles the lid. I tried multiple times and couldn't get a single can open. It's completely non-functional for its one and only job. This is going straight into the garbage.
+Rating: 1

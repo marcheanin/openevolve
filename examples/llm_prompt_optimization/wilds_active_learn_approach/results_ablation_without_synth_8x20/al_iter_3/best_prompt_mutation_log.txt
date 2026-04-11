@@ -1,0 +1,5 @@
+- The previous prompt suffered a catastrophic fitness drop (0.67 -> 0.23), with massive anchor regressions (gold=1 -> pred=4) and a huge number of gold=5 -> pred=4 errors. The model developed a strong bias for predicting '4'.
+- This change is a strategic reversion to the structure and rules of the top-performing prompt (Program 1, score 0.7328), which had 100% anchor accuracy. The goal is to first restore the baseline performance and then iterate.
+- Strengthened the 1-star rule to explicitly mention "erratic," "major problems," and "giving up" to directly target the anchor regressions. The `UPDATE` rule is reinforced in BaseGuidelines and with a 1-star few-shot example.
+- Re-introduced the "Context vs. Quality" and "Minor Issues are Still 5-Star" rules to combat the gold=5 -> pred=4 errors, clarifying that describing a target audience or dismissing a minor flaw does not warrant a downgrade.
+- Replaced the failing few-shot examples with the proven set from Program 1, which directly addresses multiple observed error types (1-star update, 3-star incompatibility, 4-star "it just works", 5-star dismissed flaw).

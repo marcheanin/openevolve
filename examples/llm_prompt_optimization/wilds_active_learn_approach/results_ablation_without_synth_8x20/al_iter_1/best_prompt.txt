@@ -1,0 +1,97 @@
+<System>
+<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>
+<BaseGuidelines>
+- You will be given a review for a Home & Kitchen product.
+- Your task is to classify the review's overall sentiment into a single star rating from 1 to 5.
+- Base your rating on the customer's overall satisfaction with the product itself.
+- Output only the rating number (e.g., "Rating: 4").
+</BaseGuidelines>
+
+<DynamicRules>
+### Guiding Principles
+1.  **Overall Satisfaction is Key:** Base the rating on the reviewer's final sentiment, not isolated words. The conclusion is often most telling.
+2.  **Product, Not Process:** Rate the product itself. Ignore complaints about shipping or sellers if the product review is positive.
+3.  **Updates Overrule:** If a review contains an 'UPDATE' that changes the sentiment, the final updated sentiment is the correct one.
+
+---
+
+### Star Level Details
+
+**5 Stars (Excellent / Delighted):**
+- **Core Idea: Product EXCEEDS expectations.** The user is enthusiastic, often using superlatives or emotional language ("love it!," "perfect," "best," "highly recommend"). It has a 'wow' factor.
+- **Short & Sweet 5s:** Short, concise reviews that are entirely positive (e.g., 'Great product', 'Works perfectly', 'Convenient size', 'appears to be flawless') are 5 stars, even without effusive language. This is a common pattern.
+- **Give 5 Stars EVEN IF the review mentions:**
+    - Minor issues that don't spoil the user's overall delight. If the conclusion is overwhelmingly positive ("otherwise these are great"), lean towards 5 stars.
+    - Inherent properties of a material (e.g., "it's cotton, so it needs ironing").
+    - Minor setup hassles that resolve (e.g., a smell that airs out).
+    - Favorable comparisons to premium brands (e.g., "almost as good as Lodge for half the price").
+- **Trust Explicit Ratings:** If a reviewer explicitly gives a 5-star verdict after weighing pros and cons (e.g. '4 stars for X, but 5 stars overall'), trust their conclusion.
+
+**4 Stars (Good / Satisfied with Flaws):**
+- **Core Idea: Product MEETS expectations.** The user is happy, but the tone is grounded. The product is good, but not perfect.
+- **Descriptive Praise:** A review that is purely descriptive and positive but lacks enthusiasm or a 'wow' factor is a 4. (e.g., "This is a nice runner with good colors.")
+- **Minor Flaw:** The review is generally happy, but mentions a specific, valid, non-dealbreaker complaint about the product itself ("wish it was more absorbent," "handle is a bit wobbly").
+- A stated **concern** about a potential issue, even if it hasn't happened ('need to watch for rough edges').
+
+**3 Stars (Average / Mixed):**
+- **Core Idea: Balanced pros and cons.** The product works, but has significant limitations. Neither good nor bad dominates.
+- **Function vs. Aesthetics:** Practical function outweighs aesthetics. If a review mentions several practical drawbacks, it is a 3-star review, even alongside positive aesthetic comments. Pay close attention to words like 'thin', 'shrinks', 'needs ironing', 'doesn't last'. These practical complaints often override aesthetic praise like 'attractive' or 'fantastic'.
+- **Key Signals:** Phrases like "it's okay," "does the job, but...".
+- **Niche Use Case:** A product described as "fine for short-term use but doesn't last" is a classic 3-star review.
+
+**2 Stars (Poor / Disappointed):**
+- Primarily negative. Significant disappointment. The product has major flaws, is poor quality, or doesn't work as described, but may have some minimal use.
+- **2 vs 1 Boundary:** The product works poorly or has a major flaw but is not completely useless (e.g., it does its job, but badly). A 1-star product is a total failure.
+
+**1 Star (Awful / Angry):**
+- Complete dissatisfaction or anger. The product is defective, unsafe, useless, or was returned. Contains strong warnings like "do not buy," "junk," or "terrible."
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: I love this vacuum and ditto the other lovers reviews. It really does go under almost anything and is very handy.
+
+.UPDATE after 2 yrs of  major problems which were rectified thru customer service I am giving up and moving on.
+Rating: 1
+
+Example 2:
+Review: The design is nice, but that's about it. The handle is flimsy and feels like it will break. It barely holds any weight, which defeats the purpose of a storage basket. I'm keeping it for very light things, but I'm very disappointed.
+Rating: 2
+
+Example 3:
+Review: These mats are fine if you like to switch them out a lot. If you refer to have a very fresh and new bathmat for the bathroom when guests are staying for a visit, then these have a fun knobbly like texture to them and are cheap enough to pick up for short term use. But they don't last more than a few weeks/months depending on how much use they see. ...
+Rating: 3
+
+Example 4:
+Review: This is a 100% cotton runner that is fantastic for a sweetheart, anniversary or Valentine's Day dinner. It feels like a table napkin. It is a bit on the thin side. After using and washing, you may get shrinkage if you use warm or hot water and stick it in the dryer. You will have to iron this runner. It is colorful and attractive. The different pri...
+Rating: 3
+
+Example 5:
+Review: This 100% cotton table runner is a great fall color for your home. It has fall colors and is a nice pattern. It is easy care, machine washable and if you follow manufacture directions, should last a long time. I really like the colors in this runner. It matches many of the existing colors in my home.
+Rating: 4
+
+Example 6:
+Review: The towels are definitely cute and well made. Very attractive. The only reason Im not giving them five stars is because they aren't very absorbent. Out of the package they aren't really absorbent at all. Throw them in the wash with some fabric softener and they get better in terms of absorbency.
+Rating: 4
+
+Example 7:
+Review: There is only one problem for the experienced cook when it comes to this set - you're likely to already have one or more of these tools and possibly Oxo Good Grips at that! That's why I think this set is best suited for someone setting up a kitchen for the first time, like a young person getting his or her first apartment. It has solid basic items ...
+Rating: 5
+
+Example 8:
+Review: We own a huge amount of Lodge cast iron cook and bake ware plus a few odd pieces collected over the years. Although I've tried other brands in the past, Lodge remained the best. Now, I'd like to say this was equal or better than Lodge but it's not...although it comes close. Compared to my current 12 inch Lodge pan, this has a couple of improvements...
+Rating: 5
+
+Example 9:
+Review: This mattress get 4 stars for comfort, but there's so many other nice features about it that it gets 5 starts for everything else. To begin with, I wouldn't suggest using this as a long term every day bed for someone. The shallow design and budget price make this a good mattress for the trundle bed under your main bed, or for the daybed/spare bed y...
+Rating: 5
+
+Example 10:
+Review: Great size, convenient for one-skillet meals.
+Rating: 5
+</FewShotExamples>
+
+<Task>
+Review: {review}
+</Task>

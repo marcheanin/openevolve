@@ -1,0 +1,6 @@
+- **Diagnosis:** The previous prompt regressed, causing a drop in fitness and two new Anchor regressions (gold=5 -> pred=4). The primary error patterns were misclassifying highly positive reviews with narrative elements or minor, dismissed flaws as 4-star, and an overly strict rule on "limited use".
+- **Rule Changes:**
+    - To fix the anchor regressions, I relaxed the "limited use" rule for 4-stars; it now only applies if the review lacks strong enthusiasm.
+    - I added a new 5-star rule to correctly handle reviews where a user mentions a minor flaw but explicitly dismisses it or frames it as a non-issue.
+    - I broadened the 5-star "not a flaw" rule to more clearly include positive comparisons and narrative backstory, targeting the most common `gold 5 -> 4` error pattern.
+- **Few-Shot Changes:** Replaced the entire few-shot section with the balanced and high-quality synthetic draft. This provides clearer, more diverse examples for all rating boundaries, especially the tricky 3-star "mixed bag" and 4-star "minor flaw" cases.

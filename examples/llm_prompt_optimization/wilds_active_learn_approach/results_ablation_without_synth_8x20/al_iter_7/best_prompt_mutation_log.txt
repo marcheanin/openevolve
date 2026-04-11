@@ -1,0 +1,5 @@
+- The previous prompt (`D1`) caused a significant fitness drop and anchor regressions. I've reverted to the structure of the top-performing prompt (`Program 1`) as a more stable base.
+- The main error is confusion on the 4/5-star boundary. I've refined the `5 Stars` rule to explicitly state that inherent properties of a product (e.g., "cotton needs ironing") are not flaws if the user is satisfied overall. This targets `gold=5 -> pred=4` errors.
+- To address `gold=4 -> pred=3` errors, I've added a new rule to the `4 Stars` category: "Good for a Specific (but not general) Use". This covers products praised for a narrow purpose but noted as unsuitable for a more general one (e.g., a throw that's decorative but not comfortable).
+- I replaced a generic 4-star few-shot example with a misclassified one ("decorative throws") to directly teach this new nuanced 4-star rule.
+- Added a "Durability Failure" rule to the `2 Stars` section to better distinguish from 3-star reviews, targeting errors where products break after a short time.

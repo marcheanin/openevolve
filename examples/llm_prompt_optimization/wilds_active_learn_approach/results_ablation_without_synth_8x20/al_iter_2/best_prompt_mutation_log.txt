@@ -1,0 +1,4 @@
+- The previous prompt (D1) regressed in performance. I've reverted to the structure of the top-performing prompt (Program 1), which had stronger, more nuanced rules for the critical 4-vs-5 star boundary.
+- Added a new guiding principle to focus only on the reviewed item when comparisons are made, targeting `gold 5 -> 4` errors where models were confused by context.
+- Strengthened the 2-star rule definition to prevent anchor regressions by clarifying that a product that functions poorly is a 2, not a 1.
+- Replaced a redundant 4-star few-shot example with a misclassified `gold=5` review ("butter dish too tall") to explicitly teach the models how to handle a flaw that the user provides a simple workaround for, pushing it to 5-stars.

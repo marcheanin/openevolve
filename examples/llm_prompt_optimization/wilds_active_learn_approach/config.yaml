@@ -230,6 +230,9 @@ active_learning:
   soft_expansion_skip_near_best: 0.005  # Skip soft-only expansion when seed_val is at/near best val so far
   seen_reeval_interval: 3         # Re-evaluate all Seen examples every N AL cycles (0 = off)
   refresh_per_cycle: 10           # Promote N Unseen→Seen/cycle; each is scored → Hard or Anchor (0 = off)
+  generalization_gap_warn_threshold: 0.03   # Warn when (val_combined - per-cycle test_combined) exceeds this
+  generalization_gap_stop_threshold: 0.08   # Trigger early stop streak when gap exceeds this
+  generalization_gap_stop_patience: 2       # Consecutive cycles over stop threshold before AL stop
   consolidation_gate_delta: 0.01  # Reject consolidated prompt if val drops vs evolution-best this cycle
   consolidation_gate_vs_best_delta: 0.04  # Also reject if cons val is this far below global best val
   al_early_stopping_patience: 2   # Stop AL loop after this many cycles with no new best val (0 = off)

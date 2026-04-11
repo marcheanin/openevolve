@@ -1,0 +1,7 @@
+The primary error is misclassifying 5-star reviews as 4-star, often due to a lack of gushing praise or the presence of a single neutral word. The model also struggles with short, factual reviews like "They work!", rating them too low (3 instead of 4).
+
+To address this, I've refined the `DynamicRules`.
+1.  Clarified the 5-star definition to include simple products that work perfectly without issue, even if the review is brief.
+2.  Added a new `GUIDING PRINCIPLES` section for "Short & Simple Reviews" to correctly interpret concise, positive feedback as a 4 or 5.
+3.  Added another principle for "Holistic Tone" to prevent the model from down-rating a review based on a single neutral word when the overall sentiment is highly positive.
+4.  Kept the high-quality synthetic few-shot examples, as they provide excellent coverage of key classification challenges.

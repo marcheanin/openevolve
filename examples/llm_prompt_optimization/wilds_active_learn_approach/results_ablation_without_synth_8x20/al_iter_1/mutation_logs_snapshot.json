@@ -1,0 +1,76 @@
+{
+  "al_iter": 1,
+  "n_programs": 10,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.7604925646509506,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error is `gold 5 -> 4` (12 instances), often on short, positive reviews or reviews with minor caveats that are still highly positive overall. To address this, I'm reinforcing the \"Short & Sweet 5s\" rule from the top-performing prompt and adding a point that a concluding positive phrase (e.g., \"otherwise these are great\") should push the rating to 5.\n- The second error is `gold 4 -> 5` (5 instances), where descriptive praise is mistaken for delight. I'm keeping the \"Descriptive Praise\" rule for 4-stars, as it directly targets this.\n- A `gold 3 -> 4` error occurred because the model overweighted a positive word (\"fantastic\") and ignored multiple practical drawbacks. I'm replacing a less informative 3-star few-shot example with this specific misclassified review to teach this pattern directly. I also enhanced the \"Function vs. Aesthetics\" rule to explicitly list keywords for practical drawbacks.\n- I fixed an anchor regression (`Great size...` -> 4) by ensuring it's included as a 5-star few-shot example, which it already was in the top prompt.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 2,
+      "score": 0.7447416632504489,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error is `gold 5 -> 4` (13 errors), especially for short, positive reviews (\"Great size, convenient...\") and reviews with minor, inherent flaws (\"...needs ironing...\"). I'm adopting the high-performing \"Program 1\" structure and adding a specific rule for \"Short & Sweet 5s\" to address this.\n- The second top error is `gold 4 -> 5` (6 errors), where functional praise is mistaken for delight. I've added a rule to the 4-star definition to clarify that praise for meeting a basic expectation (e.g., 'it holds its shape') is a 4, not a 5.\n- An anchor regression occurred at `gold 4 -> 3` for a review with a single, non-dealbreaker flaw (\"...heat does begin to transfer...\"). I've sharpened the 4-star rule for this and replaced a few-shot example with this exact review to directly correct this behavior.\n- I've added two misclassified examples (one `gold=3->pred=4`, one `gold=4->pred=3`) and one anchor regression (`gold=5->pred=4`) to the few-shot set to provide concrete guidance on these tricky boundaries.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 3,
+      "score": 0.7388273450883099,
+      "has_mutation_log": true,
+      "mutation_log": "- The previous prompt caused a catastrophic fitness drop (0.6992 to 0.2091) and massive anchor regressions, with models defaulting to a \"4\" rating. I've reverted to the high-performing \"Program 1\" (score 0.7605) as a stable base to fix these regressions.\n- The primary error pattern is `gold 5 -> 4`, caused by downgrading positive but non-enthusiastic reviews. I've rewritten the 5-star rule to explicitly state: if a review is positive with no product complaints, it is 5 stars. A product that works perfectly should be rated 5.\n- I've removed the ambiguous \"Descriptive Praise\" rule for 4-stars, which was the source of the `5->4` errors. The 4-star rating is now more clearly defined as a good product with a specific, minor flaw mentioned.\n- I replaced a confusing 4-star few-shot example with a misclassified `gold=4` review from the artifacts. The new example (\"This one is the better style that actually holds its shape\") perfectly illustrates the new rule that praise for meeting a basic expectation is a 4, not a 5.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 4,
+      "score": 0.7311044759692398,
+      "has_mutation_log": true,
+      "mutation_log": "- Targeted the main error `gold 5 -> 4`, especially the anchor regression on short reviews. Added a specific rule to the 5-star definition that short, concise, and entirely positive reviews (e.g., \"Great product\") are 5 stars, even without effusive language.\n- Addressed the anchor regression (\"Great size, convenient for one-skillet meals.\") by turning it into a new 5-star few-shot example, directly teaching the model how to handle this pattern.\n- Targeted the `gold 4 -> 5` error where descriptive praise was overrated. Replaced a confusing 4-star few-shot example with a misclassified one (\"This 100% cotton table runner...\") to better illustrate that descriptive but non-enthusiastic praise is a 4.\n- Targeted the `gold 3 -> 4` error on mixed-signal reviews. Added a rule to the 3-star definition clarifying that multiple practical drawbacks (e.g., thin material, needs ironing) outweigh aesthetic praise.\n- Streamlined the prompt by merging the separate \"Critical 4 vs. 5 Star Boundary\" section into the main star level definitions, reducing redundancy and improving flow.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 5,
+      "score": 0.7252457273863905,
+      "has_mutation_log": true,
+      "mutation_log": "- The previous prompt caused a catastrophic fitness drop, with the main error being `gold 5 -> 4` (44 instances). I am reverting to the structure of the top-performing prompt (Program 1, score 0.7605) as a stable base.\n- To fix the `gold 5 -> 4` errors, I've added a strong \"No Complaints = 5 Stars\" rule. This clarifies that a positive review without flaws should be a 5, even if the tone is just descriptive and not enthusiastic.\n- To fix anchor regressions (`1->4`, `2->4`), I'm adding a new 2-star few-shot example (the translucent tablecloth) to reinforce the definition of a major functional flaw. The `UPDATE` rule and example are retained.\n- To sharpen the 4/5 boundary, I added a rule that praise for meeting a basic expectation (e.g., \"it holds its shape\") is a 4, not a 5.\n- I curated a new, balanced set of 9 few-shot examples, replacing ambiguous ones and adding examples from the error list (blender, tablecloth) to directly teach the model how to handle these tricky cases.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 6,
+      "score": 0.7219742936992796,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error pattern is `gold=4 -> pred=5`, where reviews with positive but functional descriptions are being overrated.\n- I'm adopting the structure from the top-performing inspiration prompt, which creates a dedicated `The Critical 4 vs. 5 Star Boundary` section. This elevates the most important rule for better model focus.\n- I'm sharpening the boundary definition using the \"MEETS vs. EXCEEDS expectations\" framework. This rule clarifies that functional satisfaction, even with words like \"love,\" is a 4-star rating, while delight and a \"wow\" factor are required for 5 stars.\n- I've replaced a weaker 4-star few-shot example with the misclassified \"collapsible basket\" review. This directly teaches the model to correct its tendency to overrate functionally positive reviews.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 7,
+      "score": 0.7183352250907986,
+      "has_mutation_log": true,
+      "mutation_log": "- **Hypothesis:** The main reason for the fitness drop and the massive `gold 5 -> 4` error count (17) is an overly strict definition of 5-star reviews, which penalizes descriptive but complaint-free reviews. This also caused anchor regressions.\n- **Change 1 (5/4-Star Boundary):** Replaced the ambiguous \"enthusiasm\" rule with a clear \"No-Complaint Rule\" inspired by a top-performing prompt. A positive review with no product complaints is a 5. A positive review with a minor complaint is a 4. This directly targets the main error source and should fix the anchor regressions.\n- **Change 2 (3-Star Boundary):** Added a rule to classify reviews as 3-star if the product is \"okay\" but fails to deliver on a key promise (e.g., \"ultra absorbent\" is not very absorbent). This targets a `gold 3 -> 4` error.\n- **Change 3 (Few-Shot):** Replaced a 3-star example with a misclassified review from the artifacts (\"Ultra absorbant...\"). This provides a concrete example for the new 3-star rule.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 8,
+      "score": 0.7126758244955977,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error pattern was `gold=4 -> pred=5`, where models over-indexed on positive words (\"love\", \"great\") in reviews that were merely satisfied, not delighted.\n- To address this, I created a new, explicit section: `The Critical 4 vs. 5 Star Boundary`. This rule clarifies that 4 stars means \"satisfied / meets expectations\" while 5 stars requires genuine \"delight / exceeds expectations,\" providing concrete keywords for each.\n- I replaced a generic 4-star few-shot example with a misclassified review from the artifacts. The new example uses the word \"love\" but is correctly rated 4, directly teaching the model to handle this tricky pattern.\n- I consolidated the existing 4-star and 5-star rules into the new boundary section to improve clarity and reduce redundancy.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 9,
+      "score": 0.7102446159979323,
+      "has_mutation_log": true,
+      "mutation_log": "- Analyzed top errors, primarily gold=5->4 and gold=4->5, indicating confusion at the 4/5-star boundary.\n- Restructured rules by merging the \"Critical Boundary\" section into integrated star-level definitions, inspired by the top-performing Program 1. This provides a more direct, consolidated guide.\n- Added explicit rules to target specific error patterns: a \"Functionally Perfect 5s\" rule for positive-but-not-gushing reviews, and a \"Praise for Basic Functionality\" rule to correctly classify reviews praising a product for simply working as it should (as a 4, not 5).\n- Replaced the entire few-shot section with a new, highly-targeted set of 10 examples. This set includes previous misclassifications and anchor regressions to directly teach the models how to handle \"short & sweet\" 5-star reviews, \"good with a flaw\" 4-star reviews, and \"multiple practical issues\" 3-star reviews.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 10,
+      "score": 0.6991967701138444,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    }
+  ]
+}

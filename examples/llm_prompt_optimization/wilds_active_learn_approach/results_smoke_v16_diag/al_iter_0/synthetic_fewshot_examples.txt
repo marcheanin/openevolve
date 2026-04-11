@@ -1,0 +1,31 @@
+Example 1:
+Review: These kitchen towels look fantastic hanging on my oven door, the pattern is very chic. However, they are terrible at actually drying anything. Water just gets pushed around. They're more for decoration than for use, which is a shame. I'm keeping them because they look nice, but I had to buy other towels for daily tasks.
+Rating: 3
+
+Example 2:
+Review: I'm really happy with these kitchen towels. They look great in my kitchen, but more importantly, they are super absorbent right out of the package. They've been through the wash several times now and have held up perfectly, getting even softer and more absorbent. A great buy!
+Rating: 5
+
+Example 3:
+Review: The blender arrived and I was excited to use it. I plugged it in, put my smoothie ingredients inside, and pressed the button. I heard a loud POP and saw a spark from the base of the unit. It is completely dead and now I'm worried about the safety of this product. A total piece of junk and a fire hazard. Returning.
+Rating: 1
+
+Example 4:
+Review: This blender gets the job done, but just barely. It struggles with frozen fruit, leaving large chunks behind unless I run it for several minutes and shake it constantly. It also sounds like a jet engine taking off. It technically makes a smoothie, but it's a huge pain to use and I wish I had spent more for a better model.
+Rating: 2
+
+Example 5:
+Review: This is a pretty good set of mixing bowls. The non-slip bottom is a great feature and they are a good size. My only complaint is that they are not recommended for the microwave, which is a minor inconvenience for me when I want to melt butter. Otherwise, they work very well for all my baking prep.
+Rating: 4
+
+Example 6:
+Review: Perfect! This little milk frother is exactly what I was looking for. It takes two AA batteries and in about 15 seconds it whips up milk into a beautiful foam for my lattes. It's powerful, easy to clean, and takes up no space. Worth every penny.
+Rating: 5
+
+Example 7:
+Review: The pan arrived with a noticeable scratch in the non-stick coating. I decided to try it anyway, but food stuck to that spot immediately. The rest of the pan works okay, but having a major flaw right out of the box is very disappointing. The quality control seems to be lacking.
+Rating: 2
+
+Example 8:
+Review: This is a decent pan for the price. It heats evenly and the non-stick surface works for the most part, though I find eggs can sometimes stick a little around the edges if I don't use enough butter. It's not the best pan I've ever owned, but it's not the worst either. It does the job.
+Rating: 3

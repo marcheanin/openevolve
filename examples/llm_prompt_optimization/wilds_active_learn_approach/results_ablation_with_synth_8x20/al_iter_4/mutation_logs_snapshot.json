@@ -1,0 +1,76 @@
+{
+  "al_iter": 4,
+  "n_programs": 10,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.6892594149321649,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 2,
+      "score": 0.6712988434100566,
+      "has_mutation_log": true,
+      "mutation_log": "- The previous prompt suffered a catastrophic fitness drop, with models overwhelmingly predicting 5-stars and ignoring flaws, durability issues, and negative updates. This was a severe positivity bias.\n- I've reverted to the structure of the best-performing prompt (Program 1) and made targeted changes to combat this bias.\n- Added a \"Core Principle\" to explicitly state that negative signals (flaws, \"but...\") override general positive language.\n- Strengthened the rules for 1, 2, 3, and 4 stars to be more sensitive to flaws, durability failures, and negative updates, creating stricter boundaries.\n- Replaced the entire few-shot section with 9 new examples taken directly from the misclassified hard and anchor examples. These examples directly teach the model how to handle negative updates, durability failures, and stated flaws that were previously ignored.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 3,
+      "score": 0.6669576859921686,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error is `gold=5 -> pred=4` (23 errors), often on reviews describing a product as perfect for a specific audience or use case. I've added a rule under 5-stars to clarify that these are still 5-star reviews and not flawed.\n- The second major error is `gold=4 -> pred=5` (10 errors). To address this, I've added a misclassified `gold=4` review about cast iron to the few-shot examples. This shows a positive, descriptive review that is correctly a 4, not a 5.\n- I replaced a 5-star few-shot example with a misclassified `gold=5` review (\"...for the experienced cook...\") to directly teach the model how to handle contextual praise.\n- I reverted the overall rule structure to the simpler, star-by-star format of the top-performing historical prompt (Program 1), as the current \"boundary distinction\" format has underperformed.\n- I clarified the 3-star rule to better distinguish it from a 4-star review, targeting an anchor regression where a \"skinny pillow\" was downgraded from 4 to 3.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 4,
+      "score": 0.6657321294285997,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error pattern is confusion between 4 and 5 stars (28/33 errors). I am replacing the overly strict 4/5 boundary rule, which downgraded for any flaw, with a more nuanced one. The new rules allow for flaws that are immediately dismissed by the reviewer in 5-star reviews, and create a category for \"positive but purely descriptive\" reviews as 4-stars to prevent them from being over-rated as 5s.\n- To address the anchor regression (gold=2 -> pred=1), I've clarified the definitions for 1 and 2 stars. The new rule specifies that a 2-star product functions, but poorly, while a 1-star product is non-functional or useless. This should prevent usable-but-flawed products from being rated as 1.\n- To provide clearer, more targeted signals on these new boundary conditions, I am replacing the entire set of existing few-shot examples with the suggested synthetic draft. The synthetic examples are clean, well-balanced, and explicitly illustrate the key distinctions I'm trying to teach.\n- Added a rule for 3-star reviews to better capture products with limited durability that is expected for the price point, targeting a `gold=3 -> pred=2` error.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 5,
+      "score": 0.6630047196252448,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error source is the 4-vs-5 star boundary. Added a strict boundary rule to the 4-star definition, downgrading any review with even a minor flaw (e.g., \"not too pretty\"), regardless of overall positive tone, to address `gold 4 -> pred 5` errors.\n- Clarified the 5-star rule to explicitly state that narrative backstories, especially contrasting with a bad prior product, are NOT flaws. This targets incorrect `gold 5 -> pred 4` errors.\n- Replaced two few-shot examples with actual misclassified reviews from the artifacts to directly teach these two nuanced cases. One new 4-star example has a minor flaw in a positive story, and one new 5-star example has a negative backstory but positive verdict.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 6,
+      "score": 0.6602785394298932,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error source is the 4-star vs 5-star boundary. I'm removing the overly aggressive \"4/5 boundary is strict\" rule from the `Current Program`, which was likely causing `gold 5 -> 4` errors for reviews with narrative context.\n- I've added a more specific rule under the 5-star `Narrative Context` to correctly classify products praised for a niche purpose (e.g., the misclassified mattress review), even if they have limitations for general use.\n- To fix a critical anchor regression (`gold 1 -> 2`), I replaced one of the redundant 5-star few-shot examples with the \"UPDATE\" review that was misclassified. This directly teaches the override rule and improves the balance of examples.\n- I sharpened the definitions for 1-star (unusable) and 2-star (major flaw but partially functional) to better distinguish between them, addressing another anchor regression.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 7,
+      "score": 0.6579398913739779,
+      "has_mutation_log": true,
+      "mutation_log": "- The previous prompt catastrophically failed, classifying almost everything as 5 stars and causing massive anchor regressions (fitness 0.3804). The core issue was an overcorrection that made the prompt far too lenient.\n- I am reverting to the structure and rules of the top-performing prompt (Program 1, score 0.6893) as a stable foundation.\n- To combat the `gold 4 -> 5` error, I've added a strict boundary rule to the 4-star definition, stating that *any* mention of a flaw, disappointment, or reservation must result in a 4-star rating, even if the tone is positive.\n- To fix the severe anchor regressions, especially those ignoring \"UPDATE\", I've replaced two few-shot examples with examples taken directly from the error report: one for a negative `UPDATE` (gold=1) and one for a clear functional flaw that was misclassified as perfect (the \"not absorbent\" towels, gold=4).\n- I also added a specific rule for negative updates under the 1-star criteria to make this instruction impossible to miss.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 8,
+      "score": 0.6537380952380952,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error source is confusion between 4 and 5 stars. The `gold 4 -> pred 5` error is most common, where models are swayed by positive language and ignore minor flaws. I've added a strict boundary rule to the 4-star definition, clarifying that *any* product flaw caps the rating at 4.\n- To address the secondary `gold 5 -> pred 4` error, where narrative context or lack of enthusiasm causes downgrades, I've expanded the 5-star \"What is NOT a flaw\" section. I added explicit points about favorable comparisons to old products and reviews targeting niche audiences, which were common failure patterns.\n- I removed a specific example ('a pillow so narrow...') from the 3-star rule. This example was causing a conflict with a specific gold label in the error analysis, and making the rule more general should improve robustness.\n- Replaced the entire `<FewShotExamples>` section with the suggested synthetic draft. The new set is well-balanced, high-quality, and clearly illustrates the rule boundaries.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 9,
+      "score": 0.6479271236111824,
+      "has_mutation_log": true,
+      "mutation_log": "- The previous prompt suffered a major fitness drop (0.66 -> 0.57) and introduced 6 anchor regressions. The primary error was `gold 5 -> 4` (23 errors), indicating the 4/5-star boundary is poorly defined.\n- I have reverted the prompt structure to the top-performing \"Program 1\" (score 0.6893) as a stable baseline.\n- To address the `gold 5 -> 4` errors, I added a specific rule under 5-stars: concerns about other people's actions (e.g., \"I hope my husband takes care of it\") or defining a specific audience (\"great for coffee geeks\") are not product flaws.\n- I replaced the entire few-shot set with examples taken directly from the error analysis to provide targeted correction. This includes fixing a critical `gold 1 -> 2` anchor regression with an \"UPDATE\" example, and a `gold 5 -> 3` error with a \"lukewarm but flawless\" review.\n- The `UPDATE` rule in BaseGuidelines was strengthened to emphasize its importance, directly targeting the anchor regression.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 10,
+      "score": 0.6364744231783368,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error is `gold 5 -> 4` (23 instances), where narrative framing (\"good for beginners\") or comparisons are misinterpreted as flaws. I've based my changes on the top-performing Program 1 (score 0.6893), as the current prompt is a regression.\n- I refined the 5-star rule under `What is NOT a flaw` to explicitly include \"defining a specific audience for the product\" to counter this error.\n- I added a misclassified `gold=5` review (\"...best suited for someone setting up a kitchen for the first time...\") as a new few-shot example to directly teach this concept.\n- The secondary error is `gold 4 -> 5` (10 instances), where descriptive reviews mentioning inherent drawbacks (like cast iron care) are incorrectly upgraded to 5 stars.\n- To fix this, I moved the \"inherent characteristics\" idea from a 5-star exclusion to a 4-star inclusion, framing it as a \"reservation\". I also added a misclassified `gold=4` \"cast iron\" review as a new few-shot example to solidify this boundary.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    }
+  ]
+}

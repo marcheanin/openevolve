@@ -1,0 +1,5 @@
+- The primary error is `gold 5 -> 4` (14 instances), often for reviews that are positive but framed for a specific audience (e.g., "for beginners," "for coffee geeks"). The second error is `gold 4 -> 5` (9 instances), including an anchor regression, for reviews that are descriptive and positive but lack true enthusiasm.
+- To fix this, I am reverting to the rule structure of the top-performing prompt (Program 1), which has much more explicit boundary definitions for 4-vs-5 stars that directly address these error patterns.
+- I am adding a rule to the 4-star definition: "A review that is positive and descriptive but lacks enthusiasm or a 'wow' factor is a 4, not a 5." This targets the `4->5` errors.
+- I am adding a rule to the 5-star definition: "Give 5 Stars EVEN IF the product is described as perfect for a specific audience (e.g., 'ideal for beginners')." This targets the `5->4` errors.
+- I've curated a new set of few-shot examples, directly using misclassified and borderline reviews from the artifacts to teach these nuanced cases, including the anchor regression (`vinyl tablecloth`) and the "beginner cook" review.

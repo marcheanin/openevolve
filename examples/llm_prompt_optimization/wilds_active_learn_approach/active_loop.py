@@ -22,6 +22,7 @@ graphs only (not used for consolidation, expansion triggers, or prompt selection
 
 import json
 import os
+import re
 import sys
 import time as _time
 from pathlib import Path
@@ -138,6 +139,61 @@ def _load_top_programs_from_db(db_dir, n: int = 3) -> list:
             continue
     programs.sort(key=lambda p: p["metrics"].get("combined_score", 0), reverse=True)
     return programs[:n]
+
+
+def _extract_mutation_log(text: str) -> Optional[str]:
+    """
+    Extract <mutation_log>...</mutation_log> block from prompt text.
+    Returns stripped content or None if the block is absent.
+    """
+    if not text:
+        return None
+    m = re.search(r"<mutation_log>\s*(.*?)\s*</mutation_log>", text, flags=re.DOTALL | re.IGNORECASE)
+    if not m:
+        return None
+    block = m.group(1).strip()
+    return block or None
+
+
+def _load_mutation_logs_from_trace(trace_path: Path, top_n: int = 10) -> list:
+    """
+    Read mutation logs from evolution_trace.jsonl (llm_response field).
+    Returns top entries by combined_score.
+    """
+    if not trace_path.exists():
+        return []
+    entries = []
+    try:
+        with open(trace_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                llm_response = row.get("llm_response", "") or ""
+                mutation_log = _extract_mutation_log(llm_response)
+                child_metrics = row.get("child_metrics", {}) or {}
+                if not isinstance(child_metrics, dict):
+                    child_metrics = {}
+                score = child_metrics.get("combined_score", None)
+                if not isinstance(score, (int, float)):
+                    continue
+                child_code = row.get("child_code", "") or ""
+                entries.append(
+                    {
+                        "score": float(score),
+                        "mutation_log": mutation_log,
+                        "has_mutation_log": bool(mutation_log),
+                        "prompt_snippet": child_code[:160],
+                    }
+                )
+    except Exception:
+        return []
+    entries.sort(key=lambda x: x.get("score", 0.0), reverse=True)
+    return entries[:top_n]
 
 
 def _call_consolidation_llm(system_msg: str, user_msg: str, config: dict) -> str:
@@ -689,6 +745,9 @@ def run_active_loop(
     al_stop_patience = (cfg_dict.get("active_learning") or {}).get("al_early_stopping_patience", 0)
     al_stop_min_cycles = al_cfg.get("al_early_stopping_min_cycles", 2)
     min_hard_batch_ratio = al_cfg.get("min_hard_batch_ratio", 0.55)
+    gap_warn_threshold = float(al_cfg.get("generalization_gap_warn_threshold", 0.03))
+    gap_stop_threshold = float(al_cfg.get("generalization_gap_stop_threshold", 0.08))
+    gap_stop_patience = int(al_cfg.get("generalization_gap_stop_patience", 2))
     synthetic_gen = SyntheticFewShotGenerator.from_config_dict(cfg_dict)
     sf_cfg_loop = al_cfg.get("synthetic_fewshot") or {}
     mutator_lock_fewshot = bool(sf_cfg_loop.get("mutator_lock_fewshot", False))
@@ -791,6 +850,7 @@ def run_active_loop(
 
     # History of val_combined_score for soft expansion trigger
     val_scores_history = []
+    gap_stop_bad_streak = 0
     if log_entries:
         val_scores_history = [
             e.get("seed_val_score", e.get("val_combined_score", -1.0))
@@ -851,8 +911,8 @@ def run_active_loop(
 
         # Error analysis for system message
         error_analysis = error_analyzer.analyze_errors(
-            data_manager.hard_indices,
-            k_clusters=min(6, max(1, data_manager.n_hard // 2)),
+            hard_in_batch,
+            k_clusters=min(6, max(1, len(hard_in_batch) // 2)),
             seed=42,
         )
         batch_stats = {
@@ -1083,6 +1143,57 @@ def run_active_loop(
                             "Acc_Hard": p["metrics"].get("Acc_Hard"),
                             "Acc_Anchor": p["metrics"].get("Acc_Anchor"),
                             "prompt_snippet": p["code"][:200]} for p in top_progs[:5]])
+        trace_top = _load_mutation_logs_from_trace(
+            Path(oe_output_dir) / "evolution_trace.jsonl",
+            top_n=20,
+        )
+        trace_by_score = {}
+        for t in trace_top:
+            key = round(float(t.get("score", 0.0)), 10)
+            trace_by_score.setdefault(key, []).append(t)
+
+        mutation_logs_snapshot = []
+        for rank, p in enumerate(top_progs[:10], start=1):
+            score = float(p.get("metrics", {}).get("combined_score", 0.0))
+            key = round(score, 10)
+            matched = None
+            bucket = trace_by_score.get(key) or []
+            if bucket:
+                matched = bucket.pop(0)
+            mlog = matched.get("mutation_log") if matched else None
+            mutation_logs_snapshot.append(
+                {
+                    "rank": rank,
+                    "score": score,
+                    "has_mutation_log": bool(mlog),
+                    "mutation_log": mlog,
+                    "prompt_snippet": (matched.get("prompt_snippet") if matched else p.get("code", "")[:160]),
+                }
+            )
+        mutation_logs_payload = {
+            "al_iter": al_iter,
+            "n_programs": len(top_progs),
+            "entries": mutation_logs_snapshot,
+        }
+        (out_dir / "mutation_logs_snapshot.json").write_text(
+            json.dumps(mutation_logs_payload, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        diag.log(
+            "mutation_logs_snapshot",
+            al_iter=al_iter,
+            n_programs=len(top_progs),
+            with_mutation_log=sum(1 for x in mutation_logs_snapshot if x["has_mutation_log"]),
+            entries=[
+                {
+                    "rank": x["rank"],
+                    "score": x["score"],
+                    "has_mutation_log": x["has_mutation_log"],
+                    "mutation_log": x["mutation_log"],
+                }
+                for x in mutation_logs_snapshot[:5]
+            ],
+        )
 
         # Re-evaluate batch
         print("  Re-evaluating batch...")
@@ -1275,6 +1386,9 @@ def run_active_loop(
             best_val_cycle = al_iter
             (results_dir / "best_val_prompt.txt").write_text(best_val_prompt, encoding="utf-8")
 
+        current_mutation_log = None
+        if mutation_logs_snapshot:
+            current_mutation_log = mutation_logs_snapshot[0].get("mutation_log")
         entry = {
             "al_iter": al_iter,
             "val_Acc_Hard": val_ha["Acc_Hard"],
@@ -1296,7 +1410,14 @@ def run_active_loop(
             "seed_val_score": seed_val_score,
             "batch_actual_size": len(batch_indices),
             "prompt_tokens": len(current_prompt) // 4,
+            "mutation_log_present": bool(current_mutation_log),
+            "mutation_log_chars": len(current_mutation_log) if current_mutation_log else 0,
         }
+        if current_mutation_log:
+            (out_dir / "best_prompt_mutation_log.txt").write_text(
+                current_mutation_log,
+                encoding="utf-8",
+            )
 
         # =================================================================
         # Periodic Seen-pool re-evaluation (every N cycles)
@@ -1540,9 +1661,30 @@ def run_active_loop(
         entry["test_mean_kappa"] = test_metrics["mean_kappa"]
         entry["test_n_hard"] = test_metrics["n_hard"]
         entry["test_n_anchor"] = test_metrics["n_anchor"]
+        val_test_gap = float(seed_val_score - test_metrics["combined_score"])
+        entry["val_test_gap"] = val_test_gap
+        if val_test_gap >= gap_warn_threshold:
+            print(
+                f"  [warn] Val-Test combined gap={val_test_gap:+.4f} "
+                f"(val={seed_val_score:.4f}, test={test_metrics['combined_score']:.4f})"
+            )
+        if gap_stop_patience > 0 and val_test_gap >= gap_stop_threshold:
+            gap_stop_bad_streak += 1
+        else:
+            gap_stop_bad_streak = 0
         print(f"  Test: R_global={test_metrics['R_global']:.2%}  R_worst={test_metrics['R_worst']:.2%}  "
               f"combined={test_metrics['combined_score']:.4f}  Acc_Hard={test_metrics['Acc_Hard']:.2%}")
         diag.log("cycle_test", al_iter=al_iter, **{k: v for k, v in test_metrics.items() if isinstance(v, (int, float))})
+        diag.log(
+            "generalization_gap",
+            al_iter=al_iter,
+            val_combined=seed_val_score,
+            test_combined=test_metrics["combined_score"],
+            gap=val_test_gap,
+            warn_threshold=gap_warn_threshold,
+            stop_threshold=gap_stop_threshold,
+            stop_streak=gap_stop_bad_streak,
+        )
 
         cycle_time = _time.time() - t_cycle_start
         print(f"  Val: R_global={val_ha['R_global']:.2%}  Acc_Hard={val_ha['Acc_Hard']:.2%}  "
@@ -1559,6 +1701,28 @@ def run_active_loop(
 
         if data_manager.n_unseen == 0 and data_manager.n_hard <= expansion_trigger:
             print(f"\n  Pool exhausted and Hard={data_manager.n_hard}. Stopping.")
+            break
+
+        if (
+            gap_stop_patience > 0
+            and gap_stop_bad_streak >= gap_stop_patience
+            and (al_iter + 1) >= al_stop_min_cycles
+        ):
+            log_entries[-1]["generalization_gap_early_stopped"] = True
+            with open(log_path, "w", encoding="utf-8") as f:
+                json.dump(log_entries, f, indent=2)
+            print(
+                f"\n  AL early stopping (generalization gap): gap >= {gap_stop_threshold:.4f} "
+                f"for {gap_stop_bad_streak} consecutive cycle(s)."
+            )
+            diag.log(
+                "al_gap_early_stop",
+                al_iter=al_iter,
+                gap=val_test_gap,
+                gap_stop_threshold=gap_stop_threshold,
+                gap_stop_patience=gap_stop_patience,
+                stop_streak=gap_stop_bad_streak,
+            )
             break
 
         if (

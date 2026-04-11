@@ -1,0 +1,20 @@
+{
+  "al_iter": 7,
+  "n_programs": 2,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.65632572962078,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - **Your highest priority is to h"
+    },
+    {
+      "rank": 2,
+      "score": 0.6478782306761101,
+      "has_mutation_log": true,
+      "mutation_log": "- **Primary Target:** The 4-star vs. 5-star boundary, which is the source of the top two error types (`gold=4->pred=5` and `gold=5->pred=4`).\n- **Hypothesis:** The model is over-applying the \"lukewarm is 5-star\" rule and misinterpreting the \"limited use\" and \"setup struggle\" rules.\n- **Rule Changes:**\n    - Refined the 5-star rules to allow for minor \"figuring it out\" moments if the user is happy.\n    - Added a new 4-star rule for \"Positive but Impersonal\" reviews to prevent them from being upgraded to 5-star.\n    - Clarified the \"Limited Positive Experience\" 4-star rule to prevent it from downgrading enthusiastic reviews.\n- **Few-Shot Changes:** Replaced the entire set of 10 examples with 8 new, more targeted synthetic examples that better illustrate the tricky boundaries (especially 4/5, 1/2, and lukewarm 5s). This also slightly reduces prompt length.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - **Your highest priority is to h"
+    }
+  ]
+}

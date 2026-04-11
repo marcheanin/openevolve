@@ -1,0 +1,165 @@
+max_iterations: 500
+checkpoint_interval: 10
+log_level: "INFO"
+diff_based_evolution: false
+max_code_length: 7500
+language: "text"
+early_stopping_patience: 5
+early_stopping_metric: "combined_score"
+convergence_threshold: 0.001
+
+llm:
+  api_base: "https://openrouter.ai/api/v1"
+  models:
+    - name: "google/gemini-2.5-pro"
+      weight: 1.0
+  temperature: 0.6
+  max_tokens: 8192
+  timeout: 300
+  retries: 5
+
+prompt:
+  template_dir: null
+  num_top_programs: 5
+  num_diverse_programs: 3
+  include_artifacts: true
+  system_message: |
+    You are evolving a classification prompt for Amazon Home & Kitchen reviews
+    (1-5 stars). Three LLM workers (DeepSeek V3, Gemma3-27B, GPT-4o-mini)
+    receive your prompt, each outputs a single rating, majority vote wins.
+
+    ## What you're working with
+
+    The prompt has XML structure:
+      <System> -> <Role>, <BaseGuidelines>, <DynamicRules>
+      <FewShotExamples> -> review/rating pairs
+      <Task> -> the {review} placeholder
+
+    Keep <Task> unchanged. Everything else is yours to reshape: rewrite
+    rules, reorganize sections, add or remove examples, change wording,
+    restructure <DynamicRules> however you see fit. You may also refine
+    <BaseGuidelines> if you find a wording that helps workers classify
+    more accurately - but keep the core intent (scale, output format).
+
+    Workers output ONLY a rating (e.g. "Rating: 4" or "4"). Few-shot examples
+    must end with a single "Rating: N" line.
+
+    ## What matters for fitness
+
+    fitness = 0.5 * Acc_Hard + 0.3 * Acc_Anchor + 0.2 * kappa_Hard - length_penalty
+
+    - **Acc_Hard** (50% weight): accuracy on the difficult examples - reviews
+      the ensemble previously got wrong or disagreed on. This is where almost
+      all improvement potential lives.
+    - **Acc_Anchor** (30%): accuracy on easy, stable examples. Regressions here
+      are very costly - avoid breaking what already works.
+    - **kappa_Hard** (20%): inter-worker agreement on hard examples. When workers
+      agree, the majority vote is more reliable.
+    - **length_penalty**: grows above ~2000 tokens. Concise prompts that achieve
+      the same accuracy always score higher.
+
+    ## Evaluation artifacts - your main signal
+
+    Each evaluation gives you concrete data. Pay close attention to:
+
+    - **ERROR DISTRIBUTION**: which gold->predicted pairs happen most.
+    - **MISCLASSIFIED EXAMPLES**: review text with gold/pred/workers.
+    - **BORDERLINE EXAMPLES**: correctly classified but workers disagreed.
+    - **RULE COVERAGE**: missing star-level guidance in <DynamicRules>.
+    - **FEW-SHOT BALANCE**: class balance inside <FewShotExamples>.
+
+    Think of artifacts as a diagnostic report. Form a hypothesis and make
+    targeted changes.
+
+    ## Output format
+
+    First, a brief <mutation_log> (3-5 lines), then complete prompt in ```text.
+
+database:
+  population_size: 24
+  archive_size: 300
+  num_islands: 1
+  feature_dimensions: ["prompt_length", "Acc_Hard"]
+  feature_bins: 5
+  elite_selection_ratio: 0.4
+  exploration_ratio: 0.3
+  exploitation_ratio: 0.3
+
+evaluator:
+  model: "deepseek-chat-v3"
+  timeout: 1800
+  max_retries: 3
+  parallel_evaluations: 1
+  cascade_evaluation: false
+
+generalization:
+  gap_threshold: 0.10
+  gap_penalty: 0.50
+
+evolution_trace:
+  enabled: true
+  format: "jsonl"
+  include_code: true
+  include_prompts: true
+  output_path: ""
+  buffer_size: 1
+  compress: false
+
+worker_defaults:
+  api_base: "https://openrouter.ai/api/v1"
+  temperature: 0.0
+  max_tokens: 64
+  timeout: 75
+  max_retries: 4
+  max_parallel: 6
+
+workers:
+  - name: "openai/gpt-4o-mini"
+  - name: "google/gemini-2.5-flash"
+  - name: "anthropic/claude-3.5-haiku"
+
+active_learning:
+  uncertainty_threshold: 0.0
+  batch_size: 60
+  hard_ratio: 0.7
+
+  synthetic_fewshot:
+    enabled: true
+    mode: inject_as_hint
+    mutator_lock_fewshot: false
+    n_examples: 8
+    n_boundary_pairs: 4
+    model: null
+    temperature: 0.7
+    max_tokens: 4096
+    max_retries: 2
+
+  min_hard_batch_ratio: 0.55
+  expansion_trigger: 15
+  soft_expansion_patience: 3
+  soft_expansion_min_delta: 0.02
+  soft_expansion_skip_near_best: 0.005
+
+  seen_reeval_interval: 2
+  refresh_per_cycle: 6
+
+  generalization_gap_warn_threshold: 0.03
+  generalization_gap_stop_threshold: 0.08
+  generalization_gap_stop_patience: 2
+
+  consolidation_gate_delta: 0.01
+  consolidation_gate_vs_best_delta: 0.04
+  al_early_stopping_patience: 3
+  al_early_stopping_min_cycles: 4
+
+dataset:
+  config_path: "dataset.yaml"
+  max_samples: null
+  max_samples_train: null
+  max_samples_val: null
+  max_samples_test: null
+  max_train_users: 20
+  max_val_users: 12
+
+prompt_path: "initial_prompt.txt"
+output_dir: "results_smoke_v15_diag"

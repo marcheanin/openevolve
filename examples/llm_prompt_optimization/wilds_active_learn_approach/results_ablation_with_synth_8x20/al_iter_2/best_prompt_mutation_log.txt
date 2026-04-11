@@ -1,0 +1,4 @@
+- The biggest issue was `gold=5 -> pred=4` errors, often due to lukewarm language ("nothing special") or minor setup complaints. I've reverted to the structure of the top-performing prompt (Program 1) as a better baseline.
+- I added a rule to classify lukewarm but problem-free reviews as 5-star, and clarified that one-time setup issues or positive initial impressions are not flaws.
+- I strengthened the rule on final conclusions, emphasizing that an explicit rating ("I give this 5 stars because...") should override mixed sentiment in the review body.
+- I replaced the previous few-shot examples with the superior synthetic set and added a key misclassified example ("Nothing extraordinary...") to directly target a major error pattern.

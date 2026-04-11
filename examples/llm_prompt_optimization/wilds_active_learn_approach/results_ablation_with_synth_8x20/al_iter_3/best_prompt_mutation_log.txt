@@ -1,0 +1,4 @@
+- The dominant error is `gold 4 -> 5`, often on reviews with subjective negatives. I've started from the top-performing prompt (Program 1) and modified the 4-star criteria to explicitly include "subjective dislikes" (e.g., "scent was not a universal hit") as minor flaws.
+- The second-most common error is `gold 5 -> 4`, often on reviews with long narrative backstories or explicit ratings that were ignored. I've added "Narrative backstory" to the list of non-flaws and promoted the explicit rating rule to the top of the clarifications, making it a stronger directive.
+- To address `gold 3 -> 4` errors where models overweighted aesthetics, I added a rule to the 3-star definition clarifying that "significant practical drawbacks" outweigh positive but superficial comments.
+- I replaced a generic 3-star few-shot example with a previously misclassified review about "attractive but impractical glasses" to provide a concrete example of this new rule.

@@ -1,0 +1,76 @@
+{
+  "al_iter": 6,
+  "n_programs": 10,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.7235181810609874,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error is `gold=4 -> pred=5`, where utilitarian, positive-but-not-perfect reviews are being overrated. I added a rule to the 4-star section clarifying that products described as good for a specific, limited use-case (e.g. \"for kids\") are typically a 4.\n- The second top error is `gold=5 -> pred=4`, often triggered by comparisons. I strengthened the 5-star rule for comparisons to explicitly state that \"almost as good as X\" is still a very positive signal.\n- Workers sometimes ignored explicit ratings like \"I give this 5 Stars\". I moved the explicit rating instruction to the top of the BaseGuidelines and made it a high-priority override to fix this.\n- To address the 4-vs-3 confusion (e.g., the \"skinny pillows\" example), I added an example to the 4-star inconvenience rule about odd sizing.\n- I replaced the entire `<FewShotExamples>` section with the provided synthetic draft. The new examples are more diverse and provide clearer contrasts for the difficult 3-vs-4 and 4-vs-5 boundaries, which are the primary sources of error.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - **Your highest priority is to h"
+    },
+    {
+      "rank": 2,
+      "score": 0.7079503267061473,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error is confusion between 4 and 5 stars (gold=4->pred=5 and gold=5->pred=4).\n- Refined the 5-star rules to be more explicit about what does NOT constitute a flaw, specifically adding guidance for comparative reviews (\"almost as good as X\") and inherent product traits (ironing cotton). The section title was changed to \"5-Star Despite Mentions Of:\" for clarity.\n- Replaced the entire few-shot section with a curated set from the synthetic examples and one old example. The new examples are more targeted at the tricky 4/5 boundary and also provide clearer cases for other ratings (e.g., ignoring shipping issues for a 5-star).\n- The goal is to make the 4/5 distinction less about positive/negative keyword counting and more about whether a mentioned issue is a genuine, noted drawback vs. a dismissed observation.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 3,
+      "score": 0.7041511286343791,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 4,
+      "score": 0.6838640206237964,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error is `gold=4 -> pred=5`, indicating the prompt is too lenient and overlooks minor flaws. The second is `gold=5 -> pred=4`, where comparative language is misinterpreted as a flaw.\n- I'm starting with the top-performing prompt (Program 1) as a base.\n- Refined the 5-star rule to be more explicit that favorable comparisons (e.g., \"almost as good as Brand X\") are still 5-star if the user is highly satisfied. This targets the `gold=5 -> pred=4` errors.\n- Added a rule to the 4-star criteria to clarify that even an inherent product trait (like cast iron needing care) should be rated 4-stars if the reviewer presents it as a point of friction or a minor negative. This targets the `gold=4 -> pred=5` errors.\n- Replaced the entire `<FewShotExamples>` section with the suggested synthetic draft. The new examples are more diverse and provide clearer illustrations of the tricky 4/5-star boundary, shipping vs. quality issues, and limited-use reviews.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 5,
+      "score": 0.6835684388400192,
+      "has_mutation_log": true,
+      "mutation_log": "- **Diagnosis:** The primary errors are on the 4-star vs 5-star boundary, where models are either too sensitive to minor flaws (rating 5s as 4s) or ignore them in the face of positive language (rating 4s as 5s). There are also confusions on the 3-vs-4 and 1-vs-2 boundaries, including a critical anchor regression (gold=1->pred=2).\n- **Hypothesis:** Clarifying the definitions of what constitutes a \"dismissed flaw\" (5-star), an \"undismissed minor flaw\" (4-star), a \"significant functional flaw\" (3-star), and an \"unusable\" product (1-star) will improve accuracy on these boundaries.\n- **Changes:**\n    - Started from the best-performing prompt (`Program 1`) as a base.\n    - Refined the 4/5-star boundary rules to better handle cases where a minor flaw is mentioned but either dismissed or overshadowed by enthusiasm, and vice versa.\n    - Added a specific rule to distinguish 3-star \"mixed bags\" (significant flaw) from 4-star ones (minor flaw).\n    - Strengthened the 1-star definition to explicitly include products that break quickly or have major design flaws, directly targeting an observed error and the anchor regression.\n    - Replaced the existing few-shot examples with the `Suggested synthetic FewShot (draft)`, as they are well-crafted and illustrate these tricky boundaries effectively.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - **Your highest priority is to h"
+    },
+    {
+      "rank": 6,
+      "score": 0.6775128627613447,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error pattern is confusion between 4 and 5 stars. `gold=4 -> pred=5` is the most common error, indicating the prompt is too lenient in awarding 5 stars.\n- To address this, I sharpened the 4 vs 5-star boundary in `<DynamicRules>`. The 5-star rule now requires \"zero un-dismissed flaws,\" while the 4-star rule triggers on \"at least one specific, minor drawback.\"\n- I also added more explicit guidance under the 5-star \"What is NOT a flaw\" section to handle cases of favorable comparisons to other products and overcome skepticism, which were causing `gold=5 -> pred=4` errors.\n- I replaced the entire `<FewShotExamples>` section with the provided synthetic draft. The new examples are more nuanced and directly illustrate the tricky boundary conditions, such as resolved shipping issues (5-star), potential future flaws (4-star), and mixed-bag functional issues (3-star).",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 7,
+      "score": 0.6741307345593655,
+      "has_mutation_log": true,
+      "mutation_log": "- The biggest issue was the 4-vs-5 boundary, causing 25/38 errors. I added rules to clarify this: a 4-star review can have enthusiastic language but still contains a minor, undismissed flaw. A 5-star review can mention issues, but only if they are explicitly dismissed by the user or are inherent limitations of the product category that the user accepts.\n- Addressed two critical Anchor regressions. For the gold=1->pred=2 error, I added a specific 1-star rule for \"design flaws that defeat the product's purpose\". For the gold=3->pred=4 error, I added a 3-star rule for products requiring \"significant user modification,\" clarifying the line between a minor hassle (4-star) and a major workaround (3-star).\n- To improve the 3-vs-4 boundary and balance the few-shot examples, I replaced a 4-star example with a tricky, misclassified 3-star review. The new example (\"cotton runner\") starts positively but lists multiple drawbacks, teaching the model to look past initial praise.\n- Refined the 1-star vs 2-star boundary by specifying that a product breaking in under 3 months is a 1-star issue.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - **Your highest priority is to h"
+    },
+    {
+      "rank": 8,
+      "score": 0.6596816939623829,
+      "has_mutation_log": true,
+      "mutation_log": "- The top errors are `gold=4 -> pred=5` and `gold=5 -> pred=4`, indicating a blurry 4/5-star boundary. I have sharpened this boundary from both sides.\n- For 5-star reviews, I tightened the definition to require \"no specific drawbacks\" and added an explicit rule to prevent downgrading for narrative/comparison-heavy reviews that are still fundamentally positive. This targets `gold=5 -> pred=4` errors.\n- For 4-star reviews, I clarified that a complaint about an inherent product trait (e.g., \"I hate that this cotton tablecloth needs ironing\") should be treated as a minor flaw, contrasting with the 5-star rule where a neutral mention is ignored. This helps differentiate \"good\" from \"perfect\".\n- I replaced the entire set of few-shot examples with the provided synthetic draft. The new examples are high-quality, better balanced, and provide clearer illustrations of tricky boundary cases (e.g., potential flaws, limited use, shipping vs. product issues).",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your task is to classify the ov"
+    },
+    {
+      "rank": 9,
+      "score": 0.654274707360279,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error source is the 4-vs-5 star boundary (gold=5->4 and gold=4->5). Many misclassified 5-star reviews contained explicit ratings (\"gets 5 Stars from me\") that were ignored. I've strengthened the guideline to make explicit ratings the highest priority, overriding all other rules.\n- To address gold=4->5 errors, where products for limited contexts (\"good for kids\") were overrated, I've added a specific 4-star rule for items good for a specific, limited use case, implying they are not premium all-purpose items.\n- A gold=2->3 error occurred where a minor positive comment (\"nice color\") outweighed major flaws (\"blood on the mat\", \"snags\"). I added a 2-star rule clarifying that minor aesthetic praise does not override major functional or quality failures.\n- I replaced the existing few-shot examples with the suggested synthetic draft. These examples seem to provide clearer illustrations of the key boundaries, especially between 3/4 stars and 4/5 stars.",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - **Your highest priority is to h"
+    },
+    {
+      "rank": 10,
+      "score": 0.6539522647157715,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error is gold=5 -> pred=4, often on reviews mentioning an inherent trait (e.g., a cotton tablecloth needing ironing) as a \"con\". I've strengthened the 5-star rule to explicitly state that inherent, expected traits are not flaws, even if the reviewer calls them a 'con'.\n- The second top error is gold=4 -> pred=5, often for products described as good for a limited purpose (e.g., \"good for kids\"). I've re-introduced a rule from a high-performing prior prompt that classifies these as 4-stars, preventing them from being over-rated as perfect.\n- To address an error where a 2-star review with major flaws was rated as a 3-star because of a minor positive comment, I added a rule to the 2-star section clarifying that major flaws override minor praise.\n- I replaced the existing few-shot examples with the full set of 8 suggested synthetic examples. They are well-balanced and provide excellent coverage of tricky boundary cases (e.g., shipping issues, limited use, mixed bags).",
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - **Your highest priority is to h"
+    }
+  ]
+}

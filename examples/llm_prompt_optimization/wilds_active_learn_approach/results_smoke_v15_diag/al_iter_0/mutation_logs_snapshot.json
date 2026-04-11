@@ -1,0 +1,48 @@
+{
+  "al_iter": 0,
+  "n_programs": 6,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.7602864921068394,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analysis model for Amazon Home & Kitchen product reviews. Your goal is to assign a star rating from 1 to 5 based on t"
+    },
+    {
+      "rank": 2,
+      "score": 0.7022517692608582,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Star rating scale: 1 = very neg"
+    },
+    {
+      "rank": 3,
+      "score": 0.7018138153460433,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analysis model for Amazon Home & Kitchen product reviews. Your goal is to assign a star rating from 1 to 5 based on t"
+    },
+    {
+      "rank": 4,
+      "score": 0.6803474789065286,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Star rating scale: 1 = very neg"
+    },
+    {
+      "rank": 5,
+      "score": 0.6636808122398619,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Star rating scale: 1 = very neg"
+    },
+    {
+      "rank": 6,
+      "score": 0.625484178172855,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Star rating scale: 1 = very neg"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+Example 1:
+Review: This coffee maker brews a great-tasting pot of coffee and it's very fast. My only real issue is that the warming plate gets a little too hot and starts to give the coffee a burnt taste if it sits for more than 20 minutes. I just have to remember to pour it into a thermal carafe right away. Otherwise, it's a solid machine.
+Rating: 4
+
+Example 2:
+Review: This is a great, simple coffee maker. It brews hot, delicious coffee and keeps it that way. I saw some people complain the warming plate is too hot, but I drink my coffee pretty quickly so it's a non-issue for me. It does its job perfectly with no unnecessary bells and whistles. Very happy with this purchase.
+Rating: 5
+
+Example 3:
+Review: This knife set looks nice on the counter, and the block is solid wood. That's about all the good I can say. The knives themselves are incredibly dull and can barely cut through a tomato. I tried sharpening them, but they won't hold an edge at all. They are basically useless for their primary function of cutting food. I've initiated a return.
+Rating: 1
+
+Example 4:
+Review: This is a very 'you get what you pay for' knife set. The wooden block is nice and the variety of knives is good for a starter kitchen. However, they aren't very sharp out of the box and require frequent sharpening to be useful. They can handle basic tasks like chopping onions if you keep them honed, but they struggle with anything tough. They're just okay.
+Rating: 3
+
+Example 5:
+Review: I was excited about these non-stick pans, but they have a major flaw. The handles are attached with a single screw that constantly comes loose, making it feel unsafe to lift the pan when it's full of hot food. I have to re-tighten it before almost every use. The non-stick surface works, but the wobbly, unsafe handle makes cooking with it a frustrating experience.
+Rating: 2
+
+Example 6:
+Review: This is a decent little non-stick pan for the price. The non-stick surface is effective and it heats up evenly. The handle does feel a little loose where it connects to the pan, which is a bit annoying and makes me question its long-term durability, but it hasn't failed yet. It's a mixed bag, but it gets the job done for my morning eggs.
+Rating: 3
+
+Example 7:
+Review: These are beautiful, thick, and absorbent kitchen towels. They wash up nicely and feel very high quality. My only complaint, and the reason for 4 stars, is that they have a small, scratchy tag sewn into the seam that is really hard to remove without pulling a thread. It's a minor annoyance on an otherwise excellent product.
+Rating: 4
+
+Example 8:
+Review: I love these towels. I saw some people complaining about the tags, but I just snipped them off with a small pair of scissors and it was no problem at all. The towels themselves are fantastic - super absorbent, great color, and they look perfect in my kitchen. No flaws with the product's actual function at all.
+Rating: 5

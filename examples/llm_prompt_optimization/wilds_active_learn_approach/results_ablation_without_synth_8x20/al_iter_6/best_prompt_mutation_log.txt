@@ -1,0 +1,5 @@
+- The previous prompt suffered a significant fitness drop (0.69 -> 0.66) and introduced a critical anchor regression (gold=3 -> pred=1). My primary goal is to recover this lost performance.
+- The main error sources are confusion between 4/5 stars and 3/4 stars. To address this, I'm reverting to the structure of the previous top-performing prompt (Program 1, fitness 0.7159) as a stronger foundation.
+- I've added a "Misleading Claims" rule to the 3-star category to better classify reviews like "Ultra absorbant is definitely overselling it," which were being incorrectly rated as 4-star.
+- I've added a "Contextual Limitations" rule to the 5-star section to prevent downgrades for reviews that describe a product as "good for beginners" or for a specific use case.
+- I've restored the balanced 10-example few-shot set from the top-performing prompt, which crucially includes an example for "return due to incompatibility" (gold=3), directly fixing the anchor regression.

@@ -1,0 +1,48 @@
+{
+  "al_iter": 0,
+  "n_programs": 6,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.7388032034352984,
+      "has_mutation_log": true,
+      "mutation_log": "The primary error is misclassifying 5-star reviews as 4-star, often due to a lack of gushing praise or the presence of a single neutral word. The model also struggles with short, factual reviews like \"They work!\", rating them too low (3 instead of 4).\n\nTo address this, I've refined the `DynamicRules`.\n1.  Clarified the 5-star definition to include simple products that work perfectly without issue, even if the review is brief.\n2.  Added a new `GUIDING PRINCIPLES` section for \"Short & Simple Reviews\" to correctly interpret concise, positive feedback as a 4 or 5.\n3.  Added another principle for \"Holistic Tone\" to prevent the model from down-rating a review based on a single neutral word when the overall sentiment is highly positive.\n4.  Kept the high-quality synthetic few-shot examples, as they provide excellent coverage of key classification challenges.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analysis model specializing in Amazon Home & Kitchen product reviews. Your task is to assign a star rating from 1 to "
+    },
+    {
+      "rank": 2,
+      "score": 0.7163601625928976,
+      "has_mutation_log": true,
+      "mutation_log": "I'm basing my changes on the top-performing prompt (Program 1) and the error analysis. My hypothesis is that the main confusion lies in distinguishing 4-star reviews from 5-star reviews, especially when a review is positive but lacks strong enthusiasm, or when it has minor flaws. I've also identified that the \"form vs. function\" and \"contextual use\" rules are critical for hard cases.\n\nTo address this, I have:\n1.  Refined the `DynamicRules`, merging \"Star Definitions\" and \"Key Distinctions\" into a more concise section.\n2.  Explicitly added a rule under 4-stars for reviews that are positive but lack strong enthusiasm.\n3.  Replaced the existing few-shot examples with the full, more illustrative synthetic draft. This new set provides better coverage of edge cases like form-over-function (3-star towel) and minor-inconvenience (4-star bowls).",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analysis model for Amazon Home & Kitchen product reviews. Your task is to assign a star rating from 1 to 5 based on t"
+    },
+    {
+      "rank": 3,
+      "score": 0.7141511704599011,
+      "has_mutation_log": true,
+      "mutation_log": "I am creating a hybrid prompt, taking the best elements from the top two programs. My main hypothesis is that the distinction between 4 and 5 stars is the biggest source of error, along with handling reviews where form and function are in conflict.\n\n1.  **Structure:** I'm adopting the clearer structure from Program 2, using descriptive titles for star levels (e.g., \"Good, Not Perfect\") and a dedicated section for cross-cutting principles, which I've renamed `Key Distinctions`.\n2.  **Rules:** I've rewritten the star definitions to better address the `CLUSTERED HARD EXAMPLES`. The 4-star rule now explicitly covers reviews that are very positive but mention a minor flaw, or reviews that are satisfied but not effusive. The 3-star rule now centers on the \"form vs. function\" trade-off.\n3.  **Few-Shot Examples:** I'm replacing the old, smaller set of examples with the full 8-example synthetic draft. This set is more comprehensive and directly illustrates the tricky 2, 3, and 4-star cases that cause confusion. This change alone should significantly improve performance on hard examples.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analysis model for Amazon Home & Kitchen product reviews. Your task is to assign a star rating from 1 to 5 based on t"
+    },
+    {
+      "rank": 4,
+      "score": 0.7056836267526134,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Star rating scale: 1 = very neg"
+    },
+    {
+      "rank": 5,
+      "score": 0.7036423598739933,
+      "has_mutation_log": true,
+      "mutation_log": "- Replaced all few-shot examples with a balanced, more nuanced set from the synthetic draft to better illustrate tricky cases like form vs. function and the 4/5 star boundary.\n- Rewrote and restructured the `<DynamicRules>` to be clearer. I reordered the star definitions from 5 down to 1 and added more descriptive headers.\n- Refined the 4-star and 5-star definitions to explicitly distinguish between \"satisfied\" and \"delighted\" to help with the common 4 vs 5 confusion.\n- Added a new \"Special Cases\" section with a specific rule for the \"Aesthetics vs. Function\" conflict, which was a clear pattern in the hard examples.\n- Simplified the `<BaseGuidelines>` for conciseness and clarity.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst for Amazon Home & Kitchen product reviews.</Role>\n<BaseGuidelines>\n    - Your goal is to determine the star r"
+    },
+    {
+      "rank": 6,
+      "score": 0.6982832246633616,
+      "has_mutation_log": true,
+      "mutation_log": "- Replaced all few-shot examples with the provided synthetic set. The new examples offer better coverage of ambiguous cases, especially the 3-star (form vs. function), 4-star (minor flaw), and 2-star (works but is a pain) scenarios.\n- Rewrote the STAR LEVEL CRITERIA in <DynamicRules> to create a clearer contrast between star levels, focusing on the key distinctions that cause errors (especially 4 vs. 5 stars).\n- Added a new `GUIDING PRINCIPLES` section within <DynamicRules> to explicitly address the most common error patterns, such as how to handle reviews with positive words but minor complaints (4-star) and reviews focused on a specific use case.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analysis model specializing in Amazon Home & Kitchen product reviews. Your task is to assign a star rating from 1 to "
+    }
+  ]
+}

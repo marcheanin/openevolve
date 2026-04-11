@@ -1,0 +1,48 @@
+{
+  "al_iter": 1,
+  "n_programs": 6,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.8226601954258392,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analysis model for Amazon Home & Kitchen product reviews. Your goal is to assign a star rating from 1 to 5 based on t"
+    },
+    {
+      "rank": 2,
+      "score": 0.7814415060959836,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analysis model for Amazon Home & Kitchen product reviews. Your goal is to assign a star rating from 1 to 5 based on t"
+    },
+    {
+      "rank": 3,
+      "score": 0.7555642320807253,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analysis model for Amazon Home & Kitchen product reviews. Your goal is to assign a star rating from 1 to 5 based on t"
+    },
+    {
+      "rank": 4,
+      "score": 0.7300754560443753,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analysis model for Amazon Home & Kitchen product reviews. Your goal is to assign a star rating from 1 to 5 based on t"
+    },
+    {
+      "rank": 5,
+      "score": 0.678338286463606,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analysis model for Amazon Home & Kitchen product reviews. Your goal is to assign a star rating from 1 to 5 based on t"
+    },
+    {
+      "rank": 6,
+      "score": 0.6779674836217775,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analysis model for Amazon Home & Kitchen product reviews. Your goal is to assign a star rating from 1 to 5 based on t"
+    }
+  ]
+}

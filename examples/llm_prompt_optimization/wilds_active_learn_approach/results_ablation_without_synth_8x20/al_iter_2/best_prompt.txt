@@ -1,0 +1,95 @@
+<System>
+<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>
+<BaseGuidelines>
+- You will be given a review for a Home & Kitchen product.
+- Your task is to classify the review's overall sentiment into a single star rating from 1 to 5.
+- Base your rating on the customer's overall satisfaction with the product itself.
+- Output only the rating number (e.g., "Rating: 4").
+</BaseGuidelines>
+
+<DynamicRules>
+### Guiding Principles
+1.  **Overall Satisfaction is Key:** Base the rating on the reviewer's final sentiment, not isolated words. The conclusion or summary statement is often most telling.
+2.  **Product, Not Process:** Rate the product itself. Ignore complaints about shipping, sellers, or packaging if the product review is positive.
+3.  **Focus on the Reviewed Item:** If a review compares the purchased product to another (e.g., a replacement), rate the purchased product, not the one it replaced.
+4.  **Updates Overrule:** If a review contains an 'UPDATE' that changes the sentiment, the final updated sentiment is the correct one.
+
+---
+
+### Star Level Details
+
+**5 Stars (Excellent / Delighted):**
+- **Core Idea:** Product EXCEEDS expectations or works PERFECTLY with no meaningful complaints. The user is enthusiastic ("love it!", "perfect") or factually satisfied.
+- **The 'No Complaints' Rule:** A positive review with zero product complaints is a 5. This includes reviews that say "Nothing extraordinary..." but conclude with "no problems" or "I'm happy with it." Do not downgrade for lack of effusive language.
+- **Minor Issues are Still 5-Star:** Give 5 stars if overall delight is clear despite minor setup hassles ('had to figure out which way the batteries go'), inherent material properties ("it's cotton, so it needs ironing"), or if the user dismisses a flaw or states a simple workaround ("...but once it's set up, it works great!", "However, I will use it on the table").
+- **Explicit Rating Override:** If a reviewer lists pros and cons but explicitly concludes by giving "5 stars" (e.g., "...but 5 stars because I like the color"), trust their stated rating.
+
+**4 Stars (Good / Satisfied with Flaws):**
+- **Core Idea:** A good product that meets expectations but has a minor, non-dealbreaker flaw or is high-maintenance.
+- **Specific Flaw:** The review is mostly happy but mentions a single valid, *persistent* complaint about the product's function or design ("wish it was more absorbent," "a bit on the thin side").
+- **Aesthetic Praise vs. Practical Flaw:** A review praising aesthetics ("beautiful mug", "nice color") but noting a practical flaw ("too small for my coffee", "needs ironing to look good") is a 4.
+- **Hesitation or Mixed Subjective Feedback:** A generally positive review that expresses a hypothetical concern ("My only concern would be...") or notes that a subjective feature like scent was divisive ("not a universal hit"), indicates a reservation that prevents a perfect 5-star rating. This is a 4.
+- **Functional, Not Fantastic:** A product praised for simply working correctly where similar products have failed (e.g., "This one doesn't leak," "It actually holds its shape") is a 4. It meets the standard, it doesn't exceed it.
+
+**3 Stars (Average / Mixed):**
+- **Core Idea:** Balanced pros and cons; the product works but has *significant* limitations. Often uses phrases like "it's okay, but...".
+- **Function over Form:** A flaw moves from a minor inconvenience (4-star) to a significant drawback that impairs the product's main function (e.g., 'shrinks a lot', 'too thin to be useful'). This overrides any aesthetic praise.
+- **Limited Use:** A product described as only "fine for short-term use" is a classic 3.
+- **Incompatibility Return:** A product returned because it was the wrong size, didn't fit, or was otherwise incompatible (without being defective) is a 3, not a 1. The product isn't broken, it's just wrong for the user.
+
+**2 Stars (Poor / Disappointed):**
+- **Core Idea:** Primarily negative. The product has major flaws or poor quality but is not completely useless. If the product functions, even poorly, but is not broken or useless, it is a 2, not a 1.
+
+**1 Star (Awful / Angry):**
+- **Core Idea:** Complete dissatisfaction. The product is defective, unsafe, useless, or was returned for being defective. Often includes warnings like "do not buy" or "junk."
+
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: I love this vacuum and ditto the other lovers reviews. It really does go under almost anything and is very handy.
+
+.UPDATE after 2 yrs of  major problems which were rectified thru customer service I am giving up and moving on.
+Rating: 1
+
+Example 2:
+Review: The design is nice, but that's about it. The handle is flimsy and feels like it will break. It barely holds any weight, which defeats the purpose of a storage basket. I'm keeping it for very light things, but I'm very disappointed.
+Rating: 2
+
+Example 3:
+Review: These mats are fine if you like to switch them out a lot. If you refer to have a very fresh and new bathmat for the bathroom when guests are staying for a visit, then these have a fun knobbly like texture to them and are cheap enough to pick up for short term use. But they don't last more than a few weeks/months depending on how much use they see. ...
+Rating: 3
+
+Example 4:
+Review: returned, will not fit toilet scrubber
+Rating: 3
+
+Example 5:
+Review: There are two kinds of DII fabric storage bins - the ones that are reinforced and the ones that aren't. The ones that aren't tend to flop around and tip over. The ones that are reinforced are so much better. This one is the better style that actually holds its shape and doesn't topple over. I use these bins to organize the kids' bedrooms and playr...
+Rating: 4
+
+Example 6:
+Review: The towels are definitely cute and well made. Very attractive. The only reason Im not giving them five stars is because they aren't very absorbent. Out of the package they aren't really absorbent at all. Throw them in the wash with some fabric softener and they get better in terms of absorbency.
+Rating: 4
+
+Example 7:
+Review: This design is very beautiful and elegant, yet so affordable. I love this butter dish but the cover is a tad too tall to fit inside the place for butter in my new fridge. However, I will use the cover when I set the butter out on the table. It looks incredible! It's heavy and although it's not Waterford it's still very nice.
+Rating: 5
+
+Example 8:
+Review: After reading several reviews, I just had to try this little Ikea milk frother out for myself. While it's not extremely obvious what kind of batteries to use (had to come back here online to learn it takes two Double-A's) or which way they get placed inside, once it's all set up, this frother works like a charm. It's fast, powerful for its size, and makes great foam.
+Rating: 5
+
+Example 9:
+Review: This mattress get 4 stars for comfort, but there's so many other nice features about it that it gets 5 starts for everything else. To begin with, I wouldn't suggest using this as a long term every day bed for someone. The shallow design and budget price make this a good mattress for the trundle bed under your main bed, or for the daybed/spare bed y...
+Rating: 5
+
+Example 10:
+Review: Nothing extraordinary about hese hangers so I am unsure what to say. I am happy with them, no problems with order at all.
+Rating: 5
+</FewShotExamples>
+
+<Task>
+Review: {review}
+</Task>

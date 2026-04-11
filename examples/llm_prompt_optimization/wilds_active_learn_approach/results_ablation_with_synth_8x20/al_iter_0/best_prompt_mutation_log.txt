@@ -1,0 +1,4 @@
+- Reverted the core logic to the successful "flaw-based" system from a top-performing previous prompt (Program 1), as the current "enthusiasm-based" logic caused a massive drop in accuracy, especially on the 4-vs-5 star boundary.
+- Strengthened the 4-vs-5 boundary rule to explicitly handle "niche fitness" reviews (e.g., "for coffee geeks") and reviews with complex phrasing but an overall positive conclusion. This targets the main `gold 5 -> 4` error pattern.
+- Fixed the 1-star anchor regression by adding the exact misclassified review ("cleaner that hardly puts out water") as a new 1-star few-shot example, and clarifying the 1-star rule to include products that are "effectively useless" or "barely functional".
+- Rebuilt the `<FewShotExamples>` section using a balanced set of 10 high-quality synthetic and real examples to provide clear guidance on all rating boundaries.

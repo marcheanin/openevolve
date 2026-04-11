@@ -1,0 +1,93 @@
+<System>
+<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>
+<BaseGuidelines>
+- You will be given a review for a Home & Kitchen product.
+- Your task is to classify the review's overall sentiment into a single star rating from 1 to 5.
+- Base your rating on the customer's overall satisfaction with the product itself.
+- **Overall Satisfaction is Key:** Base the rating on the reviewer's final sentiment, not isolated words. The conclusion is often most telling.
+- **Product, Not Process:** Rate the product itself. Ignore complaints about shipping, sellers, or packaging if the product review is positive.
+- **Focus on the Reviewed Item:** If a review compares the purchased product to another, rate the purchased product, not the one it replaced.
+- **Updates Overrule:** If a review contains an 'UPDATE' that changes the sentiment, the final updated sentiment is the correct one. This is a critical rule.
+- Output only the rating number (e.g., "Rating: 4").
+</BaseGuidelines>
+
+<DynamicRules>
+### CRITICAL BOUNDARY: 4 Stars vs. 5 Stars
+The most common errors occur here. The key is whether a negative point is a **real, unresolved flaw** or just a **dismissed observation/minor hurdle**.
+
+**==> 5 Stars (Excellent / Delighted): Fully satisfied, no lasting complaints.**
+- A 5-star review can mention minor issues, but ONLY if the reviewer clearly dismisses them or finds a simple workaround (e.g., "...but I don't mind," "which was an easy fix").
+- **IGNORE Observations, Don't Penalize:** An observation about a product's subjective quality (e.g., "color is less saturated than the photo," "it's heavier than I expected") or a minor one-time hurdle ("took a minute to figure out the batteries") is NOT a flaw if the user is happy overall. Do not downgrade for these.
+- **Target Audience:** Stating the product is "best for beginners" or "good for a guest room" is a description, not a flaw, and does not lower a 5-star rating.
+
+**==> 4 Stars (Good / Satisfied with Flaws): Happy, but with a clear, undismissed issue OR simply meets expectations.**
+- **The "Good, but..." Rule:** The review is mostly positive but mentions a clear, unresolved flaw in function, design, or quality ("a bit small," "not very absorbent," "wobbly"). This caps the rating at 4.
+- **Enthusiasm for a Functional Product is a 4:** A review that is very positive ('I love it', 'it's great') because the product simply works as advertised, without mentioning any 'wow' factor or how it exceeded expectations, is a 4-star review.
+- **Lingering Reservation:** A positive review expressing a reservation or caution ("My only concern would be...") is a 4-star, even if the concern didn't materialize.
+
+### Other Star Levels
+
+**3 Stars (Average / Mixed):**
+- **Core Idea:** Usable, but a significant flaw compromises its main function or value. Balanced pros and cons.
+- **Significant Limitation:** A 4-star flaw is an annoyance. A 3-star flaw makes the product frustrating or difficult to use as intended (e.g., a "wobbly" shelf is a 4; a shelf so wobbly "things might fall off" is a 3).
+- **Incompatibility:** A product returned because it was the wrong size, didn't fit, or was otherwise incompatible (without being defective) is a 3.
+- **Price vs. Lifespan:** A short lifespan is mentioned but framed as an acceptable trade-off for a low price ("cheap enough to replace").
+
+**2 Stars (Poor / Disappointed):**
+- **Core Idea:** Works poorly, has major flaws, or is a major disappointment. Barely functional.
+- **Performance Failure:** The product doesn't perform its main function well compared to expectations or other products, even if it's not completely broken.
+
+**1 Star (Awful / Angry):**
+- **Core Idea:** Complete dissatisfaction. The product is non-functional, defective, or useless.
+- **Useless or Defective:** The product is broken, unsafe, doesn't work at all, or an UPDATE changes sentiment to negative.
+
+</DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: I love this vacuum and ditto the other lovers reviews. It really does go under almost anything and is very handy.
+
+.UPDATE after 2 yrs of  major problems which were rectified thru customer service I am giving up and moving on.
+Rating: 1
+
+Example 2:
+Review: My freezer holds another mug that does the same as this one yet doesn't take up as much space. So, my vote would go to the other mug, whose mate broke and caused me to buy this one. My drink actually froze up a bit in the mug, leaving beverage remaining on the sides that I would rather had gone into my stomach. But, it is a freezer mug, and it does what it is supposed to do.
+Rating: 2
+
+Example 3:
+Review: Since buying this product and it dying 12 months later I've owned numerous carpet cleaners including the Bissel Proheat 2X Pet Lift Off and the at-home version of the Rug Doctor. Both of these blew the performance of this machine out of the water. This machine would freshen up the carpets but never ...
+Rating: 2
+
+Example 4:
+Review: Unless this crazy susan has special abilities, I would be hesitant to put anything heavy on it. Just carrying it into the kitchen, the slide outs moved around. when I set it flat, I put some items in each rectangle and turned. What I got, was one slide out in particular wants to slide out when you d...
+Rating: 3
+
+Example 5:
+Review: returned, will not fit toilet scrubber
+Rating: 3
+
+Example 6:
+Review: I love the collapsible polyester storage basked by DII. I have several and I find them great for storing items and for moving items from room to room. Also make great little holders for toys or laundry. The pattern is attractive and I can put a lot of items in a medium sized basket. They stand up well when you have items in them.
+Rating: 4
+
+Example 7:
+Review: Cute square napkin rings. My only concern would be any rough edges on any of them - I didn't find any but it is something to think about every time you put napkins in them. They are very modern and eye catching. When I have company, I do believe they will be admired for their simple open circle design. Very modern. They are light weight, so they ar...
+Rating: 4
+
+Example 8:
+Review: This design is very beautiful and elegant, yet so affordable. I love this butter dish but the cover is a tad too tall to fit inside the place for butter in my new fridge. However, I will use the cover when I set the butter out on the table. It looks incredible! It's heavy and although it's not Waterford it's still very nice.
+Rating: 5
+
+Example 9:
+Review: It's a nice plate that feels well made and has a good weight to it. The color in person seems a little less saturated than on screen, and the raised parts of the pattern on the dish are slightly less colored than the rest, but I think this is an intentional part of the design and not a mistake of an...
+Rating: 5
+
+Example 10:
+Review: There is only one problem for the experienced cook when it comes to this set - you're likely to already have one or more of these tools and possibly Oxo Good Grips at that! That's why I think this set is best suited for someone setting up a kitchen for the first time, like a young person getting his or her first apartment. It has solid basic items ...
+Rating: 5
+</FewShotExamples>
+
+<Task>
+Review: {review}
+</Task>

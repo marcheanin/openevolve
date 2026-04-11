@@ -1,0 +1,31 @@
+Example 1:
+Review: This food processor is a beast! It purees soups and chops vegetables in seconds. It's powerful and the bowl size is generous. My only small complaint is that the safety lock on the lid can be a little finicky. You have to jiggle it just right to get it to click into place. It's a minor annoyance in an otherwise fantastic machine.
+Rating: 4
+
+Example 2:
+Review: I almost didn't buy this food processor because some reviews mentioned the lid was hard to lock. I'm so glad I ignored them! I've had zero issues. It clicks into place easily every time. The motor is powerful, it's easy to clean, and it has handled everything I've thrown at it. Works perfectly.
+Rating: 5
+
+Example 3:
+Review: Do not buy this filter. I ordered it for my pitcher and it arrived with a visible crack in the plastic housing. When I tried to rinse it as instructed, black charcoal dust leaked out everywhere. It's completely unusable and I'm returning it for a refund. A total piece of junk.
+Rating: 1
+
+Example 4:
+Review: This water filter cartridge doesn't fit my pitcher. I have the AquaPure Model X, and I guess I ordered the wrong one. The filter itself seems fine, no damage or anything, but I can't use it. Had to return it. Make sure you double-check your pitcher model number before ordering.
+Rating: 3
+
+Example 5:
+Review: My old set of knives was a total nightmare, they were so dull it was dangerous. I threw them out and bought this set. What a massive improvement! These knives are incredibly sharp right out of the box and feel balanced in the hand. They make food prep so much easier and safer. A fantastic product that solved a huge problem for me.
+Rating: 5
+
+Example 6:
+Review: I've only had these baking sheets for a month, and they're already ruined. I used them twice at 400°F and they warped so badly they won't even sit flat on the counter anymore. Now everything I bake on them cooks unevenly. Very poor quality and a waste of money.
+Rating: 2
+
+Example 7:
+Review: These drinking glasses are very stylish and have a nice weight to them. I'm happy with them overall, but I'm knocking off one star because the "smoke grey" color is much lighter in person than it appeared in the product photos. It's more of a very light, clear grey. Still nice, just not quite what I was expecting.
+Rating: 4
+
+Example 8:
+Review: Perfect! The smoke grey color of these glasses is exactly as shown in the pictures. They are elegant, sturdy, and have gone through the dishwasher multiple times with no issues. They look much more expensive than they were. No problems at all.
+Rating: 5

@@ -372,6 +372,8 @@ def _format_error_artifacts(
     gold_labels: list,
     worker_predictions: list,
     texts: list,
+    batch_indices: Optional[list] = None,
+    anchor_indices: Optional[list] = None,
     prompt_text: str = "",
     max_errors: int = 10,
     max_borderline: int = 5,
@@ -478,9 +480,49 @@ def _format_error_artifacts(
             lines.append(f"  {i+1}. Review: \"{t}\"")
             lines.append(f"     Gold: {gold} | Predicted: {pred} | Workers: {wp} | Disagreement: {ds:.2f}")
 
+    if batch_indices is not None and anchor_indices is not None:
+        anchor_set = set(anchor_indices)
+        anchor_regressions = []
+        stable_anchor = []
+        n_workers = len(worker_predictions)
+        for j in range(min(len(batch_indices), len(predictions), len(gold_labels))):
+            idx = batch_indices[j]
+            if idx not in anchor_set:
+                continue
+            pred = predictions[j]
+            gold = gold_labels[j]
+            wp = [int(worker_predictions[k][j]) for k in range(n_workers)]
+            d_score = disagreement_score(wp, rating_min=1, rating_max=5)
+            if pred != gold:
+                anchor_regressions.append((texts[j], gold, pred, wp, d_score))
+            elif d_score == 0.0:
+                stable_anchor.append((texts[j], gold, pred, wp, d_score))
+
+        if anchor_regressions:
+            lines.append("")
+            lines.append("ANCHOR REGRESSIONS (high priority: previously Anchor examples now misclassified):")
+            for i, (text, gold, pred, wp, ds) in enumerate(anchor_regressions[:3]):
+                t = text[:max_text_len] + ("..." if len(text) > max_text_len else "")
+                lines.append(f"  {i+1}. Review: \"{t}\"")
+                lines.append(
+                    f"     Gold: {gold} | Predicted: {pred} | Workers: {wp} | Disagreement: {ds:.2f} | NOTE: avoid regressions on Anchor."
+                )
+
+        if stable_anchor:
+            lines.append("")
+            lines.append("STABLE ANCHOR EXAMPLES (do not break these):")
+            for i, (text, gold, pred, wp, ds) in enumerate(stable_anchor[:5]):
+                t = text[:max_text_len] + ("..." if len(text) > max_text_len else "")
+                lines.append(f"  {i+1}. Review: \"{t}\"")
+                lines.append(f"     Gold: {gold} | Predicted: {pred} | Workers: {wp} | Disagreement: {ds:.2f}")
+
     if lines:
         total = len(predictions)
-        lines.append(f"\nSummary: {len(errors)} errors, {len(borderline)} borderline out of {total} examples.")
+        n_anchor_reg = len(anchor_regressions) if (batch_indices is not None and anchor_indices is not None) else 0
+        lines.append(
+            f"\nSummary: {len(errors)} errors, {len(borderline)} borderline, "
+            f"{n_anchor_reg} anchor regressions out of {total} examples."
+        )
     return "\n".join(lines)
 
 
@@ -531,6 +573,8 @@ def evaluate(prompt_path: Optional[str] = None) -> Union[Dict[str, Any], Evaluat
             result["gold_labels"],
             result["worker_predictions"],
             batch_texts,
+            batch_indices=result["indices"],
+            anchor_indices=active.get("anchor_indices", []),
             prompt_text=prompt_template,
         )
 

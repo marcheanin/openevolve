@@ -1,0 +1,31 @@
+Example 1:
+Review: I'm really happy with these kitchen towels. They are thick, super absorbent, and the color is exactly what I wanted. The shipping box arrived a little crushed on one corner, but the towels inside were perfectly fine and in sealed plastic. They've already been through the wash and came out great.
+Rating: 5
+
+Example 2:
+Review: These kitchen towels are pretty good. They are thick and absorbent, and feel like they will last a long time. My only issue is that I ordered the "charcoal grey" and the color in person is much lighter, more like a standard medium grey. It's a minor thing and they still work well, but it wasn't quite what I expected from the photos.
+Rating: 4
+
+Example 3:
+Review: This food processor is a mixed bag. On the one hand, the motor is very powerful and it purees and chops ingredients quickly and evenly. On the other hand, it is an absolute nightmare to clean. Food gets stuck under the blade assembly in a spot you can't reach with a sponge or brush. I dread using it because I know I'll spend 10 minutes trying to clean it. It works, but the design is very frustrating.
+Rating: 3
+
+Example 4:
+Review: Overall, I'm quite pleased with this food processor. It has a strong motor and does a great job with everything from chopping nuts to making pesto. My only small complaint is that the lid can be a little tricky to get locked into place; you have to line it up just right. It's a minor annoyance, but otherwise, it's a fantastic machine for the price.
+Rating: 4
+
+Example 5:
+Review: This coffee maker is a huge disappointment. It technically turns on and water flows through it, but the coffee it produces is lukewarm at best. I have to put every single cup in the microwave for 30 seconds to get it to a drinkable temperature. A coffee maker that can't make hot coffee is a failure. Very frustrating start to my mornings.
+Rating: 2
+
+Example 6:
+Review: The "non-stick" coating on this frying pan is a complete joke. I used it for the first time this morning to make a single egg, using medium-low heat and a silicone spatula. The egg stuck horribly and in the process of gently trying to clean the pan afterwards, the coating started to flake off. It is completely ruined after one use. It fails its most basic function. I've already started the return process.
+Rating: 1
+
+Example 7:
+Review: It makes good, hot coffee and the programmable feature works as expected. The big problem is the carafe design. No matter how carefully you pour, it dribbles coffee all down the side and onto the counter. Every single time. It's usable, but I have to pour my coffee over the sink to avoid a mess, which is a significant design flaw. It's just okay.
+Rating: 3
+
+Example 8:
+Review: This is now my go-to spatula. It has the perfect balance of stiffness and flexibility, allowing it to get under pancakes and eggs without breaking them. It feels sturdy in the hand and has held up perfectly in the dishwasher. It does exactly what it's supposed to do, and it does it well.
+Rating: 5

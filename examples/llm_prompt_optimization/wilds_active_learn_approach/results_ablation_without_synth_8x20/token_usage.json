@@ -1,0 +1,27 @@
+{
+  "by_model": {
+    "google/gemini-2.5-flash": {
+      "input_tokens": 12698596,
+      "output_tokens": 26504,
+      "total_tokens": 12725100
+    },
+    "openai/gpt-4o-mini": {
+      "input_tokens": 11998648,
+      "output_tokens": 28678,
+      "total_tokens": 12027326
+    },
+    "anthropic/claude-3.5-haiku": {
+      "input_tokens": 13628945,
+      "output_tokens": 356301,
+      "total_tokens": 13985246
+    },
+    "consolidation/google/gemini-2.5-pro": {
+      "input_tokens": 93766,
+      "output_tokens": 56713,
+      "total_tokens": 150479
+    }
+  },
+  "total_input_tokens": 38419955,
+  "total_output_tokens": 468196,
+  "total_tokens": 38888151
+}

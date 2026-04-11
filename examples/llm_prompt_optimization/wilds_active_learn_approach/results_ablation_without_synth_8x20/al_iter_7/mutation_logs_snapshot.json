@@ -1,0 +1,76 @@
+{
+  "al_iter": 7,
+  "n_programs": 10,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.7141425336785582,
+      "has_mutation_log": true,
+      "mutation_log": "- The previous prompt (`D1`) caused a significant fitness drop and anchor regressions. I've reverted to the structure of the top-performing prompt (`Program 1`) as a more stable base.\n- The main error is confusion on the 4/5-star boundary. I've refined the `5 Stars` rule to explicitly state that inherent properties of a product (e.g., \"cotton needs ironing\") are not flaws if the user is satisfied overall. This targets `gold=5 -> pred=4` errors.\n- To address `gold=4 -> pred=3` errors, I've added a new rule to the `4 Stars` category: \"Good for a Specific (but not general) Use\". This covers products praised for a narrow purpose but noted as unsuitable for a more general one (e.g., a throw that's decorative but not comfortable).\n- I replaced a generic 4-star few-shot example with a misclassified one (\"decorative throws\") to directly teach this new nuanced 4-star rule.\n- Added a \"Durability Failure\" rule to the `2 Stars` section to better distinguish from 3-star reviews, targeting errors where products break after a short time.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 2,
+      "score": 0.7141290512135758,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error was `gold=4 -> pred=5`, often on short, neutral reviews like \"They work!\". I added a new rule under 4-stars for \"Meets Basic Expectations\" to correctly classify these as 4, not 5.\n- The second top error was `gold=5 -> pred=4`, where workers docked a point for negative-sounding language (e.g., \"not extraordinary\") even if the user was satisfied. I rewrote the 5-star rules to more strongly emphasize that overall satisfaction overrides such neutral observations or dismissed flaws.\n- Replaced two few-shot examples (8 and 9) with misclassified examples from the artifacts that perfectly illustrate these two error patterns. The new Example 8 (\"Not much to say. They work!\") teaches the new 4-star rule, and the new Example 9 (\"not extra ordinary storage bin\") teaches the refined 5-star rule.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 3,
+      "score": 0.707783490513748,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error is `gold=4 -> pred=5`, often on reviews that are positive but unenthusiastic (e.g., \"worked out very well,\" \"right size and strength\"). The existing rule in the top prompt for \"Brief & Factual\" reviews being 4-star is good but not quite capturing all cases. I've rephrased the 4/5-star boundary to focus on the difference between \"functional satisfaction\" (4 stars) and \"delight/enthusiasm\" (5 stars) to provide a clearer signal.\n- A hard example involved a product dying after 12 months (gold=2). To address this pattern of failure over time, I added a \"Durability Failure\" rule to the 2-star definition.\n- To reinforce the new durability rule, I replaced the somewhat ambiguous 2-star \"freezer mug\" example with the \"carpet cleaner\" review from the hard examples, which is a perfect illustration of a product failing over time and warranting a 2-star rating.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 4,
+      "score": 0.7048092875736038,
+      "has_mutation_log": true,
+      "mutation_log": "- The biggest error source is the 4-vs-5 star boundary. I refined the rules to more clearly distinguish an unresolved flaw (4-star) from a dismissed trade-off (5-star). I added a rule that a final positive comment doesn't negate an earlier specific complaint.\n- To better handle reviews with mixed signals, I added a \"Good for a Specific Use\" rule to 4-stars to correctly classify products that are good for a narrow purpose but fail a common one (like a decorative-only throw). This targets a `gold=4->pred=3` error.\n- I added a \"Multiple Minor Flaws\" rule to 3-stars to catch reviews where several small issues add up, which was another observed error pattern.\n- I replaced a weak 3-star few-shot example (\"returned, will not fit...\") with a misclassified Anchor example (\"...need to add a piece of wood...\"). This directly reinforces the \"Requires Modification\" rule which was previously ignored by the workers.\n- I added a \"Durability Failure\" rule to 2-stars to capture products that break quickly, a pattern seen in hard examples.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 5,
+      "score": 0.7020249468076238,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error pattern was `gold=4 -> pred=5`, especially for brief, factual reviews like \"They work!\". The prompt incorrectly classified these as 5-star. I've added a new rule under 4-stars for \"Brief & Factual\" reviews to correct this.\n- The second major error pattern was `gold=5 -> pred=4` for reviews that mentioned limitations but were still satisfied. I rewrote the 5-star rules to more strongly emphasize that overall satisfaction trumps minor critiques or lack of \"extraordinary\" features.\n- To reinforce these rule changes, I replaced two few-shot examples. I swapped a generic 4-star review for \"Not much to say. They work!\" (a hard example from the artifacts) to directly teach the new `Brief & Factual` rule.\n- I replaced a simple 5-star example with a more nuanced one from the artifacts (\"This is a good, though not extra ordinary storage bin...\") to better illustrate the \"satisfied despite limitations\" principle.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 6,
+      "score": 0.6999991159684084,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error is `gold 4 -> 5` (11 instances), where positive language like \"love it\" or \"works wonderfully\" overrides a stated flaw. I strengthened the 4-star \"Good, but...\" rule to explicitly state it applies even with enthusiastic language.\n- The second top error is `gold 5 -> 4` (7 instances) and an anchor regression, where minor/dismissed flaws are over-penalized. I added a new 5-star rule, \"The Final Word,\" to emphasize that a positive concluding sentiment outweighs earlier minor observations.\n- Addressed a `gold 4 -> 3` error pattern where a product is good for a specific use but fails a general one (e.g., decorative but not comfortable throw). I added a new 4-star rule for this and replaced a generic few-shot example with this specific case.\n- Replaced a 5-star few-shot example with the anchor regression example to directly teach the model how to handle a dismissed flaw (\"needs ironing... but otherwise great\").",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 7,
+      "score": 0.6969480086028967,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error is `gold=4 -> pred=5`. This is caused by the current prompt misclassifying short, functional reviews (e.g., \"It works\") as 5-star. The top-performing prompt (`Program 1`) correctly identifies these as 4-star (\"Mere Adequacy\"). I am reverting this rule to match the more successful prompt.\n- The second error is `gold=5 -> pred=4`, for reviews that mention negatives but are ultimately satisfied (e.g., \"not extraordinary... but good\"). I'm adopting the clearer wording from `Program 1` that classifies these as 5-star if the final conclusion is positive.\n- I'm adding a specific `Durability Failure` rule for 2-star ratings, inspired by `Program 2` and a hard example (\"died 12 months later\").\n- I'm updating the few-shot examples to better illustrate these new rules, particularly adding an example for \"mere adequacy\" (4-star) and durability failure (2-star), borrowing from the top-performing prompts.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 8,
+      "score": 0.6917599008241926,
+      "has_mutation_log": true,
+      "mutation_log": "- The biggest error source is the 4-vs-5 star boundary, with models incorrectly promoting reviews with minor flaws (gold 4->pred 5) and demoting reviews with acceptable trade-offs (gold 5->pred 4).\n- I completely rewrote the `DynamicRules` section to provide a clearer, more hierarchical structure from 5 stars down to 1.\n- The new 5-star rule explicitly defines what constitutes an \"acceptable trade-off\" or a \"dismissed inconvenience\" (e.g., \"needs ironing, but otherwise great\"), directly targeting the anchor regression and other 5->4 errors.\n- The new 4-star rule clarifies the \"Good, but...\" pattern and adds a \"Minor Annoyances\" category to help distinguish it from the more serious \"Significant Flaw\" of a 3-star review, targeting the 4->3 errors.\n- The overall goal is to make the decision process more like a flowchart, reducing ambiguity around reviews with mixed positive and negative signals.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 9,
+      "score": 0.6824820711196518,
+      "has_mutation_log": true,
+      "mutation_log": "- The biggest error source is `gold=4 -> pred=5`, often on short, functional reviews like \"They work!\". The current prompt incorrectly classifies these as 5-star. I've reverted to the logic from the top-performing prompt, defining these as 4-star \"mere adequacy\".\n- The second biggest error is `gold=5 -> pred=4`, where workers penalize neutral observations (\"not extraordinary\") as flaws. I've strengthened the 5-star rule to clarify that if the user is ultimately satisfied, these observations are not flaws.\n- I replaced a weak 5-star few-shot example with a difficult one from the error artifacts (\"This is a good, though not extra ordinary storage bin...\") to directly teach the model how to handle these nuanced 5-star reviews.\n- I added a 2-star rule for \"Durability Failure\" and a corresponding few-shot example (\"...dying 12 months later...\") to address another hard example from the artifacts.\n- I added the classic \"Not much to say. They work!\" as a 4-star example to anchor the new rule for functional-but-unenthusiastic reviews.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    },
+    {
+      "rank": 10,
+      "score": 0.6660076973569222,
+      "has_mutation_log": true,
+      "mutation_log": "- Reverted to the high-performing `Program 1` as a base to recover from the previous cycle's catastrophic fitness drop, which was caused by a truncated/broken prompt.\n- Targeted `gold=4 -> pred=5` errors by strengthening the \"Mere Adequacy\" rule for 4-stars. I made it more explicit that short, neutral, low-information reviews (\"It works,\" \"right size and strength\") are 4-star, not 5-star.\n- Targeted `gold=5 -> pred=4` errors by clarifying the 5-star rule. I added examples of neutral observations (\"not extraordinary,\" \"lacks exceptional build quality\") that do not prevent a 5-star rating if the user's final conclusion is satisfaction.\n- Added a \"Multiple Minor Flaws\" rule to the 3-star definition to better classify reviews that list several small problems or hassles which collectively lead to a mixed experience. This addresses `gold=3 -> pred=4` errors.",
+      "prompt_snippet": "<System>\n<Role>You are an expert sentiment analyst specializing in Amazon product reviews.</Role>\n<BaseGuidelines>\n- You will be given a review for a Home & Kit"
+    }
+  ]
+}
