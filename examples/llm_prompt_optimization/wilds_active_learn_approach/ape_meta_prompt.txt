@@ -1,127 +1,117 @@
 You are an expert at designing prompts for LLM-based sentiment classification.
 
-Here are 25 representative examples of Amazon Home & Kitchen product reviews with gold labels (1-5 stars):
+Here are 25 representative examples of Amazon product reviews across all product categories with gold labels (1-5 stars):
 
 Example 1:
-Review: Fit perfect into my CHV1210.
+Review: It sure did but I bought Hulu to finish watching the other 7 seasons because Amazon does not  let me watch on Chromecast.
 Gold label: 5
 
 Example 2:
-Review: Didn't work. Had to send it back.
+Review: Hard to tell if worked to waterproof my patio, or I was lucky with the rainfall this year.  Did seem if worked, would need to be reapplied annually.
 Gold label: 3
 
 Example 3:
-Review: Our water comes from a well, so we do not have the issues associated with city tap water (chlorine taste, etc.). Before reaching our sinks, the water passes through two paper filter systems and an ultra violet light system. Still, the taste of the water varies by season (assuming due to run off) and at times contains sediment that makes the water cloudy or off color. The water from the kitchen sink where the Brita Filter is installed almost always runs clear now and the taste is pretty consisten...
+Review: Unfortunately domestic violence can occur in any relationship - gay or straight, married or not.  Its horrible and goes on too long because the victim gets isolated by the abuser or stays to protect their loved ones. These two men are in the process of developing a relationship when one ex boyfriend wants to come back even though he is engaged  and the other's ex boyfriend is threatening and caused a car accident to the new boyfriend.
 Gold label: 4
 
 Example 4:
-Review: Bought this on the recommendation of a friend who has been a world traveler for business and swore by it. He even keeps a second one in his car for when his wife is driving. Did not really work for me. Using an airline pillow did just as well and this prevents you from using noise cancelling headphones. Will try in car for long trips but I doubt iy will work any better.
+Review: This is a great series and I will be purchasing it but not as a set. If you purchase this set, you will loose 99 pages between the 3 books. If you want the series, purchase each book separate. I have found this to be true will all the book sets that I have looked at purchasing. How can they charge the same price but give you 99 less pages? Don't make any sense to me.
 Gold label: 3
 
 Example 5:
-Review: This thin, rough towels are, as it states in the title, solely for decorative use. They are sorta cute, though pretty gaudy, but aren't at all absorbent, the weave is so wide you can see each thread (and see through the towel itself) and if you try to wash them, they turn into a wrinkled, shrunken, wadded ball of fabric. So, basically, they're useless.
-
-I don't actually ascribe to "decorative" towels, though I do like a holiday theme. I'll stick to my can-acutally-be-used printed dishtowels from...
+Review: This book got off to a good start with solid characters and an intriguing storyline....however about 70% in and I couldn't finish it. It became so convoluted that it was hard to follow and took things in a weird direction. I was disappointed since there were so many positive reviews that I had high hopes for this novel.
 Gold label: 2
 
 Example 6:
-Review: The set I received didn't have a battery! After going through all the trouble to get and install a battery they worked. They nice, cute and all that, but you're paying extra for the novelty of the product.
+Review: Not that interesting and instructions were not very well written.  I tried to make the miniature book and was not able to do it due to lack of instructions and pictures.  Look elsewhere for better craft books
 Gold label: 2
 
 Example 7:
-Review: Just arrived today and I'm so happy with them.  The silicone is NOT hard enough to scratch my mid price range non stick cookware.  All edges are smooth and soft yet the thickness of the silicone provides nice support and stability.  The Handles are very comfortable in your hand.  The three different sizes are so multi-task.  They look sturdy and extremely well made.  I'm expect years of service.  If there's any disappointment I'll come back and let you know.  I think this was an extremely wise p...
+Review: Fantastic read. It's dark, steamy and full of suspense and action. This story will pull you in and keep you on the edge of your seat. It's well written with characters that you will love. The chemistry between the characters is sizzling and hot! This book is definitely not one to miss. I voluntarily reviewed an advance copy of this book.
 Gold label: 5
 
 Example 8:
-Review: This is a great table cloth. It emphasizes an attractive color, is well made, and holds up to many washes. It is simply a nice table cloth that I would suggest to anyone who wishes to entertain on that special holiday occasion. It is well worth the price that you will be asked to pay for this great item. Get it and entertain better than ever!
+Review: I received an ARC copy of this book for an honest review.
+I'm going to start of saying I ABSOLUTELY LOVED THIS BOOK! This was such a great story about someone over coming something they think will take over their lives. Jillian finds out at an early age that her life will never be what she wanted/expected for it to be. She tries to hide from people and never gets close to anyone until Liam. This was such a wonderful love story showing that there are still people out there who are willing to figh...
 Gold label: 5
 
 Example 9:
-Review: This gets and A for design - it's just the right level of decoration for the upcoming holiday season without being over the top. Unfortunately, the quality is on the low side. This can be washed which is good but plan on wrinkles and crinkles. The fabric feels like low quality sheet fabric - a bit rough and not very refined. Casual cloth at best.
+Review: This book was gifted to me in return for an honest review.  Thank you Jeff!
+
+Abby Lane is an English teacher in a small town.  Much to her parents as well as her best friend Julie dismay, she has not found true love and they believe that she will become a spinster if she doesnt open up her options.  You see, Abby is looking for perfection in a man and she has one man that she feels is perfect in every way and looks for those qualities when dating, she won't settle for anything less.  That man is...
 Gold label: 3
 
 Example 10:
-Review: It's not a good vacuum.  It's hard to pick up dirt and then it will spit it out so you have to go over and over the same area.  I wouldn't buy it again.
+Review: All romance was lost very early in book as the author spent most of her writing on the evil uncle plot (heroine's uncle), manipulative aunt plot (hero's), suddenly overbearing and stupid cousin plot... All plots just made heroine into a bigger and bigger victim, then her backstory shows, oops! she kind of participated in some of the plotting herself for about 13 years...
+I am bored writing this review. I forced myself through the last 70% of the book because I paid for it and initially liked the...
 Gold label: 1
 
 Example 11:
-Review: UPDATE
-==================================
-We purchased this Procter-Silex toaster in 2013 and it lasted 3 years.  We were okay with that.
-
-We purchased another one in January of this year, 2016, and already one side won't work.  Less than 2 months is not acceptable.  The new models appear to be junk.
-
-==================================
-
-We've been using various toaster ovens for over a decade now, basically because we'd given up hope in finding a decent toaster.  Not that toaster ovens were a gr...
+Review: I really did not like this book. It started alright but loss something .The characters did nothing to keep you interested in the story.
 Gold label: 1
 
 Example 12:
-Review: these are really nice IF you only use them for bigger items, such as a large roaster pan or anything with large handles.
-they are too think and have very little dexterity in order to use it for smaller items, cookie sheets or anything without handles for anything that has a small lip to pick it up.
-its just too big, thick and bulky to use on such items.
+Review: I really wanted to like this book a lot. That said, it didn't happen. The first third or so of the book was pretty good and held my interest. Then, the story just seemed to plummet. I had a very hard time finishing this one. When I catch myself skimming a book, it's usually a sign of loss of interest. The characters just kind of lost my regard and I really didn't have much interest in what happened to them. Just being frank, here. Perhaps others like it better--I can't say that I would recommend...
 Gold label: 3
 
 Example 13:
-Review: Arrived broken. :(
+Review: Harris makes many points in his book, primarily how extremism in religion (he singles out Islam in one chapter) is divisive and incompatible with reason and rationality.  I agree with that, but I don't agree that all religions are incompatible with rationality or reasonable thinking.
+
+And therein lies the problem with Harris's book.  He assumes that because some religions promote terrorism, then all religions must do the same.  This is a logical fallacy (the fallacy of division).  So what we hav...
 Gold label: 1
 
 Example 14:
-Review: The cushions are okay, but the size was waaaay off for my rocker. I'm still using it though because it is better than nothing.
+Review: Seems a little unrealistic to think that a women, a mom that is so caring, can walk away from her kids.  Just like that.  Then travel alone trusting strangers. In this day and age!  I don't think so! I agree with her leaving just not the way she did it. Guess I live in the real world.  The world that always has consequences for ones actions.
 Gold label: 3
 
 Example 15:
-Review: There are simply no pre-cut slots for the filter. It's a pain to cut them yourself and get them to gave a nice fit. Beware!
+Review: I wasn't happy w/the outcome at all! I mean I understand you can love 2 people at once but love love them both I don't think is possible! She should of picked the one who brought out the best in her and made her a better person! I think if they both would have let her be on her own for awhile she would of chosen one of them and just been friends w/the other! Cause in all honesty what woman is going to lay between two men and have kids w/them cause she is always going to wonder who the actual fat...
 Gold label: 2
 
 Example 16:
-Review: I'd rate this as pretty good although it doesn't feel quite as heavy duty as the ones we've been using for the past few years...on the positive side, it's a lot lighter and easier to move around. There is a beveled type edge so it remains flat and the pattern is nice enough to leave this in a kitchen or other visible area. Overall I'd rate this as above average although only time will tell how durable it is. Not quite as cushioned but still provides ample comfort.
+Review: There are so many people who are related to each other or know each other that it's confusing at times to figure out all the relationships.  The actual beginning of this is two men who both love the same woman flip a coin and one gets her while the other one stands back.  Family issues are behind every action in this story even when the characters don't know they are related. In this story are marriages, affairs, children, business deals, revenge, murder and attempted murders, kidnappings ( yes,...
 Gold label: 4
 
 Example 17:
-Review: Doesn't seem to have any affect. Save your money.
+Review: I know John Lennon was no saint but this book is unreal in its unsubstantiated and outright malicious gossip. Of course his sources are highly praised especially Ono. She is the saint and her plastic band the best.  I was going to read Mick Jagger by this author but think I'll forget it.  Talk about revisionist history, this takes the cake.
 Gold label: 1
 
 Example 18:
-Review: Very poor quality. Cheap fabric,not as pictured and the color was off. Returned the next day
+Review: I'm surprised at all of the positive reviews for this crap. Makes me wonder if it's the company posting all of these wonderful reviews.
+Not only did this not work, it make it worse. I looks like someone poured milk in my tank. I started off with the dose of 2 drops per gallon. After 24 hours of nothing happending other than looking worse, I went with the 4 drops per gallon (added add'l two drops) per the instructions.
+No change whatsoever other than it looks milkier.
+The few negative reviews I d...
 Gold label: 1
 
 Example 19:
-Review: The shower rod in my main bathroom is adjustable, so it has a bit of a bump where the two pieces.  My old shower hooks had a terrible time getting past this bump.  It was a hassle to close the curtain on account of this.
-
-Not the case with these roller hooks.  They breeze right past the bump as if it does not exist.  If there was ever a need for a speedy opening or closing of the shower curtain, the addition of these hooks would likely result in taking first place in a speedy opening contest.
-
-I...
+Review: Josef Stalin was a monster in human form. Stalin led the Soviet Union from the death of Lenin in 1924 until his own death in 1953. During those dark years he murdered millions of his nation's citizens. relocated millions of others and led his nation to triumph against the Nazis. During World War II the Soviets lost over twenty million people. Stalin was twice married. His first wife produced one son and died early of disease. His second wife Nadya gave birth to a son Yakov who was died in a Nazi...
 Gold label: 5
 
 Example 20:
-Review: These chairs are a safety hazard. They tilt over very easily. I purchased two and returned them. Poor design.
+Review: The ring comes with a very specific shape for mounting, but with no mounting piece - so it can't be installed.  There is no hole to attach it to any wall.  Don't buy unless you have a mounting piece and if you don't know what I am referring to, really don't buy it.
+
+UPDATE - 5stars for AMAZON CUSTOMER SERVICE!  Thanks for refunding without any problem. :)
 Gold label: 1
 
 Example 21:
-Review: Although I have found the tendency of my shower curtain to cling to the liner, I had not thought of a solution for this problem until I can across these Moen shower rings.  They are highly effective keeping the two separate yet still tidy.  I love Moen products.  These are definitely up to their standards being well made and attractive.  They are unobtrusive and look great with my shower curtain.  Thanks Moen!
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
 Gold label: 4
 
 Example 22:
-Review: Really like the Mr. Coffee k cup. It is really easy to use. Like the 3 cup size settings. My husband is the coffee drinker, but I like the other uses....tea, hot chocolate, etc. It doesn't take up too much counterspace. Just started using it on Christmas day, but so far, so good.
+Review: Great stuff. Smells good, tastes wonderful, and with a pleasant crunch. Sprinkle it on, well, everything.
 Gold label: 5
 
 Example 23:
-Review: This is what I have discovered after using them only once:
-PROS:
-1.  Adequate Silcone-covered tongs that offers a good size grip on food. I originally ordered them for use in my non-stick pans. They are great for that purpose!
-2.  They are easy to use, and even have a pull tab on the top that draws the tongs together and keeps them together for drawer or hanging up storage.
-3.  They are perfect size for my use
-4.  The price was good.
-5.  They arrived within reasonable time, in fact, even ahead o...
+Review: This is a great movie to watch for an evening of fun with some friends or loved ones. It's lighthearted, popcorn-munching entertainment that won't challenge you too greatly, but what it does do exceptionally well is something that many modern films have ignored as they have become increasingly bloated with run time and special effects - PACING! The pacing of this movie is superb. It skips along so quickly, you don't even realize the movie has run its course until the climax is about to occur. It...
 Gold label: 4
 
 Example 24:
-Review: Very low visibility, great for the price.  Inadequate for heavy large plates, note there is a taller one available.
+Review: Simon Winchester is probably best known for the two books he has written on the OED, The Professor and the Madman and The Meaning of Everything; however, he has also delved into the territory of the physical sciences on a couple of occasions.  I very much enjoyed his book on the birth of modern geology, The Map that Changed the World.  Equally excellent is this book on the eruption of Krakatoa.
+Subtitled "The Day the World Exploded, August 27, 1888," this book tells the story of one of the most ...
 Gold label: 5
 
 Example 25:
-Review: I haven't always been happy with DII products, but their Summer & Picnic Tablecloths go a long way to changing my opinion. These are 100% cotton that feels like thick linen. The stitching is tight and uniform and hems run square with the pattern. Id prefer it if they were not washable in cold water only. Items that come into contact with food need hot water to kill germs is one thing I remember from health classes. These can get wrinkled if not pulled quickly from the dryer, but not horribly bad...
+Review: I found this to be a good read. I enjoyed the characters which were well written. The plot is somewhat different being a bit suspenseful. It is very fast paced and a quick read. I am looking forward to the next book.
 Gold label: 4
 
 
@@ -130,12 +120,12 @@ Write a detailed System Prompt that teaches another LLM to classify such reviews
 IMPORTANT: The prompt MUST use the following XML structure with three sections:
 
 <System>
-    <Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
     
     <BaseGuidelines>
         (Static rules that should NOT change during evolution:
          - Star rating scale: 1-5
-         - Output format: ONLY a number (1, 2, 3, 4, or 5), no explanation
+         - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
          - Task: classify sentiment based on review text)
     </BaseGuidelines>
 
@@ -151,7 +141,7 @@ IMPORTANT: The prompt MUST use the following XML structure with three sections:
     (Include 5-8 representative examples from the list above, formatted as:
      Example 1:
      Review: [text]
-     Rating: [label]
+     Rating: [1-5]
      
      Example 2:
      ...)
@@ -159,16 +149,14 @@ IMPORTANT: The prompt MUST use the following XML structure with three sections:
 
 <Task>
     Review: {review}
-    
-    Rating:
 </Task>
 
 The prompt MUST:
 - Use the exact XML structure above with <System>, <BaseGuidelines>, <DynamicRules>, <FewShotExamples>, and <Task> sections
 - Put static, unchanging rules in <BaseGuidelines>
 - Put evolvable rules and criteria in <DynamicRules>
-- Include 5-8 few-shot examples in <FewShotExamples>
+- Include 5-8 few-shot examples in <FewShotExamples> with "Rating: [1-5]" per example
 - Use {review} as the placeholder in <Task>
-- Request ONLY a number (1, 2, 3, 4, or 5) as output—no explanation
+- Request output as a single rating 1-5 only (e.g. "Rating: 4" or "4")
 
-Generate prompt this structure. briefly explain its strengths.
+Generate 5 different prompt variants following this structure. For each variant, briefly explain its strengths.

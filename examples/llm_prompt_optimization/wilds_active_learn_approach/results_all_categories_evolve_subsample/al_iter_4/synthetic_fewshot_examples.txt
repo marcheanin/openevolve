@@ -1,0 +1,31 @@
+Example 1:
+Review: This coffee maker is fantastic. It brews a hot, flavorful pot of coffee quickly and the warming plate keeps it at a perfect temperature without tasting burnt. The design is sleek, it's easy to clean, and the auto-shutoff is a great feature. Absolutely love it and would recommend it to anyone.
+Rating: 5
+
+Example 2:
+Review: This coffee maker is pretty good. It brews a hot, flavorful pot of coffee and the design is nice. My main complaint is that the carafe spout is poorly designed and tends to drip coffee on the counter when I pour, unless I do it very slowly. Otherwise, it's a solid machine for the price.
+Rating: 4
+
+Example 3:
+Review: For the price, these baking sheets are not bad. They're a good size and I've used them for cookies and roasting vegetables without any major issues. They feel a bit thin and I'm not sure how they'll hold up over time, but for now they're working fine and are a good value.
+Rating: 4
+
+Example 4:
+Review: These baking sheets seemed great at first, but now I have mixed feelings. They work for low-temp baking, but they warp badly any time the oven is over 400 degrees, causing oil to pool on one side. They flatten out after cooling, but it's really frustrating to deal with while cooking. They're just okay.
+Rating: 3
+
+Example 5:
+Review: I bought this set of dish towels because I liked the pattern. They're very absorbent and a great size for drying dishes or hands. They did shed a lot of lint in the first couple of washes, which was annoying, but after that they've been great. Overall, I'm happy with them.
+Rating: 4
+
+Example 6:
+Review: This is an excellent air fryer. It's simple to use, the basket is non-stick and genuinely easy to clean, and everything I've made has come out perfectly crispy. It has completely changed my weeknight cooking. It works exactly as described and I'm delighted with it.
+Rating: 5
+
+Example 7:
+Review: I was excited for this immersion blender, but it's been a huge letdown. The motor feels very weak and it struggles to blend even soft foods like cooked squash for soup, leaving lots of chunks. It also gets uncomfortably hot after just 30 seconds of use. It technically works, but it's not powerful enough for basic tasks.
+Rating: 2
+
+Example 8:
+Review: DANGEROUS. I used this electric kettle for one week. This morning, I smelled burning plastic and saw that the base around the heating element was MELTING during use. This is a massive fire hazard. I'm throwing it away immediately. Do not buy this product, it is not safe.
+Rating: 1

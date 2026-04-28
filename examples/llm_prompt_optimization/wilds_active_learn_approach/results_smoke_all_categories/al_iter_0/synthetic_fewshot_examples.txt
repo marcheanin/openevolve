@@ -1,0 +1,31 @@
+Example 1:
+Review: This blender is a game-changer! It's powerful, quiet, and turns ice and frozen fruit into the smoothest smoothies I've ever made. Clean-up is a breeze. Absolutely love it and would highly recommend it.
+Rating: 5
+
+Example 2:
+Review: This is a pretty good blender for the price. It handles my morning smoothies well, though it sometimes leaves a few small chunks of ice. Overall, I'm happy with the purchase and it gets the job done.
+Rating: 4
+
+Example 3:
+Review: I was so hopeful for this non-stick pan, but after a month of gentle use and hand-washing, everything sticks. It's no better than a cheap aluminum pan now. Really disappointed with the quality.
+Rating: 2
+
+Example 4:
+Review: Total garbage. The 'non-stick' coating on this pan started peeling off into our food after the very first use. It's a health hazard and a complete waste of money. Straight into the trash. DO NOT BUY.
+Rating: 1
+
+Example 5:
+Review: I really like this coffee maker. It brews a great, hot cup of coffee quickly. My only small complaint is that the carafe dribbles a little when I pour if I'm not careful. Otherwise, it's a solid choice.
+Rating: 4
+
+Example 6:
+Review: This coffee maker is okay. It looks sleek on the counter and it's simple to operate. However, the coffee just doesn't get very hot, and I always have to microwave my cup. It works, but I wouldn't buy it again.
+Rating: 3
+
+Example 7:
+Review: This shelf looks nice once it's assembled, but getting there was a challenge. The instructions are just pictures and one of the panels was slightly warped. It's stable enough for decorations, but I was expecting better for the price.
+Rating: 3
+
+Example 8:
+Review: The instructions for assembling this shelf were a nightmare, and two of the main bolts were missing. I had to go to the hardware store to finish it. Now that it's built, it feels flimsy and I don't trust it with anything valuable.
+Rating: 2

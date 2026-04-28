@@ -240,11 +240,10 @@ active_learning:
 dataset:
   config_path: "dataset.yaml"
   max_samples: null
-  max_samples_train: null
-  max_samples_val: null
-  max_samples_test: null
   max_train_users: 25
   max_val_users: 15
+  max_reviews_per_user: 15
+  stratify_users: true
 
 prompt_path: "initial_prompt.txt"
 output_dir: "results"

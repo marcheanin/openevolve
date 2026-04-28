@@ -1,0 +1,4 @@
+- **Target `gold 4 -> 5` & `gold 5 -> 4`:** These are the largest error sources. Added a rule under 5-stars to clarify that "user advice" is not a flaw and doesn't downgrade a rating (addressing `gold 5 -> 4`). Added a "Pleasantly Surprised" rule under 4-stars to correctly classify reviews with qualified praise that were being mistaken for 5s (addressing `gold 4 -> 5`).
+- **Strengthen 3-Star Boundary:** Added a "Balanced Pros & Cons" rule to better capture mixed-feeling reviews that were being incorrectly upgraded to 4 stars.
+- **Address Anchor Regression:** Clarified the 2-star rule ("Praise Undone by Failure") to emphasize that the final negative verdict defines the rating, overriding any initial praise. This targets the `gold 2 -> 3` regression.
+- **Few-Shot Example Update:** Replaced an existing 4-star example with a misclassified book review from the artifacts. This new example directly teaches the "pleasantly surprised" 4-star pattern that was causing errors.

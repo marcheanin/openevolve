@@ -1,0 +1,31 @@
+Example 1:
+Review: This coffee maker is a game-changer! It brews a perfect, hot cup of coffee in under 5 minutes. The thermal carafe is amazing and keeps it hot for hours without a burnt taste. It's easy to clean, easy to use, and looks sleek on my counter. I absolutely love it.
+Rating: 5
+
+Example 2:
+Review: This coffee maker brews a really good cup of coffee, and the thermal carafe works well. My main complaint is that the opening to pour water into the reservoir is very small and awkwardly placed, so I spill a little water almost every time. It's a daily annoyance, but the coffee quality is good enough that I'm keeping it.
+Rating: 4
+
+Example 3:
+Review: These baking sheets are fantastic. They are heavy-duty, heat evenly, and nothing sticks to them. I've roasted vegetables and baked cookies and they perform perfectly every time. A quick wipe and they are clean. I couldn't be happier with this purchase.
+Rating: 5
+
+Example 4:
+Review: These are solid, heavy-duty baking sheets that cook evenly. My only real issue is that they discolored and stained quite a bit after just one use roasting vegetables at 425°F. It doesn't seem to affect the non-stick quality, but I was disappointed they lost their shiny new look so quickly. Still a good pan for the price.
+Rating: 4
+
+Example 5:
+Review: This vacuum has incredible suction and picks up pet hair like a champ. It's really effective on both carpet and hardwood. My only issue is that the dustbin is pretty small, so I have to empty it multiple times per room. Still, the cleaning power makes it worth it for me.
+Rating: 4
+
+Example 6:
+Review: I have mixed feelings. The suction on this vacuum is great, but the dustbin is so small it's almost unusable for a whole room, and the main brush head constantly gets clogged with hair. It gets the job done eventually, but it's a frustrating process. It's just okay.
+Rating: 3
+
+Example 7:
+Review: I bought this electric kettle for its looks, but it's a huge disappointment. It takes over 12 minutes to boil a full pot, which is much slower than my old one. There's also a persistent plastic taste to the water that I can't get rid of even after weeks of use. It technically works, but I don't enjoy using it.
+Rating: 2
+
+Example 8:
+Review: DANGEROUS PRODUCT. After one month, the automatic shut-off feature on this kettle failed. I walked into the kitchen to find it boiling continuously and spitting water all over my counter and floor. This is a serious fire hazard. Do not buy this kettle.
+Rating: 1

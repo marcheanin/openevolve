@@ -1,0 +1,76 @@
+{
+  "al_iter": 4,
+  "n_programs": 10,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.701557082392601,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error was confusion at the 4/5 star boundary (`gold 5 -> 4` and `gold 4 -> 5`). I've rewritten the rules for 4 and 5 stars, borrowing heavily from the top-performing prompt (Program 1), to better distinguish between \"solid\" praise (4-star) and unequivocal delight or flawlessness (5-star).\n- Added a `Weak Praise, Net Positive` rule to the 4-star category to fix `gold 4 -> 3` errors where minor complaints were over-penalized.\n- Replaced the generic few-shot examples with a curated set targeting specific, difficult cases identified in the error artifacts (e.g., purely descriptive reviews, mixed-signal food reviews, and book reviews with cliffhangers). This directly teaches the model about common failure modes.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 2,
+      "score": 0.6858027170142427,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 3,
+      "score": 0.6801524216558968,
+      "has_mutation_log": true,
+      "mutation_log": "- **Reasoning**: The biggest issue was the `gold 5 -> 4` error pattern (23 instances), caused by a too-strict definition of 5 stars in the previous prompt. Anchor regressions showed the same problem.\n- **Action 1 (Base)**: I started with the top-performing `Program 1` as a base. Its rule `Wholly positive reviews are 5-star, even if not gushy` and its well-chosen few-shot examples directly address the primary error source and the anchor regressions.\n- **Action 2 (5/4 Boundary)**: To further refine the 5 vs 4 boundary, I added a rule to the 5-star section to handle reviews of collections where one minor part is disliked but the overall sentiment is positive (targeting the \"Rocky movies\" misclassification).\n- **Action 3 (1/2 Boundary)**: To address a `gold=1 -> pred=2` error where a product failed repeatedly, I added a rule to the 1-star section clarifying that repeated failures can justify a 1-star rating.\n- **Action 4 (4/5 Boundary)**: To prevent incorrect `gold=4 -> pred=5` classifications where models over-index on \"really enjoyed\", I added a clarification to the 4-star rule.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 4,
+      "score": 0.6737371451601294,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error is `gold=5 -> pred=4` (23 instances), including 3 anchor regressions. This is caused by an overly strict 5-star rule in the current prompt that penalizes factual or non-enthusiastic positive reviews.\n- Reverted the 5-star and 4-star rule definitions to be more like the top-performing Program 1. Specifically, clarifying that wholly positive reviews, even factual ones (\"works as described\"), are 5-star. A 4-star is for \"good, but...\" scenarios.\n- Replaced the current few-shot examples with the set from Program 1. This new set is better balanced and includes several of the exact reviews that were misclassified in the error report (the \"cliffhanger\" book review, the \"biker\" character description), directly teaching the model the correct classification for these tricky cases.\n- These changes are intended to fix the main `5->4` error, improve anchor accuracy, and provide better guidance on key boundary decisions.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 5,
+      "score": 0.6661331527515797,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error pattern is `gold=4 -> pred=5`, indicating the models are too generous. To address this, I'm starting from the top-performing prompt (`Program 1`) and making the 4 vs. 5 boundary even more explicit.\n- I've modified the 4-star guideline to frame it as the \"default for a positive review,\" forcing the model to find exceptional evidence for a 5-star rating rather than defaulting to it.\n- I replaced a simple 4-star descriptive praise example (\"Decan biker\") with a more nuanced synthetic example about dish towels that had an initial, but resolved, flaw. This teaches the common \"initial problem, but happy overall\" pattern, which is a classic 4-star review type not previously covered.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 6,
+      "score": 0.66394972982252,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error is `gold=4 -> pred=5`, where reviews with positive but measured praise are overrated. I'm targeting this by refining the 4-star vs. 5-star boundary rules to better distinguish between 'competency praise' (4-star) and 'delight/high impact' (5-star).\n- I've revised the 5-star rule to clarify that even \"not gushy\" reviews must convey strong satisfaction or perfection, not just an absence of negatives.\n- The few-shot examples have been completely replaced with a new, highly-targeted set. This set incorporates examples from the best-performing prompt and the synthetic suggestions, specifically including tricky 4-star reviews that were previously misclassified (e.g., descriptive praise for a book) to directly teach the model the intended boundary.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 7,
+      "score": 0.6266416710997866,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error was `gold 5 -> 4`, where factual, wholly positive reviews were being downgraded. I revised the 5-star rule to explicitly state that gush-free, analytical, or short factual positive reviews are 5s, borrowing this effective phrasing from Program 1.\n- The second top error was `gold 4 -> 5`. To address this, I sharpened the 4-star definition to include \"Descriptive Praise\" (e.g., plot summaries) and emphasized that terms like \"enjoyable read\" signal a 4, not a 5, even if other praise is strong.\n- To fix anchor regressions and `gold 4 -> 3` errors, I clarified the 3 vs. 4 boundary: a 4 has a \"non-trivial drawback or annoyance,\" while a 3 has a \"significant functional flaw\" that compromises core use.\n- Replaced all existing few-shot examples with the `Suggested synthetic FewShot (draft)`. This new set is excellent, providing clear, targeted examples for each boundary, especially for weak-praise 4s and flaw-based 3s.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 8,
+      "score": 0.5864455018094165,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error was `gold=4 -> pred=5`, where competent but unenthusiastic positive reviews were being misclassified as 5-star. This was likely due to an overly broad 5-star rule.\n- I rewrote the 4-star and 5-star rating guidelines to create a clearer boundary. The 5-star rating now explicitly requires strong enthusiasm, while the 4-star rating is established as the \"default\" for positive, competent reviews.\n- I replaced the existing 9 few-shot examples with the more archetypal set of 8 synthetic examples. This new set provides very clear instances of the key rating boundaries, especially the 4 vs. 5 and 3 vs. 4 distinctions, directly reinforcing the new rules.\n- I slightly sharpened the 3-star rule definition to better contrast a \"significant flaw\" against a 4-star \"annoyance\".",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 9,
+      "score": 0.5666302956752912,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error is gold=4 -> pred=5. Workers over-index on positive words like \"enjoyable\" or \"top-notch\" and incorrectly assign a 5.\n- To fix this, I'm sharpening the 4 vs. 5 boundary definition in the DynamicRules. I've added an explicit rule to classify praise for competence (\"solid\", \"works well\", \"enjoyable read\") as a 4 unless there is clear delight or a powerful endorsement.\n- I've completely replaced the old few-shot examples with a curated set from the synthetic draft. The new examples are less ambiguous, cover product reviews more broadly, and provide very clear illustrations of the key boundaries (especially 5 vs 4, 4 vs 3).",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 10,
+      "score": 0.563250638614363,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error was `gold=4 -> pred=5`, where workers were too generous with positive but non-enthusiastic reviews. I sharpened the 4-vs-5 star boundary in `DynamicRules` to address this.\n- The 5-star rule now requires unequivocal praise or delight, explicitly stating that competency-based praise (\"solid plot\", \"well-written\") without a strong endorsement is a 4.\n- The 4-star rule was expanded to better define the \"Solid, but Not Amazing\" pattern, giving more examples of typical 4-star language.\n- Replaced the entire `<FewShotExamples>` section with the suggested synthetic draft. The new examples are clearer, more canonical illustrations of the rules, and provide an additional 4-star case to help reinforce the new boundary definition.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    }
+  ]
+}

@@ -8,9 +8,11 @@ Supports:
 - Per-example results for DataManager
 """
 
+import hashlib
 import json
 import os
 import sys
+import time
 import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -40,6 +42,18 @@ from openevolve.evaluation_result import EvaluationResult
 
 DEFAULT_MAX_PARALLEL = 15
 
+# Progress checkpoints for long full-test / full-split runs (see _parallel_predict).
+_PREDICT_PROGRESS_LATEST = "predict_progress_latest.json"
+_PREDICT_PROGRESS_COMPLETE = "predict_progress_complete.json"
+
+
+def _atomic_write_json(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False)
+    os.replace(str(tmp), str(path))
+
 # Fitness weights (from plan)
 W1_ACC_HARD = 0.5
 W2_ACC_ANCHOR = 0.3
@@ -67,7 +81,12 @@ def _strip_mutation_log(text: str) -> str:
 
 
 def _load_config() -> dict:
-    with open(SCRIPT_DIR / "config.yaml", "r", encoding="utf-8") as f:
+    env_path = os.environ.get("WILDS_ACTIVE_LEARN_CONFIG")
+    if env_path and Path(env_path).is_file():
+        path = Path(env_path)
+    else:
+        path = SCRIPT_DIR / "config.yaml"
+    with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -82,17 +101,59 @@ def _load_active_batch() -> Optional[Dict[str, Any]]:
 
 
 # Кэш загрузки сплитов: при каждой оценке кандидата OpenEvolve вызывается evaluate(),
-# и без кэша каждый раз читался бы .pkl с диска. Ключ: (split_name, max_users) для согласованности с config.
-_SPLIT_DATA_CACHE: Dict[Tuple[str, Optional[int]], Tuple[List[str], np.ndarray, np.ndarray]] = {}
+# и без кэша каждый раз читался бы .pkl с диска.
+_SPLIT_DATA_CACHE: Dict[Tuple, Tuple[List[str], np.ndarray, np.ndarray]] = {}
+
+
+def _coerce_positive_int_cap(v: Any) -> Optional[int]:
+    """YAML may load null as None, or the string 'none'; bool must not become 0/1."""
+    if v is None:
+        return None
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, str):
+        s = v.strip().lower()
+        if s in ("", "none", "null", "~", "nan"):
+            return None
+        try:
+            v = int(float(s))
+        except ValueError:
+            return None
+    elif isinstance(v, float):
+        v = int(v)
+    elif not isinstance(v, int):
+        return None
+    return v if v > 0 else None
+
+
+def _resolve_max_samples(ds_cfg: dict, split_name: str) -> Optional[int]:
+    """Per-split cap from dataset.*; fallback to max_samples. None or <=0 = no cap."""
+    if split_name == "train":
+        key = "max_samples_train"
+    elif split_name in ("validation", "val"):
+        key = "max_samples_val"
+    elif split_name == "test":
+        key = "max_samples_test"
+    else:
+        key = "max_samples_val"
+    cap = _coerce_positive_int_cap(ds_cfg.get(key))
+    if cap is None:
+        cap = _coerce_positive_int_cap(ds_cfg.get("max_samples"))
+    return cap
 
 
 def _load_split_data(config: dict, split_name: str) -> Tuple[List[str], np.ndarray, np.ndarray]:
     """Load data for a split. Result is cached so repeated calls (e.g. every evaluate() in evolution) don't hit disk."""
     ds_cfg = config.get("dataset", {})
+    stratify_users = bool(ds_cfg.get("stratify_users", False))
     max_users = ds_cfg.get("max_train_users" if split_name == "train" else "max_val_users")
+    max_reviews_per_user = ds_cfg.get("max_reviews_per_user")
+    
     if max_users is not None and max_users <= 0:
         max_users = None
-    cache_key = (split_name, max_users)
+    max_reviews = _resolve_max_samples(ds_cfg, split_name)
+    dataset_rel = ds_cfg.get("config_path", "dataset.yaml")
+    cache_key = (split_name, max_users, dataset_rel, max_reviews, stratify_users, max_reviews_per_user)
     if cache_key in _SPLIT_DATA_CACHE:
         return _SPLIT_DATA_CACHE[cache_key]
 
@@ -106,7 +167,8 @@ def _load_split_data(config: dict, split_name: str) -> Tuple[List[str], np.ndarr
     preprocess_category_data = mod.preprocess_category_data
     create_splits_from_preprocessed = mod.create_splits_from_preprocessed
     save_preprocessed_data = mod.save_preprocessed_data
-    dataset_cfg_path = SCRIPT_DIR / "dataset.yaml"
+    effective_category_id = mod.effective_category_id
+    dataset_cfg_path = SCRIPT_DIR / dataset_rel
     with open(dataset_cfg_path, "r", encoding="utf-8") as f:
         dataset_cfg = yaml.safe_load(f)
     dataset_cfg.setdefault("data_root", "./data")
@@ -114,7 +176,7 @@ def _load_split_data(config: dict, split_name: str) -> Tuple[List[str], np.ndarr
     preprocessed = load_preprocessed_data(dataset_cfg)
     if preprocessed is None:
         dataset, _ = load_wilds_dataset(dataset_cfg)
-        preprocessed = preprocess_category_data(dataset, dataset_cfg["category_id"])
+        preprocessed = preprocess_category_data(dataset, effective_category_id(dataset_cfg))
         save_preprocessed_data(dataset_cfg, preprocessed)
 
     splits = create_splits_from_preprocessed(
@@ -124,19 +186,63 @@ def _load_split_data(config: dict, split_name: str) -> Tuple[List[str], np.ndarr
         test_ratio=dataset_cfg.get("test_ratio", 0.15),
         seed=dataset_cfg.get("split_seed", 42),
     )
-    split = splits[split_name]
+    split_key = "validation" if split_name == "val" else split_name
+    split = splits[split_key]
     indices = split["indices"]
     texts = [preprocessed["texts"][i] for i in indices]
     labels = np.array([int(preprocessed["labels"][i]) for i in indices])
     user_ids = np.array([int(preprocessed["user_ids"][i]) for i in indices])
-
+    cats_list: Optional[List[int]] = None
+    if preprocessed.get("categories") is not None:
+        cats_list = [int(preprocessed["categories"][i]) for i in indices]
+    
     if max_users and max_users > 0:
-        unique_users = sorted(set(user_ids.tolist()))
-        selected = set(unique_users[: int(max_users)])
-        mask = np.array([u in selected for u in user_ids])
-        texts = [t for t, m in zip(texts, mask) if m]
-        labels = labels[mask]
-        user_ids = user_ids[mask]
+        if stratify_users and cats_list is not None and len(cats_list) == len(texts):
+            from sample_stratified import select_stratified_users_and_cap
+            split_seed = int(dataset_cfg.get("split_seed", 42))
+            _rng_off = {"train": 0, "validation": 1, "val": 1, "test": 2}.get(split_name, 0)
+            rng = np.random.RandomState(split_seed + 1000 + _rng_off)
+            
+            pick = select_stratified_users_and_cap(
+                np.array(user_ids), np.array(cats_list), max_users, max_reviews_per_user or 0, rng
+            )
+            texts = [texts[i] for i in pick]
+            labels = [labels[i] for i in pick]
+            user_ids = [user_ids[i] for i in pick]
+        else:
+            unique_users = sorted(set(user_ids.tolist()))
+            selected = set(unique_users[: int(max_users)])
+            mask = np.array([u in selected for u in user_ids])
+            texts = [t for t, m in zip(texts, mask) if m]
+            labels = labels[mask]
+            user_ids = user_ids[mask]
+            
+            if max_reviews_per_user and max_reviews_per_user > 0:
+                split_seed = int(dataset_cfg.get("split_seed", 42))
+                _rng_off = {"train": 0, "validation": 1, "val": 1, "test": 2}.get(split_name, 0)
+                rng = np.random.RandomState(split_seed + 1000 + _rng_off)
+                final_indices = []
+                for u in selected:
+                    u_idx = np.where(user_ids == u)[0]
+                    if len(u_idx) > max_reviews_per_user:
+                        u_idx = rng.choice(u_idx, size=max_reviews_per_user, replace=False)
+                    final_indices.extend(u_idx)
+                final_indices = np.array(final_indices)
+                final_indices.sort()
+                texts = [texts[i] for i in final_indices]
+                labels = labels[final_indices]
+                user_ids = user_ids[final_indices]
+
+    max_reviews = _resolve_max_samples(ds_cfg, split_name)
+    if max_reviews and len(texts) > max_reviews:
+        split_seed = int(dataset_cfg.get("split_seed", 42))
+        _rng_off = {"train": 0, "validation": 1, "val": 1, "test": 2}.get(split_name, 0)
+        rng = np.random.RandomState(split_seed + 1000 + _rng_off)
+        pick = rng.choice(len(texts), size=max_reviews, replace=False)
+        pick.sort()
+        texts = [texts[i] for i in pick]
+        labels = labels[pick]
+        user_ids = user_ids[pick]
 
     _SPLIT_DATA_CACHE[cache_key] = (texts, labels, user_ids)
     return texts, labels, user_ids
@@ -166,32 +272,217 @@ def _parallel_predict(
     Run all (text, worker) predictions in parallel using ThreadPoolExecutor.
     Returns (ensemble_predictions, worker_preds) where worker_preds[w][i] is
     the prediction of worker w on text i.
+
+    Progress checkpoints (same schema as resume dumps):
+      - WILDS_PREDICT_DUMP_DIR: directory for ``predict_progress_latest.json`` (default: ./predict_dumps)
+      - WILDS_PREDICT_DUMP_ON_FATAL: 0/1 — disable all grid saves if 0 (default 1)
+      - WILDS_PREDICT_PERIODIC_EVERY: save latest grid every N completed LLM cells (default 5000)
+      - WILDS_PREDICT_PERIODIC_MIN_SEC: min wall seconds between periodic saves (default 30)
+      - WILDS_PREDICT_RESUME_PATH: optional path to a prior dump to resume in-process
+    On interrupt or any BaseException during the pool loop, writes timestamped snapshot + latest.
+    On success, writes ``predict_progress_complete.json`` and refreshes latest.
     """
     n_texts = len(texts)
     n_workers = len(workers)
-    results_grid = [[3] * n_texts for _ in range(n_workers)]
+    # grid[w][t] = rating if computed, else None (so we can resume from partial dumps)
+    results_grid: List[List[Optional[int]]] = [[None] * n_texts for _ in range(n_workers)]
     aggregator = MajorityVoteAggregator()
 
-    def _call(w_idx: int, t_idx: int) -> Tuple[int, int, int]:
-        pred = workers[w_idx].predict(texts[t_idx], prompt_template)
-        return w_idx, t_idx, pred
+    def _call(w_idx: int, t_idx: int) -> Tuple[int, int, int, Optional[Exception]]:
+        try:
+            pred = workers[w_idx].predict(texts[t_idx], prompt_template)
+            return w_idx, t_idx, int(pred), None
+        except Exception as exc:
+            # Keep progress going; treat as neutral default.
+            return w_idx, t_idx, 3, exc
 
-    with ThreadPoolExecutor(max_workers=max_parallel) as pool:
-        futures = []
-        for t_idx in range(n_texts):
-            for w_idx in range(n_workers):
-                futures.append(pool.submit(_call, w_idx, t_idx))
+    import time as _time
 
-        for future in as_completed(futures):
-            w_idx, t_idx, pred = future.result()
-            results_grid[w_idx][t_idx] = pred
+    total_calls = n_texts * n_workers
+    show_progress_env = os.getenv("WILDS_SHOW_PROGRESS", "").strip().lower()
+    show_progress = show_progress_env not in ("0", "false", "no", "off")
+    # Auto-disable tiny runs unless explicitly forced on.
+    if total_calls < 2000 and show_progress_env == "":
+        show_progress = False
+    progress_every = int(os.getenv("WILDS_PROGRESS_EVERY", "2500"))
+    progress_every = max(1, progress_every)
+
+    t_start = _time.time()
+    last_print_t = t_start
+    done = 0
+
+    def _count_done_cells() -> int:
+        c = 0
+        for w in range(n_workers):
+            for t in range(n_texts):
+                if results_grid[w][t] is not None:
+                    c += 1
+        return c
+
+    def _try_resume_from_dump() -> None:
+        nonlocal done
+        resume_path = os.getenv("WILDS_PREDICT_RESUME_PATH", "").strip()
+        if not resume_path:
+            return
+        p = Path(resume_path)
+        if not p.is_file():
+            print(f"    resume: dump not found: {p}", flush=True)
+            return
+        try:
+            with open(p, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as e:
+            print(f"    resume: failed to read dump {p}: {type(e).__name__}: {e}", flush=True)
+            return
+        if data.get("version") != 1:
+            print(f"    resume: unsupported dump version in {p}", flush=True)
+            return
+        if int(data.get("n_texts", -1)) != n_texts or int(data.get("n_workers", -1)) != n_workers:
+            print(f"    resume: dump shape mismatch in {p}", flush=True)
+            return
+        prompt_sha = hashlib.sha256(prompt_template.encode("utf-8")).hexdigest()
+        if data.get("prompt_sha256") != prompt_sha:
+            print(f"    resume: prompt_sha mismatch (dump != current). Ignoring {p}", flush=True)
+            return
+        expected_workers = [getattr(w, "model_uri", None) or getattr(w, "model_name", None) for w in workers]
+        if data.get("worker_models") != expected_workers:
+            print(f"    resume: worker_models mismatch (dump != current). Ignoring {p}", flush=True)
+            return
+        grid = data.get("grid")
+        if not isinstance(grid, list) or len(grid) != n_workers:
+            print(f"    resume: invalid grid in {p}", flush=True)
+            return
+        for w in range(n_workers):
+            row = grid[w]
+            if not isinstance(row, list) or len(row) != n_texts:
+                print(f"    resume: invalid grid row in {p}", flush=True)
+                return
+        # Load values (None means missing)
+        for w in range(n_workers):
+            for t in range(n_texts):
+                v = grid[w][t]
+                results_grid[w][t] = None if v is None else int(v)
+        done = _count_done_cells()
+        print(f"    resume: loaded {done}/{n_texts*n_workers} LLM cells from {p}", flush=True)
+
+    _try_resume_from_dump()
+
+    def _progress_save_enabled() -> bool:
+        return os.getenv("WILDS_PREDICT_DUMP_ON_FATAL", "1").strip().lower() not in (
+            "0",
+            "false",
+            "no",
+            "off",
+        )
+
+    def _progress_out_dir() -> Path:
+        dump_dir = os.getenv("WILDS_PREDICT_DUMP_DIR", "").strip()
+        return Path(dump_dir) if dump_dir else (SCRIPT_DIR / "predict_dumps")
+
+    def _build_grid_payload(reason: str) -> dict:
+        prompt_sha = hashlib.sha256(prompt_template.encode("utf-8")).hexdigest()
+        return {
+            "version": 1,
+            "reason": reason,
+            "n_texts": n_texts,
+            "n_workers": n_workers,
+            "done_llm_cells": done,
+            "total_llm_cells": total_calls,
+            "prompt_sha256": prompt_sha,
+            "worker_models": [getattr(w, "model_uri", None) or getattr(w, "model_name", None) for w in workers],
+            "grid": results_grid,
+        }
+
+    def _write_predict_progress(reason: str, *, timestamped: bool) -> None:
+        """
+        Persist worker×text label grid for resume / crash recovery.
+        Always writes predict_progress_latest.json when enabled.
+        If timestamped, also writes partial_predictions_<sha>_<ts>.json
+        """
+        if not _progress_save_enabled():
+            return
+        out_dir = _progress_out_dir()
+        try:
+            out_dir.mkdir(parents=True, exist_ok=True)
+            payload = _build_grid_payload(reason)
+            latest_path = out_dir / _PREDICT_PROGRESS_LATEST
+            _atomic_write_json(latest_path, payload)
+            print(f"    progress: saved grid → {latest_path} ({payload['done_llm_cells']}/{total_calls})", flush=True)
+            if timestamped:
+                prompt_sha = payload["prompt_sha256"]
+                ts = time.strftime("%Y%m%d-%H%M%S")
+                snap = out_dir / f"partial_predictions_{prompt_sha[:12]}_{ts}.json"
+                _atomic_write_json(snap, payload)
+                print(f"    progress: snapshot → {snap}", flush=True)
+        except Exception as dump_exc:
+            print(f"    progress: WARNING failed to save grid ({dump_exc})", flush=True)
+
+    periodic_every = int(os.getenv("WILDS_PREDICT_PERIODIC_EVERY", "5000"))
+    periodic_every = max(1, periodic_every)
+    periodic_min_sec = float(os.getenv("WILDS_PREDICT_PERIODIC_MIN_SEC", "30"))
+    periodic_min_sec = max(0.0, periodic_min_sec)
+    last_periodic_wall = 0.0
+
+    try:
+        with ThreadPoolExecutor(max_workers=max_parallel) as pool:
+            futures = []
+            for t_idx in range(n_texts):
+                for w_idx in range(n_workers):
+                    if results_grid[w_idx][t_idx] is None:
+                        futures.append(pool.submit(_call, w_idx, t_idx))
+
+            for future in as_completed(futures):
+                w_idx, t_idx, pred, err = future.result()
+                if results_grid[w_idx][t_idx] is None:
+                    results_grid[w_idx][t_idx] = int(pred)
+                done += 1
+
+                if show_progress and (done % progress_every == 0 or done == total_calls):
+                    now = _time.time()
+                    # Throttle printing in case progress_every is too small.
+                    if now - last_print_t >= 1.0 or done == total_calls:
+                        elapsed = max(1e-6, now - t_start)
+                        rate = done / elapsed
+                        remaining = max(0, total_calls - done)
+                        eta_s = remaining / max(1e-6, rate)
+                        pct = 100.0 * done / max(1, total_calls)
+                        print(
+                            f"    progress: {done}/{total_calls} calls ({pct:.1f}%) | "
+                            f"{rate:.1f} calls/s | ETA {eta_s/60:.1f} min",
+                            flush=True,
+                        )
+                        last_print_t = now
+
+                # Periodic grid checkpoint (overwrites predict_progress_latest.json)
+                if done > 0 and done % periodic_every == 0:
+                    now = _time.time()
+                    if periodic_min_sec <= 0 or (now - last_periodic_wall) >= periodic_min_sec:
+                        _write_predict_progress("periodic", timestamped=False)
+                        last_periodic_wall = now
+    except BaseException as fatal:
+        _write_predict_progress(f"fatal: {type(fatal).__name__}: {fatal}", timestamped=True)
+        raise
+
+    if _progress_save_enabled():
+        try:
+            complete_payload = _build_grid_payload("complete")
+            complete_path = _progress_out_dir() / _PREDICT_PROGRESS_COMPLETE
+            _progress_out_dir().mkdir(parents=True, exist_ok=True)
+            _atomic_write_json(complete_path, complete_payload)
+            _atomic_write_json(_progress_out_dir() / _PREDICT_PROGRESS_LATEST, complete_payload)
+        except Exception as dump_exc:
+            print(f"    progress: WARNING failed to save complete grid ({dump_exc})", flush=True)
 
     predictions = []
     for t_idx in range(n_texts):
-        sample = [results_grid[w][t_idx] for w in range(n_workers)]
+        sample = [int(results_grid[w][t_idx] if results_grid[w][t_idx] is not None else 3) for w in range(n_workers)]
         predictions.append(aggregator.aggregate(sample))
 
-    return predictions, results_grid
+    out_grid: List[List[int]] = [
+        [int(results_grid[w][t] if results_grid[w][t] is not None else 3) for t in range(n_texts)]
+        for w in range(n_workers)
+    ]
+    return predictions, out_grid
 
 
 def _run_evaluation(
@@ -545,8 +836,8 @@ def evaluate(prompt_path: Optional[str] = None) -> Union[Dict[str, Any], Evaluat
     active = _load_active_batch()
     if active and "indices" in active:
         pool_texts, pool_labels, pool_user_ids = _load_split_data(config, "train")
-        pool_labels_list = pool_labels.tolist()
-        pool_user_ids_list = pool_user_ids.tolist()
+        pool_labels_list = pool_labels.tolist() if hasattr(pool_labels, "tolist") else list(pool_labels)
+        pool_user_ids_list = pool_user_ids.tolist() if hasattr(pool_user_ids, "tolist") else list(pool_user_ids)
         result = evaluate_fast(
             prompt_template,
             active,

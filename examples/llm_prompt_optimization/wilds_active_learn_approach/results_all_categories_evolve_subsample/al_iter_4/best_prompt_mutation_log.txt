@@ -1,0 +1,3 @@
+- The primary error was confusion at the 4/5 star boundary (`gold 5 -> 4` and `gold 4 -> 5`). I've rewritten the rules for 4 and 5 stars, borrowing heavily from the top-performing prompt (Program 1), to better distinguish between "solid" praise (4-star) and unequivocal delight or flawlessness (5-star).
+- Added a `Weak Praise, Net Positive` rule to the 4-star category to fix `gold 4 -> 3` errors where minor complaints were over-penalized.
+- Replaced the generic few-shot examples with a curated set targeting specific, difficult cases identified in the error artifacts (e.g., purely descriptive reviews, mixed-signal food reviews, and book reviews with cliffhangers). This directly teaches the model about common failure modes.

@@ -1,0 +1,31 @@
+Example 1:
+Review: This dish rack looks nice and holds plates well. However, the utensil holder has wide gaps and my silverware constantly falls through, which is really frustrating. It's just an okay product, I guess.
+Rating: 3
+
+Example 2:
+Review: I really like the modern look of this dish rack and its large capacity. The only small issue is the utensil holder has wide gaps, so thinner spoons sometimes slip out. It's a minor annoyance, but overall I'm very happy with how well it works and looks.
+Rating: 4
+
+Example 3:
+Review: I was excited for this electric kettle, but I'm pretty disappointed. It takes much longer to boil water than my old one and the automatic shut-off feature is unreliable. It looks nice on the counter, but the performance just isn't there.
+Rating: 2
+
+Example 4:
+Review: DANGEROUS. After a week, this kettle started leaking boiling water from the seal at the bottom. It ruined my countertop and is a serious safety hazard. A complete waste of money and should be pulled from the market. Do not buy.
+Rating: 1
+
+Example 5:
+Review: These are the best food storage containers I have ever owned. The glass is thick and durable, the lids create a perfect airtight seal, and they go from freezer to oven without any issues. I threw out all my old plastic containers. Absolutely perfect!
+Rating: 5
+
+Example 6:
+Review: This is a good set of glass food storage containers. They're sturdy and I like that they are oven-safe. My only complaint is that the lids can be a bit difficult to snap on and off. But for the price, I would recommend them.
+Rating: 4
+
+Example 7:
+Review: Bought this 'high-powered' blender to make smoothies with frozen fruit, but it struggles badly and leaves large, unblended chunks every time. It's basically useless for the one reason I bought it.
+Rating: 2
+
+Example 8:
+Review: This blender is fine for the price. It can't really handle ice or tough frozen items, so don't expect perfectly smooth results for complex smoothies. However, for simple protein shakes or mixing liquids, it works well enough and is easy to clean.
+Rating: 3

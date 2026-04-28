@@ -1,0 +1,4 @@
+- The primary error was `gold 5 -> 4` (15 instances), indicating the model is too conservative in awarding 5 stars. The existing rule overemphasized "enthusiasm" and penalized reviews with descriptive praise or resolved minor issues.
+- I broadened the 5-star rule to include "complete satisfaction" expressed through descriptive praise and explicitly stated that an overcome initial disappointment still warrants 5 stars.
+- To address `gold 4 -> 5` errors, I refined the 4-star definition to include positive, feature-heavy reviews that lack top-tier enthusiastic language like "love" or "perfect".
+- I replaced a simple 5-star few-shot example with a misclassified `gold=5` review from the artifacts. This new example demonstrates the "overcome disappointment" pattern, directly teaching the model how to handle this tricky case.

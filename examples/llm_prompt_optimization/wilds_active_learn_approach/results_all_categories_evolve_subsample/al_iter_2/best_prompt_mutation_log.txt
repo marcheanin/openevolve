@@ -1,0 +1,5 @@
+- **Primary Focus:** Address the top error `gold 4 -> 5` where positive but non-enthusiastic reviews are overrated.
+- **Rule Change (4-star):** Added a new sub-category for 4-star reviews: "The 'Solid, but Not Amazing' Pattern". This is for reviews that are satisfied and positive, but lack the strong delight or 'exceeds expectations' tone of a 5-star review, targeting misclassified analytical book reviews.
+- **Rule Change (3-star):** Strengthened the 3-star definition to explicitly handle "backhanded compliments" where praise is undermined by a core criticism. This targets the `Dan Ariely` anchor regression (`gold 3 -> 4`).
+- **Rule Change (5-star):** Clarified that user advice on packaging/quantity does not constitute a product flaw if the user is otherwise satisfied, to prevent `gold 5 -> 4` errors like the "tea bags" example.
+- **Few-Shot Update:** Replaced two existing examples with two specific, hard misclassifications from the artifacts to directly teach the model. Added the `Dan Ariely` review (gold=3, pred=4) and the `inexpensive and suitable` flashlight review (gold=5, pred=4) to reinforce the new rule changes.

@@ -47,7 +47,13 @@ import yaml
 from collections import Counter
 from data_manager import DataManager, disagreement_score
 from error_analyzer import ErrorAnalyzer
-from evaluator import _build_workers, _load_split_data, _parallel_predict, DEFAULT_MAX_PARALLEL
+from evaluator import (
+    DEFAULT_MAX_PARALLEL,
+    _build_workers,
+    _load_split_data,
+    _parallel_predict,
+    _resolve_max_samples,
+)
 from synthetic_fewshot_generator import (
     SyntheticFewShotGenerator,
     save_synthetic_manifest,
@@ -509,6 +515,27 @@ def _top_confusion_pairs_from_batch(
     return [(g, p, c) for ((g, p), c) in confusion.most_common(top_k)]
 
 
+def _print_holdout_eval_shapes(cfg_dict: dict) -> None:
+    """Effective val/test sizes after max_val_users + max_samples_* (same path as full split eval)."""
+    wd = cfg_dict.get("worker_defaults") or {}
+    max_par = wd.get("max_parallel", DEFAULT_MAX_PARALLEL)
+    n_workers = len(_build_workers(cfg_dict))
+    ds = cfg_dict.get("dataset") or {}
+    st = bool(ds.get("stratify_users"))
+    for split in ("validation", "test"):
+        texts, _, _ = _load_split_data(cfg_dict, split)
+        n = len(texts)
+        ms = _resolve_max_samples(ds, split)
+        max_u = ds.get("max_val_users")
+        max_r_u = ds.get("max_reviews_per_user")
+        print(
+            f"  Holdout {split}: {n} reviews "
+            f"(max_val_users={max_u!r}, max_reviews_per_user={max_r_u!r}, stratify_users={st!r}); "
+            f"{n_workers} workers, max_parallel={max_par} "
+            f"→ ~{n * n_workers} LLM calls per full pass"
+        )
+
+
 def _evaluate_split_full(
     prompt_template: str,
     config: dict,
@@ -526,6 +553,16 @@ def _evaluate_split_full(
     max_parallel = config.get("worker_defaults", {}).get("max_parallel", DEFAULT_MAX_PARALLEL)
     uncertainty_threshold = config.get("active_learning", {}).get(
         "uncertainty_threshold", 0.0
+    )
+    ds = config.get("dataset") or {}
+    max_u = ds.get("max_train_users") if split_name == "train" else ds.get("max_val_users")
+    max_r_u = ds.get("max_reviews_per_user")
+    n_rev = len(texts)
+    n_w = len(workers)
+    st = bool(ds.get("stratify_users"))
+    print(
+        f"  [eval:{split_name}] n_reviews={n_rev} max_users={max_u!r} max_reviews_per_user={max_r_u!r} "
+        f"stratify_users={st!r} n_workers={n_w} max_parallel={max_parallel} → ~{n_rev * n_w} LLM calls"
     )
 
     predictions, worker_preds = _parallel_predict(workers, list(texts), prompt_template, max_parallel)
@@ -689,6 +726,9 @@ def run_active_loop(
     config_path: Optional[Path] = None,
     no_evolve_early_stop: bool = False,
     no_al_early_stop: bool = False,
+    no_early_stop: bool = False,
+    run_full_test_at_end: bool = False,
+    skip_test_evals: bool = False,
 ) -> None:
     """
     Run the Active Prompt Evolution loop with pool expansion.
@@ -702,13 +742,21 @@ def run_active_loop(
 
     config_path = Path(config_path) if config_path else (SCRIPT_DIR / "config.yaml")
     config_path = config_path.resolve()
+    # So evaluator.evaluate() (OpenEvolve) loads the same YAML as this loop (dataset.config_path, workers, etc.)
+    os.environ["WILDS_ACTIVE_LEARN_CONFIG"] = str(config_path)
     with open(config_path, "r", encoding="utf-8") as f:
         cfg_dict = yaml.safe_load(f)
-    if no_al_early_stop:
+    if no_al_early_stop or no_early_stop:
         al_sec = cfg_dict.setdefault("active_learning", {})
         al_sec["al_early_stopping_patience"] = 0
     config = load_config(str(config_path))
-    prompt_path = initial_prompt_path or (SCRIPT_DIR / "initial_prompt.txt")
+    if initial_prompt_path is not None:
+        prompt_path = Path(initial_prompt_path)
+        if not prompt_path.is_absolute():
+            prompt_path = (SCRIPT_DIR / prompt_path).resolve()
+    else:
+        rel = cfg_dict.get("prompt_path") or "initial_prompt.txt"
+        prompt_path = (SCRIPT_DIR / rel).resolve()
     results_dir = Path(results_dir) if results_dir else (SCRIPT_DIR / "results")
     results_dir = results_dir.resolve()
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -748,6 +796,9 @@ def run_active_loop(
     gap_warn_threshold = float(al_cfg.get("generalization_gap_warn_threshold", 0.03))
     gap_stop_threshold = float(al_cfg.get("generalization_gap_stop_threshold", 0.08))
     gap_stop_patience = int(al_cfg.get("generalization_gap_stop_patience", 2))
+    if no_early_stop:
+        al_stop_patience = 0
+        gap_stop_patience = 0
     synthetic_gen = SyntheticFewShotGenerator.from_config_dict(cfg_dict)
     sf_cfg_loop = al_cfg.get("synthetic_fewshot") or {}
     mutator_lock_fewshot = bool(sf_cfg_loop.get("mutator_lock_fewshot", False))
@@ -760,6 +811,13 @@ def run_active_loop(
         t0 = _time.time()
     data_manager = DataManager(cfg_dict)
     error_analyzer = ErrorAnalyzer(data_manager)
+    ds_cap = cfg_dict.get("dataset") or {}
+    print(
+        f"  Train pool for AL: {data_manager.n_total} reviews "
+        f"(max_train_users={ds_cap.get('max_train_users')!r}; "
+        "lines above 'Split sizes' are before this cap)"
+    )
+    _print_holdout_eval_shapes(cfg_dict)
     if smoke_mode:
         dur = _time.time() - t0
         print(f"  [smoke] load_dataset: {dur:.1f}s")
@@ -774,7 +832,7 @@ def run_active_loop(
     # Step 0: One-time full pool evaluation to initialize Seen/Unseen
     # ======================================================================
     print("=" * 60)
-    print("Initialization: evaluating initial prompt on full train pool")
+    print("Initialization: evaluating initial prompt on full train pool (see n_total below)")
     print("=" * 60)
     if smoke_mode:
         t0 = _time.time()
@@ -805,9 +863,11 @@ def run_active_loop(
     diag.log("init", total_pool=data_manager.n_total, batch=len(batch_indices),
              hard=data_manager.n_hard, anchor=data_manager.n_anchor, unseen=data_manager.n_unseen)
 
-    # Baseline test evaluation (initial prompt on test set); skip when resuming
+    # Baseline test evaluation (initial prompt on test set); skip when resuming.
+    # If skip_test_evals=True, we do NO holdout test evals at start/end.
     baseline_path = results_dir / "baseline_test_metrics.json"
-    if resume_start_cycle is None:
+    baseline_test_metrics = None
+    if (not skip_test_evals) and resume_start_cycle is None:
         print("  Evaluating initial prompt on test set...")
         if smoke_mode:
             t0 = _time.time()
@@ -827,13 +887,15 @@ def run_active_loop(
         print(f"  Baseline test: R_global={baseline_test_metrics['R_global']:.2%}  "
               f"Acc_Hard={baseline_test_metrics['Acc_Hard']:.2%}  Acc_Anchor={baseline_test_metrics['Acc_Anchor']:.2%}")
         diag.log("baseline_test", **{k: v for k, v in baseline_test_metrics.items() if isinstance(v, (int, float))})
-    else:
+    elif (not skip_test_evals) and resume_start_cycle is not None:
         if not baseline_path.exists():
             raise FileNotFoundError(f"Resume requires {baseline_path} from initial run.")
         with open(baseline_path, "r", encoding="utf-8") as f:
             baseline_test_metrics = json.load(f)
         print(f"  Baseline test (from file): R_global={baseline_test_metrics['R_global']:.2%}  "
               f"Acc_Hard={baseline_test_metrics['Acc_Hard']:.2%}  Acc_Anchor={baseline_test_metrics['Acc_Anchor']:.2%}")
+    else:
+        print("  Skipping holdout test evaluations (baseline/final) — using only formed sub-samples.", flush=True)
 
     # ======================================================================
     # Main AL loop
@@ -1063,7 +1125,7 @@ def run_active_loop(
             + error_context
         )
         evolve_config = load_config(str(config_path))
-        if no_evolve_early_stop:
+        if no_evolve_early_stop or no_early_stop:
             evolve_config.early_stopping_patience = None
         if evolve_config.prompt:
             evolve_config.prompt.system_message = augmented_system
@@ -1751,37 +1813,39 @@ def run_active_loop(
     if active_batch_path.exists():
         active_batch_path.unlink()
 
-    # Single holdout test evaluation (train/val used during AL; test only here for reporting).
-    # Use global best-by-val prompt so a weak last AL cycle does not define the reported test score.
-    print("\n" + "=" * 60)
-    print("Final test evaluation (holdout; best_val_prompt — best seed_val_score on validation)")
-    print("=" * 60)
-    print(
-        f"  best_val_score={best_val_score:.4f}  (AL cycle index {best_val_cycle}; "
-        f"last_cycle len={len(current_prompt)} chars, best_val len={len(best_val_prompt)} chars)"
-    )
-    if smoke_mode:
-        t0 = _time.time()
-    try:
-        final_test_metrics = _evaluate_split_full(best_val_prompt, cfg_dict, split_name="test")
-    except RuntimeError as e:
-        if _is_api_error(e):
-            last_prompt = results_dir / "final_prompt.txt"
-            if not last_prompt.exists():
-                last_prompt = results_dir / f"al_iter_{n_al_iterations - 1}" / "best_prompt.txt"
-            _exit_on_api_error(
-                e, results_dir, n_al_iterations - 1,
-                last_prompt if last_prompt.exists() else None,
-                n_al_iterations, n_evolve_iterations,
-            )
-        raise
-    if smoke_mode:
-        dur = _time.time() - t0
-        print(f"  [smoke] final_test: {dur:.1f}s")
-        smoke_timings.append(("final_test", round(dur, 2)))
-        diag.log("smoke_timing", stage="final_test", duration_s=round(dur, 2))
-    with open(results_dir / "final_test_metrics.json", "w", encoding="utf-8") as f:
-        json.dump(final_test_metrics, f, indent=2)
+    final_test_metrics = None
+    if not skip_test_evals:
+        # Single holdout test evaluation (train/val used during AL; test only here for reporting).
+        # Use global best-by-val prompt so a weak last AL cycle does not define the reported test score.
+        print("\n" + "=" * 60)
+        print("Final test evaluation (holdout; best_val_prompt — best seed_val_score on validation)")
+        print("=" * 60)
+        print(
+            f"  best_val_score={best_val_score:.4f}  (AL cycle index {best_val_cycle}; "
+            f"last_cycle len={len(current_prompt)} chars, best_val len={len(best_val_prompt)} chars)"
+        )
+        if smoke_mode:
+            t0 = _time.time()
+        try:
+            final_test_metrics = _evaluate_split_full(best_val_prompt, cfg_dict, split_name="test")
+        except RuntimeError as e:
+            if _is_api_error(e):
+                last_prompt = results_dir / "final_prompt.txt"
+                if not last_prompt.exists():
+                    last_prompt = results_dir / f"al_iter_{n_al_iterations - 1}" / "best_prompt.txt"
+                _exit_on_api_error(
+                    e, results_dir, n_al_iterations - 1,
+                    last_prompt if last_prompt.exists() else None,
+                    n_al_iterations, n_evolve_iterations,
+                )
+            raise
+        if smoke_mode:
+            dur = _time.time() - t0
+            print(f"  [smoke] final_test: {dur:.1f}s")
+            smoke_timings.append(("final_test", round(dur, 2)))
+            diag.log("smoke_timing", stage="final_test", duration_s=round(dur, 2))
+        with open(results_dir / "final_test_metrics.json", "w", encoding="utf-8") as f:
+            json.dump(final_test_metrics, f, indent=2)
     (results_dir / "final_prompt.txt").write_text(best_val_prompt, encoding="utf-8")
     (results_dir / "last_cycle_prompt.txt").write_text(current_prompt, encoding="utf-8")
     with open(results_dir / "best_val_meta.json", "w", encoding="utf-8") as f:
@@ -1796,27 +1860,28 @@ def run_active_loop(
             indent=2,
         )
 
-    print(f"Baseline test: R_global={baseline_test_metrics['R_global']:.2%}  "
-          f"R_worst={baseline_test_metrics['R_worst']:.2%}  combined={baseline_test_metrics['combined_score']:.4f}")
-    print(f"Final test:    R_global={final_test_metrics['R_global']:.2%}  "
-          f"R_worst={final_test_metrics['R_worst']:.2%}  combined={final_test_metrics['combined_score']:.4f}")
-    print(f"Final test:    Acc_Hard={final_test_metrics['Acc_Hard']:.2%}  "
-          f"Acc_Anchor={final_test_metrics['Acc_Anchor']:.2%}  "
-          f"(Hard:{final_test_metrics['n_hard']}/Anchor:{final_test_metrics['n_anchor']})")
-    delta_r = final_test_metrics["R_global"] - baseline_test_metrics["R_global"]
-    delta_comb = final_test_metrics["combined_score"] - baseline_test_metrics["combined_score"]
-    print(f"Delta:        R_global={delta_r:+.2%}  combined={delta_comb:+.4f}")
-    print("=" * 60)
+    if (baseline_test_metrics is not None) and (final_test_metrics is not None):
+        print(f"Baseline test: R_global={baseline_test_metrics['R_global']:.2%}  "
+              f"R_worst={baseline_test_metrics['R_worst']:.2%}  combined={baseline_test_metrics['combined_score']:.4f}")
+        print(f"Final test:    R_global={final_test_metrics['R_global']:.2%}  "
+              f"R_worst={final_test_metrics['R_worst']:.2%}  combined={final_test_metrics['combined_score']:.4f}")
+        print(f"Final test:    Acc_Hard={final_test_metrics['Acc_Hard']:.2%}  "
+              f"Acc_Anchor={final_test_metrics['Acc_Anchor']:.2%}  "
+              f"(Hard:{final_test_metrics['n_hard']}/Anchor:{final_test_metrics['n_anchor']})")
+        delta_r = final_test_metrics["R_global"] - baseline_test_metrics["R_global"]
+        delta_comb = final_test_metrics["combined_score"] - baseline_test_metrics["combined_score"]
+        print(f"Delta:        R_global={delta_r:+.2%}  combined={delta_comb:+.4f}")
+        print("=" * 60)
 
-    diag.log(
-        "final_test",
-        **{k: v for k, v in final_test_metrics.items() if isinstance(v, (int, float))},
-        delta_R_global=delta_r,
-        delta_combined=delta_comb,
-        prompt_source="best_val_prompt",
-        best_val_cycle=best_val_cycle,
-        best_val_score=best_val_score,
-    )
+        diag.log(
+            "final_test",
+            **{k: v for k, v in final_test_metrics.items() if isinstance(v, (int, float))},
+            delta_R_global=delta_r,
+            delta_combined=delta_comb,
+            prompt_source="best_val_prompt",
+            best_val_cycle=best_val_cycle,
+            best_val_score=best_val_score,
+        )
 
     # Token report
     try:
@@ -1830,6 +1895,20 @@ def run_active_loop(
         print(f"Token usage: total={u['total_tokens']:,} (report: {report_path})")
     except Exception as e:
         print(f"Token usage save skipped: {e}")
+
+    if run_full_test_at_end:
+        print("\n" + "=" * 60)
+        print("Running FULL uncapped test on final prompt (--run-full-test)")
+        print("=" * 60)
+        try:
+            import run_full_test
+            run_full_test.run_full_test(
+                prompt_path=results_dir / "final_prompt.txt",
+                config_path=config_path if config_path else (SCRIPT_DIR / "config.yaml"),
+                results_dir=results_dir,
+            )
+        except Exception as e:
+            print(f"Full test evaluation failed: {e}")
 
     diag.close()
 
@@ -1871,8 +1950,26 @@ def main():
         action="store_true",
         help="Disable AL early stopping (sets al_early_stopping_patience to 0 for this run).",
     )
+    parser.add_argument(
+        "--no-early-stop",
+        action="store_true",
+        help=(
+            "Disable all early stopping for this run: OpenEvolve patience, "
+            "AL no-improvement stop, and generalization-gap stop (runs full --n-al and --n-evolve)."
+        ),
+    )
     parser.add_argument("--smoke", action="store_true",
                         help="Smoke run: 2 AL cycles, 4 evolve iter, results_smoke/.")
+    parser.add_argument(
+        "--run-full-test",
+        action="store_true",
+        help="Run the ensemble on the FULL uncapped test split at the very end of evolution.",
+    )
+    parser.add_argument(
+        "--skip-test-evals",
+        action="store_true",
+        help="Skip baseline/final holdout test evals; run only on formed sub-samples (train/val/active batch).",
+    )
     parser.add_argument(
         "--resume-from-dir",
         type=str,
@@ -1924,8 +2021,12 @@ def main():
             n_al, n_evolve = args.n_al, args.n_evolve
     elif args.smoke:
         n_al, n_evolve = 2, 4
-        out_dir = SCRIPT_DIR / "results_smoke"
-        print("Smoke run: --n-al 2 --n-evolve 4 --results-dir results_smoke")
+        out_dir = (
+            Path(args.results_dir).resolve()
+            if args.results_dir
+            else (SCRIPT_DIR / "results_smoke")
+        )
+        print(f"Smoke run: --n-al 2 --n-evolve 4 --results-dir {out_dir.name}")
     else:
         n_al, n_evolve = args.n_al, args.n_evolve
         out_dir = Path(args.results_dir) if args.results_dir else None
@@ -1940,6 +2041,9 @@ def main():
         config_path=Path(args.config).resolve() if args.config else None,
         no_evolve_early_stop=args.no_evolve_early_stop,
         no_al_early_stop=args.no_al_early_stop,
+        no_early_stop=args.no_early_stop,
+        run_full_test_at_end=args.run_full_test,
+        skip_test_evals=args.skip_test_evals,
     )
 
 

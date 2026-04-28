@@ -11,7 +11,7 @@ from __future__ import annotations
 import sys
 import warnings
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import numpy as np
 
@@ -22,6 +22,42 @@ if str(WILDS_EXPERIMENT) not in sys.path:
     sys.path.insert(0, str(WILDS_EXPERIMENT))
 if str(EXPERIMENTS_ROOT) not in sys.path:
     sys.path.insert(0, str(EXPERIMENTS_ROOT))
+
+
+def _coerce_positive_int_cap(v: Any) -> Optional[int]:
+    if v is None:
+        return None
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, str):
+        s = v.strip().lower()
+        if s in ("", "none", "null", "~", "nan"):
+            return None
+        try:
+            v = int(float(s))
+        except ValueError:
+            return None
+    elif isinstance(v, float):
+        v = int(v)
+    elif not isinstance(v, int):
+        return None
+    return v if v > 0 else None
+
+
+def _resolve_max_samples(ds_cfg: dict, split_name: str) -> Optional[int]:
+    """Per-split cap from dataset.*; fallback to max_samples. None or <=0 = no cap."""
+    if split_name == "train":
+        key = "max_samples_train"
+    elif split_name in ("validation", "val"):
+        key = "max_samples_val"
+    elif split_name == "test":
+        key = "max_samples_test"
+    else:
+        key = "max_samples_val"
+    cap = _coerce_positive_int_cap(ds_cfg.get(key))
+    if cap is None:
+        cap = _coerce_positive_int_cap(ds_cfg.get("max_samples"))
+    return cap
 
 
 def _load_pool_data(config: dict, split_name: str = "train"):
@@ -39,7 +75,9 @@ def _load_pool_data(config: dict, split_name: str = "train"):
     create_splits_from_preprocessed = mod.create_splits_from_preprocessed
     save_preprocessed_data = mod.save_preprocessed_data
 
-    dataset_cfg_path = SCRIPT_DIR / "dataset.yaml"
+    effective_category_id = mod.effective_category_id
+    dataset_rel = (config.get("dataset") or {}).get("config_path", "dataset.yaml")
+    dataset_cfg_path = SCRIPT_DIR / dataset_rel
     with open(dataset_cfg_path, "r", encoding="utf-8") as f:
         dataset_cfg = yaml.safe_load(f)
     dataset_cfg.setdefault("data_root", "./data")
@@ -47,7 +85,7 @@ def _load_pool_data(config: dict, split_name: str = "train"):
     preprocessed = load_preprocessed_data(dataset_cfg)
     if preprocessed is None:
         dataset, _ = load_wilds_dataset(dataset_cfg)
-        preprocessed = preprocess_category_data(dataset, dataset_cfg["category_id"])
+        preprocessed = preprocess_category_data(dataset, effective_category_id(dataset_cfg))
         save_preprocessed_data(dataset_cfg, preprocessed)
 
     splits = create_splits_from_preprocessed(
@@ -58,22 +96,71 @@ def _load_pool_data(config: dict, split_name: str = "train"):
         seed=dataset_cfg.get("split_seed", 42),
     )
 
-    split = splits[split_name]
+    split_key = "validation" if split_name == "val" else split_name
+    split = splits[split_key]
     indices = list(split["indices"])
     texts = [preprocessed["texts"][i] for i in indices]
     labels = [int(preprocessed["labels"][i]) for i in indices]
     user_ids = [int(preprocessed["user_ids"][i]) for i in indices]
+    cats_list: Optional[List[int]] = None
+    if preprocessed.get("categories") is not None:
+        cats_list = [int(preprocessed["categories"][i]) for i in indices]
 
     ds_cfg = config.get("dataset", {})
+    stratify_users = bool(ds_cfg.get("stratify_users", False))
     max_users = ds_cfg.get("max_train_users" if split_name == "train" else "max_val_users")
+    max_reviews_per_user = ds_cfg.get("max_reviews_per_user")
+    
     if max_users and max_users > 0:
-        unique_users = sorted(set(user_ids))
-        selected_users = set(unique_users[: int(max_users)])
-        mask = [u in selected_users for u in user_ids]
-        texts = [t for t, m in zip(texts, mask) if m]
-        labels = [l for l, m in zip(labels, mask) if m]
-        user_ids = [u for u, m in zip(user_ids, mask) if m]
-        indices = [i for i, m in zip(indices, mask) if m]
+        if stratify_users and cats_list is not None and len(cats_list) == len(texts):
+            from sample_stratified import select_stratified_users_and_cap
+            split_seed = int(dataset_cfg.get("split_seed", 42))
+            _rng_off = {"train": 0, "validation": 1, "val": 1, "test": 2}.get(split_name, 0)
+            rng = np.random.RandomState(split_seed + 1000 + _rng_off)
+            
+            pick = select_stratified_users_and_cap(
+                np.array(user_ids), np.array(cats_list), max_users, max_reviews_per_user or 0, rng
+            )
+            texts = [texts[i] for i in pick]
+            labels = [labels[i] for i in pick]
+            user_ids = [user_ids[i] for i in pick]
+            indices = [indices[i] for i in pick]
+        else:
+            unique_users = sorted(set(user_ids))
+            selected_users = set(unique_users[: int(max_users)])
+            mask = [u in selected_users for u in user_ids]
+            texts = [t for t, m in zip(texts, mask) if m]
+            labels = [l for l, m in zip(labels, mask) if m]
+            user_ids = [u for u, m in zip(user_ids, mask) if m]
+            indices = [i for i, m in zip(indices, mask) if m]
+            
+            if max_reviews_per_user and max_reviews_per_user > 0:
+                split_seed = int(dataset_cfg.get("split_seed", 42))
+                _rng_off = {"train": 0, "validation": 1, "val": 1, "test": 2}.get(split_name, 0)
+                rng = np.random.RandomState(split_seed + 1000 + _rng_off)
+                final_indices = []
+                for u in selected_users:
+                    u_idx = [i for i, uid in enumerate(user_ids) if uid == u]
+                    if len(u_idx) > max_reviews_per_user:
+                        u_idx = rng.choice(u_idx, size=max_reviews_per_user, replace=False).tolist()
+                    final_indices.extend(u_idx)
+                final_indices.sort()
+                texts = [texts[i] for i in final_indices]
+                labels = [labels[i] for i in final_indices]
+                user_ids = [user_ids[i] for i in final_indices]
+                indices = [indices[i] for i in final_indices]
+
+    max_reviews = _resolve_max_samples(ds_cfg, split_name)
+    if max_reviews and len(texts) > max_reviews:
+        split_seed = int(dataset_cfg.get("split_seed", 42))
+        _rng_off = {"train": 0, "validation": 1, "val": 1, "test": 2}.get(split_name, 0)
+        rng = np.random.RandomState(split_seed + 1000 + _rng_off)
+        pick = rng.choice(len(texts), size=max_reviews, replace=False)
+        pick.sort()
+        texts = [texts[i] for i in pick]
+        labels = [labels[i] for i in pick]
+        user_ids = [user_ids[i] for i in pick]
+        indices = [indices[i] for i in pick]
 
     return texts, labels, user_ids, indices
 

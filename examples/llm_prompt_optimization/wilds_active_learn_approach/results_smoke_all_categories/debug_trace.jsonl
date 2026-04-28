@@ -1,0 +1,25 @@
+{"ts": 1776026274.0369928, "event": "smoke_timing", "stage": "load_dataset", "duration_s": 6.11}
+{"ts": 1776026829.7770314, "event": "smoke_timing", "stage": "load_dataset", "duration_s": 6.25}
+{"ts": 1776029700.8514812, "event": "smoke_timing", "stage": "load_dataset", "duration_s": 6.66}
+{"ts": 1776029963.9031954, "event": "smoke_timing", "stage": "init_full_eval", "duration_s": 263.05, "n_samples": 550}
+{"ts": 1776029963.903814, "event": "init", "total_pool": 550, "batch": 80, "hard": 56, "anchor": 24, "unseen": 470}
+{"ts": 1776030190.5550025, "event": "smoke_timing", "stage": "load_dataset", "duration_s": 6.92}
+{"ts": 1776030482.7664025, "event": "smoke_timing", "stage": "init_full_eval", "duration_s": 292.21, "n_samples": 550}
+{"ts": 1776030482.766589, "event": "init", "total_pool": 550, "batch": 80, "hard": 56, "anchor": 24, "unseen": 470}
+{"ts": 1776031959.5762637, "event": "smoke_timing", "stage": "baseline_test", "duration_s": 1476.81}
+{"ts": 1776031959.5781324, "event": "baseline_test", "R_global": 0.6140979689366786, "R_worst": 0.3173233474438294, "mae": 0.40860215053763443, "mean_kappa": 0.637962347166912, "combined_score": 0.6739872652341888, "Acc_Hard": 0.30982905982905984, "Acc_Anchor": 1.0, "n_hard": 1872, "n_anchor": 1476, "n_total": 3348}
+{"ts": 1776031959.5801961, "event": "cycle_start", "al_iter": 0, "batch_size": 80, "n_hard_in_batch": 56, "n_anchor_in_batch": 24, "n_hard_total": 56, "n_anchor_total": 24, "n_unseen": 470, "seed_prompt_len": 3307}
+{"ts": 1776032001.597157, "event": "synthetic_fewshot", "al_iter": 0, "status": "ok", "mode": "inject_as_hint", "hint_in_system": true, "n_hard_samples": 8}
+{"ts": 1776032001.6012166, "event": "smoke_timing", "stage": "cycle_0_build_batch", "duration_s": 42.02, "al_iter": 0}
+{"ts": 1776032001.6146073, "event": "evolution_start", "al_iter": 0, "n_iterations": 4}
+{"ts": 1776032001.7020254, "event": "evolution_error", "al_iter": 0, "error": "'charmap' codec can't decode byte 0x9d in position 2073: character maps to <undefined>"}
+{"ts": 1776032001.702247, "event": "smoke_timing", "stage": "cycle_0_evolution", "duration_s": 0.09, "al_iter": 0}
+{"ts": 1776032001.7024581, "event": "archive_snapshot", "al_iter": 0, "n_programs": 0, "programs": []}
+{"ts": 1776032001.7035723, "event": "mutation_logs_snapshot", "al_iter": 0, "n_programs": 0, "with_mutation_log": 0, "entries": []}
+{"ts": 1776032038.3486614, "event": "smoke_timing", "stage": "cycle_0_reeval_batch", "duration_s": 36.64, "al_iter": 0}
+{"ts": 1776032038.348811, "event": "reclassify", "al_iter": 0, "hard": 56, "anchor": 24}
+{"ts": 1776032108.5685656, "event": "smoke_timing", "stage": "cycle_0_validation", "duration_s": 70.22, "al_iter": 0}
+{"ts": 1776032108.5686722, "event": "validation", "al_iter": 0, "R_global": 0.82, "R_worst": 0.4727272727272727, "mae": 0.18666666666666668, "mean_kappa": 0.728059092877646, "combined_score": 0.8286240911059464, "Acc_Hard": 0.5970149253731343, "Acc_Anchor": 1.0, "n_hard": 67, "n_anchor": 83, "n_total": 150}
+{"ts": 1776032108.569221, "event": "consolidation_skip", "al_iter": 0, "reason": "too_few_programs"}
+{"ts": 1776032115.3016198, "event": "refresh", "event_description": "cycle_refresh", "al_iter": 0, "added": 10, "added_hard": 9, "added_anchor": 1, "hard": 65, "anchor": 25, "unseen": 460}
+{"ts": 1776196342.114708, "event": "smoke_timing", "stage": "load_dataset", "duration_s": 33.91}

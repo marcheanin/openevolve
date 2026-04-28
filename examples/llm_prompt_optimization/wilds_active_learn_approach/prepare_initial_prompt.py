@@ -11,6 +11,7 @@ Output:
     ape_meta_prompt.txt - Paste this into ChatGPT web to generate prompt variants.
 """
 
+import argparse
 import os
 import sys
 from pathlib import Path
@@ -35,36 +36,57 @@ if str(EXPERIMENTS_ROOT) not in sys.path:
     sys.path.insert(0, str(EXPERIMENTS_ROOT))
 
 
-def load_dataset_config() -> dict:
-    """Load dataset config from dataset.yaml."""
-    config_path = SCRIPT_DIR / "dataset.yaml"
+def load_dataset_config(dataset_filename: str = "dataset.yaml") -> dict:
+    """Load dataset YAML from this directory (e.g. dataset.yaml or dataset_all_categories.yaml)."""
+    config_path = SCRIPT_DIR / dataset_filename
     with open(config_path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
-def load_train_data():
+def _ape_domain_phrases(dataset_filename: str) -> tuple[str, str]:
+    """
+    (intro_examples_line, role_xml_inner) for ape_meta_prompt.txt — driven by dataset YAML,
+    not hardcoded to a single WILDS category.
+    """
+    cfg = load_dataset_config(dataset_filename)
+    if cfg.get("use_all_categories"):
+        return (
+            "representative examples of Amazon product reviews across all product categories with gold labels (1-5 stars)",
+            "You are a sentiment classification model for Amazon product reviews across all product categories.",
+        )
+    cat = (cfg.get("category") or "product").replace("_", " ")
+    return (
+        f"representative examples of Amazon {cat} product reviews with gold labels (1-5 stars)",
+        f"You are a sentiment classification model for Amazon {cat} product reviews.",
+    )
+
+
+def load_train_data(dataset_filename: str = "dataset.yaml"):
     """
     Load train split texts and labels.
     Reuses wilds_experiment data loading.
     """
-    from evaluator import (
-        load_wilds_dataset,
-        preprocess_category_data,
-        create_splits_from_preprocessed,
-        load_preprocessed_data,
-        save_preprocessed_data,
-    )
+    import importlib.util
 
-    dataset_cfg = load_dataset_config()
-    category_id = dataset_cfg.get("category_id", 24)
-    # data_root relative to wilds_experiment dir
+    base_eval_path = WILDS_EXPERIMENT / "evaluator.py"
+    spec = importlib.util.spec_from_file_location("wilds_base_evaluator", base_eval_path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    load_preprocessed_data = mod.load_preprocessed_data
+    load_wilds_dataset = mod.load_wilds_dataset
+    preprocess_category_data = mod.preprocess_category_data
+    create_splits_from_preprocessed = mod.create_splits_from_preprocessed
+    save_preprocessed_data = mod.save_preprocessed_data
+    effective_category_id = mod.effective_category_id
+
+    dataset_cfg = load_dataset_config(dataset_filename)
     dataset_cfg.setdefault("data_root", "./data")
 
     preprocessed = load_preprocessed_data(dataset_cfg)
     if preprocessed is None:
         print("Cache miss - loading WILDS dataset (first run may take a few minutes)...")
         dataset, _ = load_wilds_dataset(dataset_cfg)
-        preprocessed = preprocess_category_data(dataset, category_id)
+        preprocessed = preprocess_category_data(dataset, effective_category_id(dataset_cfg))
         save_preprocessed_data(dataset_cfg, preprocessed)
 
     splits = create_splits_from_preprocessed(
@@ -169,8 +191,16 @@ def format_ape_meta_prompt(examples: list[tuple[str, int]]) -> str:
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--dataset",
+        default="dataset.yaml",
+        help="Dataset YAML in this directory (default: dataset.yaml). Use dataset_all_categories.yaml for all categories.",
+    )
+    args = parser.parse_args()
+
     print("Loading train data...")
-    texts, labels, _ = load_train_data()
+    texts, labels, _ = load_train_data(args.dataset)
     print(f"Loaded {len(texts)} train examples")
 
     print("Stratified diversity sampling (K-Means)...")
@@ -179,10 +209,11 @@ def main():
     print(f"Selected {len(examples)} golden examples")
 
     examples_block = format_ape_meta_prompt(examples)
+    intro_examples, role_inner = _ape_domain_phrases(args.dataset)
 
     meta_prompt = f"""You are an expert at designing prompts for LLM-based sentiment classification.
 
-Here are {len(examples)} representative examples of Amazon Home & Kitchen product reviews with gold labels (1-5 stars):
+Here are {len(examples)} {intro_examples}:
 
 {examples_block}
 
@@ -191,7 +222,7 @@ Write a detailed System Prompt that teaches another LLM to classify such reviews
 IMPORTANT: The prompt MUST use the following XML structure with three sections:
 
 <System>
-    <Role>You are a sentiment classification model for Amazon Home & Kitchen product reviews.</Role>
+    <Role>{role_inner}</Role>
     
     <BaseGuidelines>
         (Static rules that should NOT change during evolution:

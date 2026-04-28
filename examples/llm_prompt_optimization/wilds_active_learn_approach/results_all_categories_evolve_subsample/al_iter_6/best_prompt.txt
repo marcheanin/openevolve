@@ -1,0 +1,81 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        ### Core Principle
+        Rate based on the user's overall satisfaction with the *product*. A review with positive language can still be a 3 if a significant flaw sours the experience. Conversely, a review with criticism can be a 5 if the user is ultimately delighted and gives a strong recommendation.
+        **For media (books, documentaries):** Distinguish between the reviewer's opinion of the work (e.g., "well-written," "eye-opening") and the sentiment of the subject matter (e.g., a tragic event). A positive review of a book about a sad topic is still a positive review.
+
+        ### Rating Guidelines
+
+        **5 (Excellent / Perfect):** The user is delighted, has no significant reservations, and would recommend the product.
+        - **Clear Endorsement:** Expresses strong positive sentiment ("love," "perfect," "fantastic," "best ever") or a clear endorsement ("highly recommend," "buy this now").
+        - **Factual, Neutral, or Summary:** A review that is purely factual ("Red t-shirt"), a simple plot summary, or neutral in tone with no complaints is a 5. The assumption is satisfaction unless stated otherwise.
+        - **Dismissed Criticism:** If a review mentions a common complaint or minor issue only to dismiss it or state it's not a problem for them, it remains a 5.
+        - **User Advice vs. Flaw:** A review offering usage advice ("you need to keep them sealed") is not a product flaw. If the user is happy and offering tips, it remains a 5.
+
+        **4 (Good / Mostly Satisfied):** The user is generally happy but has reservations, or the praise is positive but not ecstatic.
+        - **Positive with a "But":** The review is mostly positive but mentions a specific, non-trivial drawback ("I like it, but the battery life is short"). The positives still clearly outweigh the negatives.
+        - **Satisfied, Not Delighted:** The review is positive but lacks the ecstatic language or strong endorsement of a 5. The user is satisfied, but the tone is more measured. Phrases like "good," "works well," "pretty solid," or "really enjoyed" often indicate a 4.
+        - **Pleasantly Surprised:** The reviewer had low expectations but was ultimately happy ("I wasn't expecting much, but I really enjoyed it."). This qualified praise is a 4, not a 5.
+        - **Minor Disappointment:** The product is good, but a minor issue prevents total satisfaction (e.g., "arrived with a scratch," "color is slightly off").
+
+        **3 (Okay):** Mixed feelings; pros and cons are balanced, leading to an "okay" or "meh" conclusion.
+        - **Balanced Pros & Cons:** The review highlights both good and bad points that seem to carry equal weight for the reviewer, resulting in a neutral or "meh" conclusion.
+        - A significant functional flaw ("warps badly", "tore on first use") limits the rating to 3, even with praise for other aspects.
+        - The user expresses frustration or disappointment, but the product is still functional. The user feels the product is just "okay," "meh," or "fine, I guess."
+
+        **2 (Poor):** Major disappointment; fails a primary function or is a significant letdown.
+        - **Praise Undone by Failure:** The review may mention positive aspects, but they are completely undone by a major flaw or a negative concluding statement (e.g., 'was interesting for a while, but then got bland'). The final verdict defines the rating.
+        - The final verdict is negative. The product has serious defects or doesn't work as intended.
+
+        **1 (Terrible):** Awful; product is useless, dangerous, or feels like a scam.
+        - **Extreme Negative Emotion:** Expresses anger, disgust, or a direct warning to others ("Do not buy," "dangerous," "fire hazard").
+        - **Profoundly Negative Experience:** A product that is completely unusable, non-functional, or evokes a strong negative emotional response like extreme boredom ("truly bored reading this one") is a 1.
+
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: These drinking glasses are beautiful and have a nice, sturdy weight. I really like the design. However, the description says they are "dishwasher safe," but after only three cycles, they've developed a permanent cloudy film that won't scrub off. I've had to switch to hand-washing them, which is annoying. They're good glasses, but the maintenance is more than I signed up for.
+Rating: 4
+
+Example 2:
+Review: I absolutely love these drinking glasses! I saw some reviews mentioning they get cloudy in the dishwasher, but I've been running them through my machine for a month with a rinse aid and they come out sparkling every single time. They look fantastic and feel very high quality. No issues whatsoever. Highly recommended!
+Rating: 5
+
+Example 3:
+Review: This is a pretty solid electric kettle for the price. It heats water very quickly and the auto-shutoff works reliably. My only real complaint is that the base feels a little lightweight and wobbly. It hasn't tipped over or anything, but it doesn't feel as secure as I'd like. Otherwise, it's a good kettle and I'm happy with it.
+Rating: 4
+
+Example 4:
+Review: I wanted to like this kettle. The design is nice and it does heat water fast. However, the lid hinge is made of cheap plastic and it snapped after a month of normal use. Now I have to carefully place the lid on top without it being attached, which is precarious when pouring boiling water. It's still functional, but the broken key part makes it a disappointment. It's just okay.
+Rating: 3
+
+Example 5:
+Review: I bought this non-stick skillet and was initially very impressed. For the first two weeks, it was a dream to cook with and clean. Then, despite only ever using silicone spatulas and handwashing, the coating started to bubble and peel away into my food. It completely failed at its primary purpose in less than a month. A real letdown.
+Rating: 2
+
+Example 6:
+Review: DANGEROUS - FIRE HAZARD. I used this air fryer twice and it worked fine. The third time, I smelled burning plastic, and then the unit started smoking before it completely died, tripping the circuit breaker for my entire kitchen. This thing is a piece of junk and a serious safety risk. Do not buy it under any circumstances. I'm just glad I was home to unplug it.
+Rating: 1
+
+Example 7:
+Review: Standard 1-quart saucepan. Stainless steel. Lid fits. Handle is riveted on. Works on my induction cooktop.
+Rating: 5
+
+Example 8:
+Review: I enjoy buying books from local or low-volume authors. Sometimes I'm thrilled, sometimes I'm disappointed. I wasn't expecting a lot from a book like this, and the premise seemed a bit cliche - but I am so glad I gave it a try. I really enjoyed the story, the locale, and especially the great characters.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

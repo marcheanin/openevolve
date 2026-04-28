@@ -254,7 +254,7 @@ class OpenEvolve:
 
     def _load_initial_program(self) -> str:
         """Load the initial program from file"""
-        with open(self.initial_program_path, "r") as f:
+        with open(self.initial_program_path, "r", encoding="utf-8") as f:
             return f.read()
 
     async def run(

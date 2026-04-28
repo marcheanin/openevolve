@@ -1,0 +1,31 @@
+Example 1:
+Review: This coffee maker is pretty good. It brews a full pot quickly and the coffee tastes great. My only real complaint is that the warming plate only stays on for 30 minutes before shutting off, so I often come back for a second cup and find it's cold. I wish it stayed on longer, but otherwise, it's a solid machine for the price.
+Rating: 4
+
+Example 2:
+Review: I am so happy with this coffee maker! It brews the perfect pot of coffee, it's easy to clean, and it looks great on my counter. Some people mentioned the 30-minute auto-shutoff for the warmer, but I actually love that feature for safety and so the coffee doesn't get burnt. It's exactly what I wanted. Highly recommend!
+Rating: 5
+
+Example 3:
+Review: I have mixed feelings about this knife set. The block is nice and the chef's knife and paring knife are fantastic. However, the bread knife is completely useless and just tears bread. The scissors also broke the first time I tried to cut open a plastic food package. Since some pieces are great and others are junk, the whole set is just okay.
+Rating: 3
+
+Example 4:
+Review: This is a pretty good knife set for the price. The main knives feel solid, look nice, and are sharp enough for my daily cooking. The included steak knives feel a little flimsy in comparison, but that's a minor issue for me since I don't use them often. Overall, I'm pleased with the purchase.
+Rating: 4
+
+Example 5:
+Review: These baking sheets are fantastic. They fit my standard oven perfectly, are heavyweight, and don't warp at all, even at 450 degrees. Food cooks evenly and they are incredibly easy to clean. A huge upgrade from my old flimsy pans.
+Rating: 5
+
+Example 6:
+Review: I wanted to like this electric kettle because the design is very sleek. Unfortunately, it's a disappointment. It takes over 10 minutes to boil a full pot of water, which is significantly slower than my old, cheap kettle. The outside also gets extremely hot to the touch, which doesn't feel safe. It works, but it's frustrating.
+Rating: 2
+
+Example 7:
+Review: DO NOT BUY. This is a dangerous product and a fire hazard. On its second use, the kettle started making a popping noise, smelled strongly of burning plastic, and then died completely, tripping my kitchen's circuit breaker. It's a complete waste of money and I'm just glad I was home to unplug it immediately.
+Rating: 1
+
+Example 8:
+Review: These food storage containers are fine, I guess. They hold food, and the sizes are useful. But the lids are a real pain to snap on and off, and one of them already has a stress crack near the corner after only a week of use. They're not terrible, but I wouldn't buy them again. Just meh.
+Rating: 3

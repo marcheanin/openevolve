@@ -47,6 +47,19 @@ EVALUATION_COUNTER_FILE = os.path.join(CACHE_DIR, "evaluation_counter.json")
 DATASET_SPLITS_CACHE_FILE = os.path.join(CACHE_DIR, "dataset_splits_cache.pkl")
 PREPROCESSED_DATA_CACHE_FILE = os.path.join(CACHE_DIR, "preprocessed_category_data.pkl")
 
+
+def effective_category_id(config: Dict) -> Optional[int]:
+    """None = all product categories (full train subset); else filter by category_id."""
+    if config.get("use_all_categories"):
+        return None
+    return config.get("category_id", 14)
+
+
+def _preprocessed_cache_path(config: Dict) -> str:
+    # Bump "all" -> "all_v2" so caches rebuild with per-row `categories` for stratified caps.
+    tag = "all_v2" if config.get("use_all_categories") else str(config.get("category_id", 14))
+    return PREPROCESSED_DATA_CACHE_FILE.replace(".pkl", f"_cat{tag}.pkl")
+
 # Файлы для кэша эмбеддингов
 TRAIN_EMBEDDINGS_CACHE_FILE = os.path.join(CACHE_DIR, "train_embeddings.pkl")
 TRAIN_EMBEDDINGS_INDEX_FILE = os.path.join(CACHE_DIR, "train_embeddings_index.pkl")
@@ -203,8 +216,7 @@ def load_preprocessed_data(config: Dict) -> Optional[Dict]:
     Returns:
         Dict с текстами, метками и метаданными или None если кэш не найден
     """
-    category_id = config.get("category_id", 14)
-    cache_file = PREPROCESSED_DATA_CACHE_FILE.replace(".pkl", f"_cat{category_id}.pkl")
+    cache_file = _preprocessed_cache_path(config)
     
     if os.path.exists(cache_file):
         try:
@@ -221,8 +233,7 @@ def load_preprocessed_data(config: Dict) -> Optional[Dict]:
 
 def save_preprocessed_data(config: Dict, data: Dict):
     """Сохраняет предобработанные данные в кэш."""
-    category_id = config.get("category_id", 14)
-    cache_file = PREPROCESSED_DATA_CACHE_FILE.replace(".pkl", f"_cat{category_id}.pkl")
+    cache_file = _preprocessed_cache_path(config)
     
     try:
         with open(cache_file, 'wb') as f:
@@ -232,16 +243,14 @@ def save_preprocessed_data(config: Dict, data: Dict):
         print(f"Could not save cache: {e}")
 
 
-def preprocess_category_data(dataset, category_id: int) -> Dict:
+def preprocess_category_data(dataset, category_id: Optional[int]) -> Dict:
     """
-    Извлекает и предобрабатывает данные для конкретной категории.
+    Извлекает и предобрабатывает данные для одной категории или для всех (category_id=None).
     Это делается один раз, потом используется быстрый кэш.
     
     Returns:
         Dict с texts, labels, user_ids для категории
     """
-    print(f"Preprocessing category {category_id}...")
-    
     train_data = dataset.get_subset('train')
     
     # Индексы метаданных
@@ -250,19 +259,23 @@ def preprocess_category_data(dataset, category_id: int) -> Dict:
     category_idx = metadata_fields.index('category')
     
     metadata_array = train_data.metadata_array
-    y_array = train_data.y_array
     
-    # Фильтруем по категории
-    category_mask = (metadata_array[:, category_idx] == category_id)
-    category_indices = np.where(category_mask)[0]
-    
-    print(f"Found {len(category_indices)} examples in category")
+    if category_id is None:
+        n = len(train_data)
+        category_indices = np.arange(n, dtype=np.int64)
+        print(f"Preprocessing ALL categories ({n} train examples)...")
+    else:
+        print(f"Preprocessing category {category_id}...")
+        category_mask = (metadata_array[:, category_idx] == category_id)
+        category_indices = np.where(category_mask)[0]
+        print(f"Found {len(category_indices)} examples in category")
     
     # Извлекаем данные
     texts = []
     labels = []
     user_ids = []
     original_indices = []
+    categories: list = []
     
     for i, idx in enumerate(category_indices):
         if i % 500 == 0:
@@ -273,16 +286,22 @@ def preprocess_category_data(dataset, category_id: int) -> Dict:
         labels.append(int(y) + 1)  # 0-4 -> 1-5
         user_ids.append(int(metadata_array[idx, user_idx]))
         original_indices.append(int(idx))
+        if category_id is None:
+            categories.append(int(metadata_array[idx, category_idx]))
     
     print(f"✓ Preprocessed {len(texts)} reviews")
     
-    return {
+    out = {
         'texts': texts,
         'labels': labels,
         'user_ids': user_ids,
         'original_indices': original_indices,
         'category_id': category_id,
+        'use_all_categories': category_id is None,
     }
+    if category_id is None:
+        out['categories'] = categories
+    return out
 
 
 def create_splits_from_preprocessed(
@@ -359,7 +378,16 @@ def load_wilds_dataset(config: Dict) -> Tuple[Any, Dict]:
     
     print(f"Loading WILDS Amazon dataset from {data_path}...")
     print("(First load is slow due to CSV parsing, subsequent loads use cache)")
-    dataset = get_dataset(dataset='amazon', download=False, root_dir=data_path)
+    os.makedirs(data_path, exist_ok=True)
+    download = config.get("dataset_download", True)
+    try:
+        dataset = get_dataset(dataset="amazon", download=download, root_dir=data_path)
+    except Exception as e:
+        if not download:
+            print(f"get_dataset with download=False failed ({e}); retrying with download=True...")
+            dataset = get_dataset(dataset="amazon", download=True, root_dir=data_path)
+        else:
+            raise
     
     return dataset, dataset._metadata_map if hasattr(dataset, '_metadata_map') else {}
 
@@ -602,7 +630,7 @@ def get_dataset_splits() -> Dict:
         return _DATASET_SPLITS
     
     config = load_prompt_config()
-    category_id = config.get("category_id", 14)
+    category_id = effective_category_id(config)
     
     # Проверяем предобработанный кэш
     preprocessed = load_preprocessed_data(config)

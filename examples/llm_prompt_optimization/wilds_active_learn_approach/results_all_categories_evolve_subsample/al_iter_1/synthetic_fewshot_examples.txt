@@ -1,0 +1,31 @@
+Example 1:
+Review: This is the best coffee maker I've ever owned! It brews the perfect cup every time, and it's super fast. I was worried the water reservoir would be too small based on some reviews, but it's actually just right for my daily use. Absolutely love it and it looks great on my counter.
+Rating: 5
+
+Example 2:
+Review: It's a great coffee maker that makes a hot cup quickly. The design is sleek and modern. My only real gripe is that the water reservoir is a bit small, so I have to refill it more often than I'd like. Otherwise, it's a solid machine and I'm happy with the purchase.
+Rating: 4
+
+Example 3:
+Review: These baking sheets are okay. They do the job, but they warp pretty noticeably at high temperatures. They flatten back out when they cool, but it's annoying when you're trying to roast vegetables and everything slides to one side. They haven't rusted yet, which is a plus. Mixed feelings.
+Rating: 3
+
+Example 4:
+Review: I've been using these baking sheets for a few weeks and I'm quite happy with them. They are a good heavy weight and clean up easily. They do show some slight warping when I put them in a very hot oven (450F), but it's not severe and they go right back to flat once they cool. For the price, the quality is excellent.
+Rating: 4
+
+Example 5:
+Review: I bought this vacuum specifically for its supposed power on carpets to deal with pet hair. It's a huge letdown. It barely picks up any surface-level fur and just pushes dirt around on my area rugs. The suction is incredibly weak. I'm going back to my old vacuum. Very disappointed.
+Rating: 2
+
+Example 6:
+Review: This vacuum is fine for what it is. It has decent suction for my hard floors and low-pile rugs. However, it's pretty useless on my medium-pile carpet in the bedroom, it just skims the surface. Since most of my house is hardwood, I'll keep it, but I wouldn't recommend it for a home with a lot of carpeting.
+Rating: 3
+
+Example 7:
+Review: DANGEROUS. After a week, this kettle started leaking boiling water from the seal at the bottom. It ruined my countertop and is a serious safety hazard. A complete waste of money and should be pulled from the market. Do not buy.
+Rating: 1
+
+Example 8:
+Review: I love these food storage containers. The glass is thick and sturdy, and they go from the freezer to the oven without any issues. The lids seal perfectly and are completely leakproof. They are exactly what I was looking for. Perfect!
+Rating: 5

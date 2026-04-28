@@ -8,6 +8,7 @@ Usage:
 Requires OPENROUTER_API_KEY or OPENAI_API_KEY.
 """
 
+import argparse
 import json
 import os
 import sys
@@ -43,8 +44,9 @@ class MajorityVoteAggregator:
         return Counter(worker_predictions).most_common(1)[0][0]
 
 
-def load_config():
-    with open(SCRIPT_DIR / "config.yaml", "r", encoding="utf-8") as f:
+def load_config(config_name: str = "config.yaml"):
+    path = SCRIPT_DIR / config_name
+    with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -60,7 +62,9 @@ def load_split_data(config, split_name, max_samples=None):
     preprocess_category_data = mod.preprocess_category_data
     create_splits_from_preprocessed = mod.create_splits_from_preprocessed
     save_preprocessed_data = mod.save_preprocessed_data
-    dataset_cfg_path = SCRIPT_DIR / "dataset.yaml"
+    effective_category_id = mod.effective_category_id
+    dataset_rel = (config.get("dataset") or {}).get("config_path", "dataset.yaml")
+    dataset_cfg_path = SCRIPT_DIR / dataset_rel
     with open(dataset_cfg_path, "r", encoding="utf-8") as f:
         dataset_cfg = yaml.safe_load(f)
     dataset_cfg.setdefault("data_root", "./data")
@@ -68,7 +72,7 @@ def load_split_data(config, split_name, max_samples=None):
     preprocessed = load_preprocessed_data(dataset_cfg)
     if preprocessed is None:
         dataset, _ = load_wilds_dataset(dataset_cfg)
-        preprocessed = preprocess_category_data(dataset, dataset_cfg["category_id"])
+        preprocessed = preprocess_category_data(dataset, effective_category_id(dataset_cfg))
         save_preprocessed_data(dataset_cfg, preprocessed)
 
     splits = create_splits_from_preprocessed(
@@ -144,7 +148,14 @@ def evaluate_split(texts, labels, user_ids, prompt_template, config):
 
 
 def main():
-    config = load_config()
+    parser = argparse.ArgumentParser(description="Baseline eval on train/val/test.")
+    parser.add_argument(
+        "--config",
+        default="config.yaml",
+        help="Experiment YAML in this directory (default: config.yaml). Use config_all_categories.yaml for full-category data.",
+    )
+    args = parser.parse_args()
+    config = load_config(args.config)
     prompt_path = SCRIPT_DIR / config.get("prompt_path", "initial_prompt.txt")
     with open(prompt_path, "r", encoding="utf-8") as f:
         prompt_template = f.read()

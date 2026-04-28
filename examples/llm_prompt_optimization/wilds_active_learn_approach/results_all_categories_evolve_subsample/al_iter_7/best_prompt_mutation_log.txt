@@ -1,0 +1,4 @@
+- Fitness declined significantly, with the main errors being confusion between 4 and 5 stars. I'm reverting the rules and few-shot examples to the previous top-performing prompt (Program 1) as a stronger baseline.
+- I've refined the 4/5-star boundary rules from that baseline. The error data shows that plot summaries with mild positive conclusions (e.g., "Powerful", "Watchable") are often misclassified as 5s. I've created a specific 4-star rule for these cases and clarified the 5-star rule to apply only to purely factual/neutral summaries with no opinion.
+- I'm also adopting Program 1's more nuanced rule on qualifiers (e.g., "so far, so good"), which correctly handles cases where ecstatic praise is paired with a qualifier, fixing an anchor regression.
+- The few-shot examples are now from Program 1, as they target specific, tricky hard examples that were misclassified in past cycles.

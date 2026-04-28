@@ -1,0 +1,4 @@
+- The last cycle saw a catastrophic fitness drop (0.69 → 0.58) driven by a massive number of `gold 5 -> 4` errors (20) and critical anchor regressions. The root cause appears to be an overly strict 5-star definition that penalizes short, factual, positive reviews.
+- I am reverting the prompt's rules and examples to the previous top-performing version (Program 1, score 0.7369). This is a strategic reversion to a known-good state to recover lost performance.
+- This reversion reinstates the crucial 5-star rule: "**Wholly positive reviews are 5-star, even if not gushy.**" This directly targets the main source of error and the anchor regressions (e.g., "I use this stuff everywhere...").
+- The restored few-shot examples also directly address specific errors from the last batch, including the "day-old chili" review (gold=2) and the "too large" sizing review (gold=4), providing targeted corrections.

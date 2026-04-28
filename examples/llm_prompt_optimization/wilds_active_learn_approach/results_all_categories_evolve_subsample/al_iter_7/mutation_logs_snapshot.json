@@ -1,0 +1,76 @@
+{
+  "al_iter": 7,
+  "n_programs": 10,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.646258446641593,
+      "has_mutation_log": true,
+      "mutation_log": "- Fitness declined significantly, with the main errors being confusion between 4 and 5 stars. I'm reverting the rules and few-shot examples to the previous top-performing prompt (Program 1) as a stronger baseline.\n- I've refined the 4/5-star boundary rules from that baseline. The error data shows that plot summaries with mild positive conclusions (e.g., \"Powerful\", \"Watchable\") are often misclassified as 5s. I've created a specific 4-star rule for these cases and clarified the 5-star rule to apply only to purely factual/neutral summaries with no opinion.\n- I'm also adopting Program 1's more nuanced rule on qualifiers (e.g., \"so far, so good\"), which correctly handles cases where ecstatic praise is paired with a qualifier, fixing an anchor regression.\n- The few-shot examples are now from Program 1, as they target specific, tricky hard examples that were misclassified in past cycles.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 2,
+      "score": 0.6416275666592859,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error sources were confusion between 4 and 5-star ratings (gold 4->5 and gold 5->4). I targeted this boundary with more nuanced rules.\n- Strengthened the 5-star rule for factual/neutral reviews to be more assertive, aiming to fix anchor regressions where purely descriptive reviews were downgraded to 4 stars.\n- Refined the 4-star rules to better calibrate praise, distinguishing between ecstatic words (\"awesome\") that can override qualifiers, and strong-but-not-ecstatic words (\"Fun\", \"Powerful\") that often signal a 4-star review.\n- Replaced a redundant 4-star few-shot example with a terse, misclassified review (\"...Watchable.\") to directly teach the model how to handle this difficult pattern.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 3,
+      "score": 0.6291275666592859,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error source is the 4-star vs 5-star boundary, with `gold=4 -> pred=5` being the most common error (16 instances), and `gold=5 -> pred=4` being the second most common (12 instances). This indicates the rules are not crisp enough.\n- The high-performing `Program 1` (score 0.6416) has rules and few-shot examples that directly address these specific failure modes. For example, its rule for 4-stars correctly identifies brief, unelaborated praise (\"Fun\", \"Powerful\") as a 4, not a 5. It also uses misclassified examples from the hard set as few-shot examples.\n- I will replace the current prompt's rules and few-shot examples with those from the top-performing `Program 1`. This is a targeted replacement designed to import a proven solution for the exact error patterns observed, particularly the confusion between 4 and 5 stars and the misclassification of lukewarm media reviews.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 4,
+      "score": 0.6204562643811757,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error is `gold 4 -> pred 5`, where positive-but-not-ecstatic reviews are overrated. I'm adopting rules from the top-performing prompt to define 4-stars as the \"default positive\" and to classify single-word praise like \"Fun\" as a 4, not a 5.\n- Another major error is `gold 5 -> pred 4`, especially for factual descriptions (like ingredient lists) or reviews with ecstatic praise qualified by \"so far\". I've strengthened the rule that factual/plot-summary reviews are 5-stars and added a nuanced rule that ecstatic words (\"awesome\") can still yield a 5 even with a qualifier.\n- I replaced the entire few-shot set with a more targeted one from the top-performing prompt. This set includes specific, previously misclassified examples like a lukewarm movie summary (\"Watchable.\" -> 4) and a review with rhetorical questions (\"Is Nellie crazy...?\" -> 5) to directly teach the model how to handle these tricky cases.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 5,
+      "score": 0.616627566659286,
+      "has_mutation_log": true,
+      "mutation_log": "The previous prompt led to a significant drop in fitness and multiple anchor regressions. The main issues were confusion between 4 and 5 stars and misclassifying terse or factual reviews. To correct this, I'm reverting to the previously top-performing prompt (Program 1, score 0.6416). This prompt's rules and few-shot examples are specifically tailored to address the exact error patterns currently observed, such as handling qualified praise (\"so far, so good\"), \"pleasantly surprised\" tones, purely factual descriptions, and terse media reviews (\"Watchable.\"). This reversion is a strategic move to restore the high-performance baseline before making further incremental changes.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 6,
+      "score": 0.6134091692372915,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 7,
+      "score": 0.6012454157784617,
+      "has_mutation_log": true,
+      "mutation_log": "- Reverted prompt structure and most rules/examples to the previous top-performing version (Program 1) to recover from a significant fitness drop. The last prompt performed poorly, especially on the 4/5-star boundary.\n- The primary error is confusion between 4 and 5 stars. I sharpened the rules: clarified that \"love\" with a flaw is a 4, and detailed factual descriptions without ecstatic praise are a 5.\n- Replaced two few-shot examples with specific, recent misclassifications to directly target the top error patterns:\n    - Added a gold=5 review (\"Durable camera...\") that was misclassified as 4 to reinforce the \"factual implies 5\" rule.\n    - Added a gold=4 review (\"I love it, but...\") that was misclassified as 5 to show that a flaw can override enthusiastic language.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 8,
+      "score": 0.575075445280028,
+      "has_mutation_log": true,
+      "mutation_log": "- Fitness dropped significantly, with the top error being `gold 5 -> 4` and several anchor regressions of the same type. This indicates the current prompt's 5-star criteria are too strict.\n- I've reverted to the structure of the top-performing prompt (Program 1) as a base.\n- To fix the `gold 5 -> 4` errors, I relaxed the 5-star rule, allowing strong satisfaction (\"favorite\", \"great quality\") in addition to ecstatic language.\n- To better handle media reviews (a source of confusion), I clarified in the BaseGuidelines that dramatic plot words (\"mayhem\", \"death\") are not product complaints.\n- I completely replaced the few-shot examples with a curated set from the synthetic suggestions and previous high-performing examples. This new set provides clearer, more direct examples for each rating boundary (e.g., \"Good with a Flaw\" vs. \"Balanced Pros/Cons\") and directly includes a \"truly bored\" example to fix a `gold=1` anchor regression.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 9,
+      "score": 0.5556444661687628,
+      "has_mutation_log": true,
+      "mutation_log": "- **Hypothesis:** The primary error, `gold=4 -> pred=5`, stems from models over-indexing on strong positive words (e.g., \"love\") while ignoring clear, unresolved flaws or qualifying phrases (e.g., \"but there's a delay,\" \"so far so good\").\n- **Rule Change:** I've substantially strengthened the 4-star rating rules. I explicitly state that a meaningful, unresolved complaint **caps the rating at 4**, regardless of other praise. I also made the rule for qualified praise (\"so far so good\") and tepid praise (\"Watchable\") more definitive to prevent them from being mistaken for 5-star reviews.\n- **Few-Shot Change:** I replaced the entire existing set of few-shot examples with the provided synthetic draft. The synthetic examples are more archetypal and provide extremely clear illustrations of the rating boundaries, especially the tricky 3-vs-4 and 4-vs-5 distinctions, which directly addresses the core confusion.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    },
+    {
+      "rank": 10,
+      "score": 0.5520746781327995,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error is `gold=4 -> pred=5`, indicating the model is too lenient. I've sharpened the 4-star vs 5-star boundary in `<DynamicRules>`.\n- Specifically, I added a rule to cap reviews with qualified praise like \"so far so good\" or unresolved complaints (e.g., \"I love it, but...\") at 4 stars. This directly targets the observed misclassifications.\n- To prevent over-correction (`gold=5 -> pred=4`), I added a rule that distinguishes a user's learning curve from a product flaw if the user is ultimately delighted.\n- I replaced the entire `<FewShotExamples>` section with the suggested synthetic draft. The new examples are well-balanced across ratings and provide excellent, clear contrasts for tricky boundaries (like the 3-star vs 4-star vacuum cleaners), which should improve overall model alignment.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    }
+  ]
+}

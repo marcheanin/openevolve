@@ -1,0 +1,256 @@
+# Copy of config.yaml for runs on the full WILDS train set (all product categories).
+# Usage: python active_loop.py --config config_all_categories.yaml ...
+# Default config.yaml and dataset.yaml are unchanged.
+
+max_iterations: 500
+checkpoint_interval: 10
+log_level: "INFO"
+diff_based_evolution: false
+max_code_length: 7500
+language: "text"
+early_stopping_patience: 5
+early_stopping_metric: "combined_score"
+convergence_threshold: 0.001
+
+# OpenRouter: Evolution model (DeepSeek R1 for reasoning)
+llm:
+  api_base: "https://openrouter.ai/api/v1"
+  models:
+    - name: "google/gemini-2.5-pro"
+      weight: 1.0
+  temperature: 0.6
+  max_tokens: 8192
+  timeout: 300
+  retries: 5
+
+prompt:
+  template_dir: null
+  num_top_programs: 5
+  num_diverse_programs: 3
+  include_artifacts: true
+  system_message: |
+    You are evolving a classification prompt for Amazon product reviews across
+    all categories (1-5 stars). Three LLM workers (GPT-4o-mini, Gemini 2.5 Flash,
+    Claude 3.5 Haiku) receive your prompt, each outputs a single rating, majority vote wins.
+
+    ## What you're working with
+
+    The prompt has XML structure:
+      <System> → <Role>, <BaseGuidelines>, <DynamicRules>
+      <FewShotExamples> → review/rating pairs
+      <Task> → the {review} placeholder
+
+    Keep <Task> unchanged. Everything else is yours to reshape: rewrite
+    rules, reorganize sections, add or remove examples, change wording,
+    restructure <DynamicRules> however you see fit. You may also refine
+    <BaseGuidelines> if you find a wording that helps workers classify
+    more accurately — but keep the core intent (scale, output format).
+
+    Workers output ONLY a rating (e.g. "Rating: 4" or "4"). Few-shot examples
+    must end with a single "Rating: N" line.
+
+    ## What matters for fitness
+
+    fitness = 0.5 * Acc_Hard + 0.3 * Acc_Anchor + 0.2 * kappa_Hard - length_penalty
+
+    - **Acc_Hard** (50% weight): accuracy on the difficult examples — reviews
+      the ensemble previously got wrong or disagreed on. This is where almost
+      all improvement potential lives.
+    - **Acc_Anchor** (30%): accuracy on easy, stable examples. Regressions here
+      are very costly — avoid breaking what already works.
+    - **kappa_Hard** (20%): inter-worker agreement on hard examples. When workers
+      agree, the majority vote is more reliable.
+    - **length_penalty**: grows above ~2000 tokens. Concise prompts that achieve
+      the same accuracy always score higher.
+
+    ## Evaluation artifacts — your main signal
+
+    Each evaluation gives you concrete data. Pay close attention to:
+
+    - **ERROR DISTRIBUTION**: which gold→predicted pairs happen most. This tells
+      you where the prompt is systematically wrong — e.g. if gold=3→pred=4 is
+      the top error, the 3-vs-4 boundary needs work.
+    - **MISCLASSIFIED EXAMPLES**: actual review text with gold rating, predicted
+      rating, and per-worker votes. Read these carefully — they reveal *why* the
+      prompt fails (tone misread, sarcasm, mixed signals, brevity).
+    - **BORDERLINE EXAMPLES**: correctly classified but workers disagreed. These
+      are fragile — a small prompt change could flip them.
+    - **RULE COVERAGE**: flags which star levels lack rules in <DynamicRules>.
+      All 5 levels should be represented.
+    - **FEW-SHOT BALANCE**: counts examples per rating. Skewed distribution can
+      bias workers toward over-represented ratings.
+
+    Think of the artifacts as a diagnostic report. Your job is to read it,
+    form a hypothesis about what the prompt gets wrong and why, then make
+    a targeted change.
+
+    ## How to think about changes
+
+    You have full creative freedom over the prompt content. Here are
+    considerations, not rigid rules:
+
+    **On DynamicRules:**
+    - The distinction between adjacent ratings (especially 2↔3, 3↔4, 4↔5)
+      is where most errors happen. Crisp boundary descriptions help all three
+      workers converge. Think about what *specific signal* separates "3 vs 4"
+      in the reviews that were misclassified.
+    - A rule that addresses a real pattern in the error data is worth more than
+      ten generic platitudes. One good boundary clarification can fix several
+      misclassifications at once.
+    - If you see two rules that say roughly the same thing, combining them
+      makes the prompt tighter without losing information. But if two rules
+      address genuinely different phenomena (e.g. "sarcasm" vs "brief negative"),
+      keep them separate — collapsing distinct ideas hurts accuracy.
+    - Rules can be structured any way you find effective: numbered lists,
+      star-level sections, decision-tree style, comparison tables, whatever
+      communicates boundaries most clearly to the worker models.
+    - Consider what each of the three worker models might struggle with.
+      Smaller models benefit from explicit, concrete cues; larger models
+      can handle nuance.
+
+    **On FewShotExamples:**
+    - Examples teach by showing, not telling. A well-chosen example of a
+      tricky 3-star review can be more effective than a paragraph of rules.
+    - When artifacts show a specific error type, turning that exact
+      misclassified review into a few-shot example (with the correct rating)
+      directly teaches the pattern.
+    - Coverage across all 5 ratings matters — if you have no 2-star example,
+      workers may avoid predicting 2.
+    - Quality over quantity. 7-12 diverse, well-chosen examples beat 15
+      mediocre ones while keeping the prompt shorter.
+    - If a **Suggested synthetic FewShot (draft)** section appears in your context, treat it
+      as optional: merge with current <FewShotExamples>, replace them, take a subset, or
+      ignore — pick what improves fitness (Hard/Anchor/kappa).
+
+    **On prompt length:**
+    - There's a real cost to being long: length_penalty in fitness, plus
+      longer prompts can confuse smaller workers. But there's also a cost to
+      being too terse — if you remove a useful rule, accuracy drops.
+    - Let accuracy drive your decisions. Don't add words for the sake of it,
+      but don't aggressively cut rules that are doing useful work either.
+
+    **General strategy advice:**
+    - Small, targeted changes often outperform rewrites. If the current prompt
+      scores 0.68, changing one confused boundary can push it to 0.72. Changing
+      everything at once risks regressing on Anchor examples.
+    - Read the misclassified examples. Really read them. The answer to
+      "what should I change?" is almost always in the error data.
+    - If workers disagree on a correctly-classified example (borderline),
+      that's a fragile win — consider adding a rule that makes it robust.
+    - Anchor accuracy is your floor. If you break Anchor examples, you lose
+      0.3 weight regardless of Hard improvements.
+
+    ## Output format
+
+    First, a brief <mutation_log> (3-5 lines): what you changed and your
+    reasoning (which errors you targeted, what hypothesis you tested).
+    Then the complete prompt in a ```text code fence.
+
+    <mutation_log>
+    - Observed gold=3→pred=4 as top error; reviews have mixed tone but workers
+      over-index on positive phrases. Added boundary rule: mixed tone with
+      notable complaints → 3 even if some positive language present.
+    - Replaced few-shot #6 with a misclassified 3-star review from artifacts.
+    - Tightened wording on two near-duplicate 5-star rules.
+    </mutation_log>
+    ```text
+    <System>
+    ...complete prompt...
+    </Task>
+    ```
+
+database:
+  population_size: 30
+  archive_size: 500
+  num_islands: 1
+  feature_dimensions: ["prompt_length", "Acc_Hard"]
+  feature_bins: 5
+  elite_selection_ratio: 0.4
+  exploration_ratio: 0.3
+  exploitation_ratio: 0.3
+
+evaluator:
+  model: "deepseek-chat-v3"  # primary model for single-model eval; when null, use workers ensemble
+  timeout: 1800
+  max_retries: 3
+  parallel_evaluations: 1
+  cascade_evaluation: false
+
+generalization:
+  gap_threshold: 0.10
+  gap_penalty: 0.50
+
+evolution_trace:
+  enabled: true
+  format: "jsonl"
+  include_code: true
+  include_prompts: true
+  output_path: ""
+  buffer_size: 1
+  compress: false
+
+# OpenRouter workers for ensemble evaluation
+worker_defaults:
+  api_base: "https://openrouter.ai/api/v1"
+  temperature: 0.0
+  max_tokens: 64
+  timeout: 75
+  max_retries: 4
+  max_parallel: 8
+
+workers:
+  - name: "openai/gpt-4o-mini"
+  - name: "google/gemini-2.5-flash"
+  - name: "anthropic/claude-3.5-haiku"
+
+# Active learning pool management.
+# uncertainty_threshold: disagreement_score threshold for Hard classification.
+#   0.0 = any disagreement counts; 0.25 = at least ~1 star average spread.
+# batch_size: size of the active batch used for evolution.
+# hard_ratio: fraction of batch reserved for Hard examples.
+# expansion_trigger: when Hard count drops to this or below, expand pool from Unseen.
+# Per-cycle test metrics go to active_loop_log.json for graphs; AL decisions use train+val only.
+active_learning:
+  uncertainty_threshold: 0.0
+  batch_size: 80
+  hard_ratio: 0.7
+  synthetic_fewshot:
+    enabled: false
+    # replace: write generated block into <FewShotExamples> before evolution.
+    # inject_as_hint: keep seed few-shot in the program; append draft to system message only.
+    mode: inject_as_hint
+    # If true, mutator must not edit <FewShotExamples> (v12-style lock). Default false: mutator may edit/mix.
+    mutator_lock_fewshot: false
+    n_examples: 8
+    n_boundary_pairs: 4
+    model: null
+    temperature: 0.7
+    max_tokens: 4096
+    max_retries: 2
+  min_hard_batch_ratio: 0.55      # Warn if active batch has fewer Hard than this fraction (when pool allows)
+  expansion_trigger: 15
+  soft_expansion_patience: 3      # Cycles without val improvement to trigger expansion
+  soft_expansion_min_delta: 0.02  # Minimum val_combined_score improvement required
+  soft_expansion_skip_near_best: 0.005  # Skip soft-only expansion when seed_val is at/near best val so far
+  seen_reeval_interval: 3         # Re-evaluate all Seen examples every N AL cycles (0 = off)
+  refresh_per_cycle: 10           # Promote N Unseen→Seen/cycle; each is scored → Hard or Anchor (0 = off)
+  generalization_gap_warn_threshold: 0.03   # Warn when (val_combined - per-cycle test_combined) exceeds this
+  generalization_gap_stop_threshold: 0.08   # Trigger early stop streak when gap exceeds this
+  generalization_gap_stop_patience: 2       # Consecutive cycles over stop threshold before AL stop
+  consolidation_gate_delta: 0.01  # Reject consolidated prompt if val drops vs evolution-best this cycle
+  consolidation_gate_vs_best_delta: 0.04  # Also reject if cons val is this far below global best val
+  al_early_stopping_patience: 2   # Stop AL loop after this many cycles with no new best val (0 = off)
+  al_early_stopping_min_cycles: 6  # Require at least this many AL cycles before AL early stop can fire
+dataset:
+  config_path: "dataset_all_categories.yaml"
+  max_samples: null
+  # After max_*_users, cap review counts so all-categories runs match ~single-category load (~300–400 train).
+  max_train_users: 25
+  max_val_users: 15
+  max_reviews_per_user: 15
+  # When preprocess has per-row categories (all-categories cache all_v2), subsample users to match category prevalence.
+  stratify_users: true
+
+# Seed prompt used only for this config (single-category runs keep initial_prompt.txt).
+prompt_path: "initial_prompt_all_categories.txt"
+output_dir: "results_all_categories"

@@ -8,8 +8,10 @@ target_field: "label"
 category: "Home_and_Kitchen"
 category_id: 24
 
-# Data path (relative to wilds_experiment evaluator dir)
-data_root: "./data"
+# WILDS root_dir: parent of the inner "amazon_v2.1" folder (manual copy at repo root).
+# Resolves to: <AlphaEvolveProject>/amazon_v2.1 → contains amazon_v2.1/reviews.csv, splits/, RELEASE_v2.1.txt
+data_root: "../../../../amazon_v2.1"
+dataset_download: false
 
 # Dataset splitting
 train_ratio: 0.7

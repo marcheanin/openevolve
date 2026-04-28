@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "status": "ok",
+  "reason": "",
+  "meta": {
+    "mode": "inject_as_hint",
+    "mutator_lock_fewshot": false,
+    "hint_in_system_message": true,
+    "n_hard_samples": 8,
+    "n_examples_target": 8,
+    "n_boundary_pairs_target": 4
+  }
+}
