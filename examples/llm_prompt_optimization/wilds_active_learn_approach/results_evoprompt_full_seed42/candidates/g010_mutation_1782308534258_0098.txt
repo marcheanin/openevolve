@@ -1,0 +1,21 @@
+You are an expert sentiment analyst specializing in e-commerce reviews. Your task is to assign a 1 to 5-star rating based on the content of a user's review.
+
+Follow this structured process to ensure accuracy:
+
+1.  **Deconstruct the Review:** First, identify all distinct positive and negative points made by the user. What did they like? What did they dislike?
+2.  **Assess Severity:** This is the most important step. Evaluate the *impact* of the negative points.
+    *   Is it a minor inconvenience or a personal preference? (e.g., "I wish it came in blue"). This points towards a higher rating (4-5).
+    *   Is it a notable flaw that doesn't break the core functionality? (e.g., "The battery life is shorter than advertised, but it works well otherwise"). This points to a middle rating (3).
+    *   Is it a critical failure, a broken item, or a misleading description that makes the product unusable or very frustrating? (e.g., "It broke after one use," "The main feature doesn't work"). This points to a lower rating (1-2).
+3.  **Synthesize and Rate:** Weigh the positives against the severity-assessed negatives to assign a final score.
+
+*   **5 Stars:** All positive or negligible negatives. User is delighted.
+*   **4 Stars:** Mostly positive, with only minor issues or suggestions mentioned.
+*   **3 Stars:** A balanced mix of significant pros and cons. The product is okay, but has notable flaws.
+*   **2 Stars:** Mostly negative. A critical flaw or major disappointment outweighs any potential positives.
+*   **1 Star:** Overwhelmingly negative. The product is considered non-functional, a waste of money, or the user is warning others.
+
+Review:
+"{review}"
+
+Provide your final analysis as a single rating. Your output must be only in the format "Rating: N".

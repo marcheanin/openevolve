@@ -1,0 +1,41 @@
+{
+  "al_iter": 0,
+  "n_programs": 5,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.7753247913941529,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error was `gold 4 -> 5` (10 instances), indicating the model is too generous with 5-star ratings. I sharpened the 4 vs 5 boundary rule to emphasize that 5-star reviews must be flawless and unreserved, while 4-star reviews can be very enthusiastic but contain minor reservations or simply lack \"perfect\" language.\n- Added a `CoreLogic` rule to distinguish between the reviewer's emotions about the product and the emotions described within a book/movie's plot. This targets `gold 5 -> 4` errors where a sad plot was mistaken for negative sentiment.\n- Replaced several generic few-shot examples with misclassified examples from the provided artifacts. This directly teaches the model how to handle tricky boundary cases, such as a very positive but flawed review (gold=4), a mixed review with significant drawbacks (gold=3), and a review of a sad book that the user loved (gold=5).\n- Restructured the rules section into `<DynamicRules>` with `<RatingBoundaryGuide>` and `<CoreLogic>` for better clarity and to resolve the `RULE COVERAGE WARNING`.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories. Your task is to assign a star rating from "
+    },
+    {
+      "rank": 2,
+      "score": 0.7377674429036998,
+      "has_mutation_log": true,
+      "mutation_log": "- The previous prompt had very low Anchor accuracy (50%), suggesting its complex, multi-section rule structure was confusing on simple cases. I have completely restructured `<DynamicRules>` into a single `RatingBoundaryGuide` to improve clarity and stability.\n- This new guide focuses on defining the boundaries between adjacent star ratings (e.g., what separates a 3 from a 4), which is where most classification errors occur.\n- I added a concise `CoreLogic` section to highlight overarching principles, such as prioritizing the review's conclusion and correctly handling plot summaries without personal opinion (classifying them as 3-star).\n- I replaced a weak 3-star few-shot example ('Hard to tell if worked...') with a much clearer example of a mixed-but-not-negative review from the provided hard examples, better anchoring the difficult 3-star category.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories. Your task is to assign a star rating from "
+    },
+    {
+      "rank": 3,
+      "score": 0.7323424264064575,
+      "has_mutation_log": true,
+      "mutation_log": "- Restructured `<DynamicRules>` into a `<RatingDecisionGuide>` focusing on the boundaries between adjacent star ratings (e.g., 4 vs 5, 3 vs 4) to address the most common error types observed in the hard examples.\n- Added specific guidance for common tricky patterns like \"value for money\" reviews (often 4-star) and mixed reviews where a major pro is cancelled by a major con (often 3-star).\n- Overhauled `<FewShotExamples>` to be more balanced across ratings and to include several \"Hard Examples\" from the evaluation artifacts, directly teaching the model how to handle nuanced cases like brief emphatic praise or mixed-but-ultimately-negative feedback.\n- Consolidated and simplified the rules into a more coherent structure to improve clarity and conciseness, which should help the worker models apply them more consistently.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories. Your task is to assign a star rating from "
+    },
+    {
+      "rank": 4,
+      "score": 0.7139564938470193,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error was `gold 4 -> 5` (10 instances), where models over-indexed on positive words like \"good\" or \"intriguing\". I refined the 4-star and 5-star boundary definitions to clarify that 4-stars are for \"good/great\" experiences, while 5-stars require superlatives (\"amazing\", \"perfect\") or overwhelming enthusiasm.\n- The second and third most common errors were `gold 4 -> 3` and `gold 3 -> 4`. These often involved plot summaries or mixed-feeling reviews. I elevated the \"plot summary = 3\" rule for prominence and added a rule for handling mixed-but-positive reviews as 4-stars.\n- I completely replaced the few-shot examples to address specific misclassifications and balance the distribution. The new set uses misclassified examples from the artifacts to directly teach the model how to handle brief positive reviews (as 4-star), plot summaries (as 3-star), and mixed-feeling reviews (as 4-star).",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories. Your task is to assign a star rating from "
+    },
+    {
+      "rank": 5,
+      "score": 0.6653390064624728,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>\n    \n    <BaseGuidelines>\n        -"
+    }
+  ]
+}

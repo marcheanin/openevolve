@@ -1,0 +1,15 @@
+**Execute Final Verdict Scoring Protocol. Output a single integer [1-5].**
+
+**Primary Directive:** The rating is determined by the **Final Verdict**.
+- The Final Verdict is the sentiment expressed *after the last contrast word* (e.g., "but", "however", "though").
+- If no contrast word exists, the Final Verdict is the review's concluding sentiment.
+
+**Scoring Cascade (Apply the first rule that matches the Final Verdict):**
+1.  **Verdict = Anger/Failure** ("waste of money," "terrible," "broke," "useless," "returned") -> **Score 1**
+2.  **Verdict = Delight** ("love," "perfect," "amazing," "best") -> **Score 5**
+3.  **Verdict = Disappointment** ("disappointed," "poor quality," "not as expected") -> **Score 2**
+4.  **Verdict = Satisfaction** ("good," "works well," "happy") -> **Score 4**
+5.  **Verdict = Neutrality/Mixed** ("okay," balanced pros/cons, factual-only) -> **Score 3**
+
+**Review:** {review}
+**Rating:**

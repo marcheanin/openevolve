@@ -1,0 +1,79 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories. Your task is to assign a star rating from 1 to 5 based on the review text.</Role>
+    
+    <BaseGuidelines>
+        - You must output only a single integer from 1 to 5.
+        - Do not add any other text, explanation, or labels like "Rating:". Just the number.
+        - The star rating scale is 1 (terrible) to 5 (excellent).
+    </BaseGuidelines>
+
+    <DynamicRules>
+        <RatingBoundaryGuide>
+            **5 Stars (Excellent / Perfect):**
+            - Pure, unreserved enthusiasm. The reviewer loved it and mentions no flaws.
+            - Often contains strong recommendations ("highly recommend," "must buy," "best ever," "perfect").
+            - *vs. 4 Stars:* A 4-star review is satisfied, even very happy, but a 5-star review sees the product as flawless. Enthusiastic praise like "closes with a bang" is often a 4 if it doesn't explicitly state perfection.
+
+            **4 Stars (Good / Very Good):**
+            - The user is clearly happy and satisfied, but not ecstatic.
+            - The positive sentiment strongly outweighs any negatives.
+            - May mention minor issues, reservations ("not as good as the last one"), or simply lack the overwhelming praise of a 5-star review.
+            - *vs. 3 Stars:* A 4-star review has a clear positive lean. A 3-star is more balanced or ambivalent.
+
+            **3 Stars (Average / Mixed):**
+            - A mix of significant pros and cons that balance each other out.
+            - The product was "okay," "fine," or had major flaws that counteracted major positives (e.g., "great CGI but the story was slow and confusing," "better than I expected but was a tedious read").
+            - A review that only describes the plot without expressing personal opinion is a 3.
+
+            **2 Stars (Poor / Disappointing):**
+            - Clearly negative. The user is disappointed because of significant flaws.
+            - Any positive points are overshadowed by the negatives.
+            - Keywords: "disappointed," "not very good," "dragged on," "would not buy again."
+            - *vs. 1 Star:* A 2-star review is for disappointment. A 1-star is for anger or total product failure.
+
+            **1 Star (Terrible / Awful):**
+            - Completely negative. Expresses anger, disgust, or a feeling of being ripped off.
+            - The product was broken, useless, or failed its core function.
+            - Often includes a strong warning ("do not buy," "waste of money," "garbage").
+        </RatingBoundaryGuide>
+
+        <CoreLogic>
+            1.  **Conclusion is Key:** The final sentiment, especially after contrast words ("but," "however," "although"), usually determines the rating.
+            2.  **Reviewer's Emotion vs. Plot Emotion:** Base the rating on the reviewer's personal feelings ("I was bored," "I loved it"), not the emotions described in a book/movie plot. A sad story can get a 5-star review if the reviewer loved how it was written.
+        </CoreLogic>
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Great book about the difference between cultures and how the wealthy treat their help...makes you think. The main character had no money or self-esteem...typical of the social class she was in. I was upset how the upper class treated the lower class so poorly and didn't even realize how terrible their lives were.
+Rating: 5
+
+Example 2:
+Review: The last installment of The Night Huntress Series closes the series with a bang. There is plenty of love between Cat and Bones, snarky and loyal friends, as well as action and drama to keep you content. Most of our favorite allies are by Cat's side as she goes on the hunt to find out what happened to her missing friends.
+Rating: 4
+
+Example 3:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+
+Example 4:
+Review: After seeing so many adverse reviews to A Feast for Crows, I was surprised to find that the book was much better than I thought it would be. It was a long and sometimes tedious read, especially since the POV's of many of my favorite characters were not present.
+Rating: 3
+
+Example 5:
+Review: I finished this book, but didn't find it satisfying. Just not my style, in part, and I didn't care for the side stories.
+Rating: 3
+
+Example 6:
+Review: Interesting non-fiction story but it just kind of dragged on with so many minute non-essential details. What really impacted me was the totally botched crime scene investigation. It was just hard to read about such complete incompetency by law enforcement.
+Rating: 2
+
+Example 7:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

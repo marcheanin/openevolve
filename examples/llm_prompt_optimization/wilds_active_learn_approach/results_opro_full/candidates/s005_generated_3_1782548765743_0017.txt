@@ -1,0 +1,17 @@
+**Rating Decision Protocol. Output the single integer score only.**
+
+**1. Triage for Critical Failure:**
+   - Does the review report a critical failure of the product's primary purpose (e.g., "doesn't work," "broke immediately," "useless")?
+   - If **YES**, the rating is **1**. STOP.
+
+**2. Determine the Final Verdict:**
+   - The final verdict is the sentiment expressed *after* the last contrast word ("but," "however," "though," "although").
+   - If no contrast word exists, the final verdict is the sentiment of the review's conclusion or overall summary.
+
+**3. Map Verdict to Score:**
+   - **5 (Excellent):** Enthusiastic delight ("love," "perfect," "best," "highly recommend").
+   - **4 (Good):** Satisfied ("works well," "happy," "good value"), even with minor dismissed flaws.
+   - **3 (Neutral/Mixed):** Ambivalent ("it's okay"), balanced pros/cons, or purely factual description.
+   - **2 (Disappointed):** Significant flaws or unmet expectations, but not a total failure.
+
+Review: {review}

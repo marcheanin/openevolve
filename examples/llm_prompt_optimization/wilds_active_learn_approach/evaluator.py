@@ -35,7 +35,17 @@ if str(OPENEVOLVE_PKG_ROOT) not in sys.path:
     sys.path.append(str(OPENEVOLVE_PKG_ROOT))
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from workers import LLMWorker
+
+# IMPORTANT: Avoid importing a different `workers.py` from wilds_experiment/experiments
+# (same module name) when sys.path contains EXPERIMENTS_ROOT.
+import importlib.util as _importlib_util
+
+_workers_path = SCRIPT_DIR / "workers.py"
+_workers_spec = _importlib_util.spec_from_file_location("wilds_active_learn_workers", _workers_path)
+_workers_mod = _importlib_util.module_from_spec(_workers_spec)
+assert _workers_spec.loader is not None
+_workers_spec.loader.exec_module(_workers_mod)
+LLMWorker = _workers_mod.LLMWorker
 from collections import Counter
 from experiments.metrics import compute_metrics, compute_combined_score_unified
 from openevolve.evaluation_result import EvaluationResult
@@ -146,7 +156,13 @@ def _load_split_data(config: dict, split_name: str) -> Tuple[List[str], np.ndarr
     """Load data for a split. Result is cached so repeated calls (e.g. every evaluate() in evolution) don't hit disk."""
     ds_cfg = config.get("dataset", {})
     stratify_users = bool(ds_cfg.get("stratify_users", False))
-    max_users = ds_cfg.get("max_train_users" if split_name == "train" else "max_val_users")
+    if split_name == "train":
+        max_users = ds_cfg.get("max_train_users")
+    elif split_name == "test":
+        # Allow per-split user cap for test; fallback to max_val_users for backwards compat.
+        max_users = ds_cfg.get("max_test_users", ds_cfg.get("max_val_users"))
+    else:
+        max_users = ds_cfg.get("max_val_users")
     max_reviews_per_user = ds_cfg.get("max_reviews_per_user")
     
     if max_users is not None and max_users <= 0:
@@ -853,6 +869,7 @@ def evaluate(prompt_path: Optional[str] = None) -> Union[Dict[str, Any], Evaluat
             "Acc_Anchor": result.get("Acc_Anchor", 1.0),
             "kappa_Hard": result.get("kappa_Hard", 0.0),
             "R_global": result.get("R_global", 0),
+            "R_worst": result.get("R_worst", 0),
             "mae": result.get("mae", 0),
             "mean_kappa": max(0, result.get("mean_kappa", 0)),
             "prompt_length": min(1.0, _estimate_tokens(prompt_template) / 3000),

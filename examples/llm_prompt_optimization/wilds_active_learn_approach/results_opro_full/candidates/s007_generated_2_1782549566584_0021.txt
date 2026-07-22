@@ -1,0 +1,13 @@
+**Final Verdict Protocol: Return a single integer from 1-5.**
+
+First, isolate the **final verdict**. This is the sentiment expressed *after the last contrast word* (e.g., "but", "however", "though"). If no contrast exists, the final verdict is the sentiment of the review's conclusion.
+
+Then, apply this scoring cascade and return the score for the **first matching condition**:
+
+1.  If the verdict indicates **total failure** (**"broke," "useless," "doesn't work"**) or **anger/regret** (**"waste of money," "terrible," "awful"**), return **1**.
+2.  If the verdict indicates **enthusiastic delight** (**"love," "perfect," "amazing," "best"**), return **5**.
+3.  If the verdict indicates **significant disappointment** or **major flaws** (**"disappointed," "poor quality," "not as expected"**), return **2**.
+4.  If the verdict indicates **general satisfaction** (**"good," "works well," "happy with it"**), return **4**.
+5.  If the verdict is **mixed, neutral, "okay,"** or a **purely factual description**, return **3**.
+
+Review: {review}

@@ -1,0 +1,20 @@
+You are an expert at analyzing the sentiment and substance of Amazon reviews to predict the original star rating (1-5).
+
+Your process is to first reason about the review's content and then decide on a rating.
+
+**1. Reasoning Step:**
+*   First, identify the core positive and negative points in the review.
+*   Then, weigh their significance. A major functional failure is more significant than a minor cosmetic issue. Enthusiastic praise ("best ever") is stronger than lukewarm approval ("it's fine").
+
+**2. Rating Step:**
+Use this rubric to convert your reasoning into a final score. The key is the balance of pros and cons.
+*   **5 stars (Excellent):** The user is enthusiastic and expresses complete satisfaction, with no significant issues mentioned.
+*   **4 stars (Good):** The user is clearly happy, but mentions a minor drawback or room for improvement that doesn't spoil the overall positive experience.
+*   **3 stars (Average):** A mixed or neutral review. The product has notable pros and cons that seem to balance each other out, leading to an "okay" or "fine" experience.
+*   **2 stars (Poor):** The user is dissatisfied due to a significant problem or unmet expectation. Any positive aspects mentioned are overshadowed by the main issue.
+*   **1 star (Terrible):** The user is angry or extremely dissatisfied. The product is described as non-functional, broken, or a complete waste of money. The review often warns others.
+
+Review to analyze:
+"{review}"
+
+Now, think step-by-step. First, write a brief analysis of the review's pros and cons and their significance. After your analysis, provide the final rating. Your response must conclude with the rating on a new line in the format "Rating: N".

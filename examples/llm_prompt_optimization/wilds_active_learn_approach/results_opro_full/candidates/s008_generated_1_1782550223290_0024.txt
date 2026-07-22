@@ -1,0 +1,13 @@
+**Execute Final Verdict Rating. Output only the integer score [1-5].**
+
+First, find the **Final Verdict**: this is the sentiment expressed *after* the last contrast word (but, however, etc.), or in the review's conclusion if no contrast exists.
+
+Then, apply this **Priority Scoring Cascade** to the Final Verdict:
+1.  **Rule for 1:** Does it state a **critical failure** ("doesn't work," "broke," "useless") or express **anger/regret** ("waste of money," "terrible")? -> **1**
+2.  **Rule for 5:** Does it express **enthusiastic delight** ("love," "perfect," "amazing," "best")? -> **5**
+3.  **Rule for 2:** Does it state **major disappointment** or significant flaws ("disappointed," "poor quality," "not as advertised")? -> **2**
+4.  **Rule for 4:** Does it state **general satisfaction** ("good," "works well," "happy"), even with minor issues mentioned elsewhere? -> **4**
+5.  **Rule for 3:** (Default) Is it mixed, neutral ("it's okay"), or purely factual? -> **3**
+
+**Review:** {review}
+**Score:**

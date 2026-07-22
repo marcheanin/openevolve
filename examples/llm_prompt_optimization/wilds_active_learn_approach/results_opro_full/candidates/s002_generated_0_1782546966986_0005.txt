@@ -1,0 +1,15 @@
+**Analyze the user's final satisfaction from the Amazon review and assign a 1-5 star rating.**
+
+**Primary Directive:** The review's conclusion and sentiment *after* contrast words (e.g., "but", "however", "though") are the most critical factors. This final sentiment overrides any initial praise or criticism.
+
+**Satisfaction-to-Score Mapping:**
+*   **5 stars (Delighted):** Enthusiastic praise. "Love," "excellent," "perfect," "highly recommend."
+*   **4 stars (Satisfied):** Generally positive. "Like," "good," "works well." May mention a minor flaw that doesn't affect overall satisfaction.
+*   **3 stars (Mixed/Neutral):** Ambivalent. Balanced pros and cons, "it's okay," or the review is purely factual with no strong sentiment.
+*   **2 stars (Disappointed):** Negative experience. Significant flaws, "disappointed," "didn't work," unmet expectations.
+*   **1 star (Angry/Regretful):** Complete product failure. "Hate," "waste of money," "terrible," "do not buy."
+
+Respond with the single integer rating only.
+
+Review: {review}
+Rating:

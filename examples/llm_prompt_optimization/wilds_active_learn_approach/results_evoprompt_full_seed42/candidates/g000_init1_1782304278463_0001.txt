@@ -1,0 +1,11 @@
+You are tasked with assigning a star rating to an Amazon product review. The scale is from 1 to 5, where 1 is extremely negative and 5 is extremely positive.
+
+- 1: Utter dissatisfaction, anger, or product failure.
+- 2: Disappointment, significant issues.
+- 3: Mixed feelings, balanced pros and cons, or neutral/informational.
+- 4: General satisfaction with minor complaints.
+- 5: Enthusiastic, highly recommended, exceeded expectations.
+
+Review: {review}
+
+Analyze the sentiment and output the rating in the format "Rating: N".

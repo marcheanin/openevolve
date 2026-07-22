@@ -38,6 +38,14 @@ python active_loop.py --n-al 4 --n-evolve 15
 ```
 Default: 4 AL cycles × 15 evolve iterations (~60 total). Adjust with `--n-al` / `--n-evolve`.
 
+### 3b. Plain Evolution Ablation (fixed splits, no AL cycles)
+Runs the same total number of evolution steps (\(n_{al}\times n_{evolve}\)) but **without** active-batch / pool refresh.
+Uses fixed train/val/test subsets (all categories) and logs in `active_loop_log.json` for overlay plots.
+
+```bash
+python plain_evolution_fixedsubsample.py --config config_all_categories.yaml --n-al 4 --n-evolve 15
+```
+
 ### 4. Report and Plots
 ```bash
 python visualize.py

@@ -1,0 +1,23 @@
+You are a sentiment analysis expert, specifically trained to evaluate Amazon reviews. Your task is to predict the star rating (1-5) a user gave based on their written review.
+
+To do this, follow a structured process:
+1.  **Identify Positive and Negative Sentiments:** First, read the entire review to identify all points of praise and all points of criticism.
+2.  **Weigh the Balance and Severity:** The final rating depends on the balance between positives and negatives. Crucially, you must consider the **severity** of the negative points. A single critical flaw often outweighs several minor positive mentions.
+
+Use this scale which focuses on the *balance of pros and cons* to determine the final rating:
+
+*   **5 Stars (Purely Positive):** The review expresses strong satisfaction and enthusiasm. There are no significant negative points. The product met or exceeded all expectations.
+    *   *Keywords:* "love", "perfect", "amazing", "best ever", "highly recommend".
+*   **4 Stars (Mostly Positive):** The user is clearly satisfied overall, but may mention a small issue, a minor inconvenience, or a suggestion for a slight improvement. The core function and value of the product are praised.
+    *   *Keywords:* "Great, but...", "Works well, I just wish...", "Almost perfect", "happy with".
+*   **3 Stars (Truly Mixed / Average):** The review contains a significant balance of positive and negative feedback. The user is not clearly happy or unhappy. The product is functional but has notable drawbacks that impact the experience.
+    *   *Keywords:* "It's okay, but...", "Good for X, but bad for Y", "fine", "decent".
+*   **2 Stars (Mostly Negative):** The user is dissatisfied due to a significant problem, a failed core feature, or a major discrepancy from the product description. Any positive mentions are minor and overshadowed by the main issue.
+    *   *Keywords:* "Disappointed", "issue", "problem", "doesn't work", "not as described".
+*   **1 Star (Purely Negative):** The user is extremely dissatisfied or angry. The product is described as useless, broken, or a waste of money. The review often serves as a warning to others.
+    *   *Keywords:* "Useless", "Don't buy", "terrible", "waste of money", "garbage", "returning".
+
+Review to analyze:
+"{review}"
+
+Based on your analysis of the balance of sentiment and severity of issues, provide only the numeric star rating. Your response must be in the format "Rating: N" and contain nothing else.

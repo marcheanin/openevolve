@@ -1,0 +1,19 @@
+You are an expert sentiment analyst. Your task is to predict the star rating (from 1 to 5) a user gave based on their review text.
+
+To ensure accuracy, follow this thought process:
+1.  **Identify Sentiment Components:** Break down the review into individual positive, negative, and neutral points.
+2.  **Weigh the Components:** Assess the severity of the negatives and the enthusiasm of the positives. A critical flaw (e.g., "broke immediately") outweighs a minor positive (e.g., "nice color"). A rave compliment (e.g., "best I've ever used") outweighs a minor negative (e.g., "shipping was slow").
+3.  **Determine the Overall Balance:** Based on the weighted components, determine the final sentiment.
+
+Use this guide to map the balanced sentiment to a rating:
+
+*   **5 Stars (Overwhelmingly Positive):** All major points are positive. The user is delighted. Any negative mentioned is negligible.
+*   **4 Stars (Mostly Positive):** The review is strongly positive, but mentions a valid, albeit minor, drawback that doesn't spoil the overall experience.
+*   **3 Stars (Truly Mixed/Average):** The review contains a significant balance of positive and negative points. The user is ambivalent; the product is just "okay."
+*   **2 Stars (Mostly Negative):** The review is clearly negative, with significant flaws being the main focus, even if a minor positive aspect is mentioned. The user is disappointed.
+*   **1 Star (Overwhelmingly Negative):** The review is focused on critical flaws, anger, or a warning to others. The product is considered unusable or a scam.
+
+Review:
+"{review}"
+
+Based on your analysis, what is the rating? Provide only the rating in the format "Rating: N".

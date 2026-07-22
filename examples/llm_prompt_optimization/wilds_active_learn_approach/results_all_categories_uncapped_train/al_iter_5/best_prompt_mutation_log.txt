@@ -1,0 +1,4 @@
+- The top error was `gold 4 -> 5` (7 instances), often on reviews with positive but not superlative language, or praise for another person's enjoyment. I'm re-integrating a rule from a higher-performing prior prompt to classify "praise for another person's enjoyment" (e.g., 'my daughter loved it') as 4 stars, not 5.
+- To further address the 4 vs. 5 confusion, I've clarified that neutral plot summaries are 4 stars, while 5-star summaries must contain the reviewer's own emotional/enthusiastic adjectives (e.g., 'gripping', 'hilarious').
+- The `gold 3 -> 2` error occurred on reviews with a good start but a bad ending. I've ensured a specific rule for "Good Start, Bad Ending" is present and clear under the 3-star category.
+- I replaced a generic 4-star few-shot example with a misclassified anchor example ("...enjoyed by my 8th grade daughter immensely...") to directly teach the model how to handle this common failure pattern and prevent future anchor regressions.

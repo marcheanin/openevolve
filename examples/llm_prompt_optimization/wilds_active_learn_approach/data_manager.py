@@ -108,8 +108,18 @@ def _load_pool_data(config: dict, split_name: str = "train"):
 
     ds_cfg = config.get("dataset", {})
     stratify_users = bool(ds_cfg.get("stratify_users", False))
-    max_users = ds_cfg.get("max_train_users" if split_name == "train" else "max_val_users")
+    if split_name == "train":
+        max_users = ds_cfg.get("max_train_users")
+    elif split_name == "test":
+        max_users = ds_cfg.get("max_test_users", ds_cfg.get("max_val_users"))
+    else:
+        max_users = ds_cfg.get("max_val_users")
     max_reviews_per_user = ds_cfg.get("max_reviews_per_user")
+    al_candidate_pool_size = ds_cfg.get("al_candidate_pool_size") or 0
+    try:
+        al_candidate_pool_size = int(al_candidate_pool_size)
+    except (TypeError, ValueError):
+        al_candidate_pool_size = 0
     
     if max_users and max_users > 0:
         if stratify_users and cats_list is not None and len(cats_list) == len(texts):
@@ -149,6 +159,40 @@ def _load_pool_data(config: dict, split_name: str = "train"):
                 labels = [labels[i] for i in final_indices]
                 user_ids = [user_ids[i] for i in final_indices]
                 indices = [indices[i] for i in final_indices]
+    elif (
+        split_name == "train"
+        and al_candidate_pool_size > 0
+        and len(texts) > al_candidate_pool_size
+        and cats_list is not None
+        and len(cats_list) == len(texts)
+    ):
+        # Train pool without user cap: build a stratified candidate pool (~al_candidate_pool_size).
+        # AL acquisition (build_active_batch / expand_pool) operates over this pool.
+        from sample_stratified import (
+            select_stratified_users_and_cap,
+            stratified_downsample_pick,
+        )
+
+        rpu = int(max_reviews_per_user) if max_reviews_per_user else 15
+        n_users_for_pool = max(1, (al_candidate_pool_size + rpu - 1) // rpu)
+        split_seed = int(dataset_cfg.get("split_seed", 42))
+        rng_users = np.random.RandomState(split_seed + 1000)  # split_name="train" uses offset 0
+        pick_user_caps = select_stratified_users_and_cap(
+            np.array(user_ids),
+            np.array(cats_list),
+            n_users_for_pool,
+            rpu,
+            rng_users,
+        )
+        if len(pick_user_caps) > al_candidate_pool_size:
+            cats_after = np.asarray([cats_list[i] for i in pick_user_caps])
+            rng_trim = np.random.RandomState(split_seed + 2000)
+            sub = stratified_downsample_pick(cats_after, al_candidate_pool_size, rng_trim)
+            pick_user_caps = pick_user_caps[sub]
+        texts = [texts[i] for i in pick_user_caps]
+        labels = [labels[i] for i in pick_user_caps]
+        user_ids = [user_ids[i] for i in pick_user_caps]
+        indices = [indices[i] for i in pick_user_caps]
 
     max_reviews = _resolve_max_samples(ds_cfg, split_name)
     if max_reviews and len(texts) > max_reviews:
@@ -230,6 +274,41 @@ class DataManager:
         self.n_total = len(self.texts)
         self.unseen_indices = set(range(self.n_total))
         self.seen_indices = set()
+
+    def save_pool_manifest(self, out_path: Path) -> None:
+        """
+        Persist the AL candidate pool composition for reproducibility.
+        Writes pool_indices (within the original WILDS train split), user_ids,
+        labels, and a per-category histogram (when available).
+        """
+        ds_cfg = (self.config or {}).get("dataset", {}) or {}
+        try:
+            unique_users = sorted({int(u) for u in self.user_ids})
+            user_hist: Dict[int, int] = {}
+            for u in self.user_ids:
+                user_hist[int(u)] = user_hist.get(int(u), 0) + 1
+        except Exception:
+            unique_users = []
+            user_hist = {}
+        payload = {
+            "version": 1,
+            "split_name": self.split_name,
+            "n_total_pool": int(self.n_total),
+            "max_train_users": ds_cfg.get("max_train_users"),
+            "max_val_users": ds_cfg.get("max_val_users"),
+            "max_test_users": ds_cfg.get("max_test_users"),
+            "max_reviews_per_user": ds_cfg.get("max_reviews_per_user"),
+            "stratify_users": bool(ds_cfg.get("stratify_users", False)),
+            "al_candidate_pool_size": int(ds_cfg.get("al_candidate_pool_size") or 0),
+            "n_unique_users": len(unique_users),
+            "user_review_counts": user_hist,
+            "pool_indices": [int(i) for i in self.pool_indices],
+            "labels": [int(l) for l in self.labels],
+            "user_ids": [int(u) for u in self.user_ids],
+        }
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        import json as _json
+        out_path.write_text(_json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
     @property
     def n_hard(self) -> int:

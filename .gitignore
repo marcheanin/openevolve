@@ -61,3 +61,4 @@ problems
 *.db
 *.csv
 examples/llm_prompt_optimization/wilds_active_learn_approach/.env
+*.gz

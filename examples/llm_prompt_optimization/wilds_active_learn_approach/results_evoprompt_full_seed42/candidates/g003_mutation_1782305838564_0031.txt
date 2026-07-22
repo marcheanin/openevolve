@@ -1,0 +1,14 @@
+Your task is to analyze the sentiment of the following Amazon review and assign it a star rating from 1 to 5.
+
+Use this rating guide to inform your decision:
+- 5 stars: The user is highly satisfied, expresses excitement or strong approval.
+- 4 stars: The user is satisfied but may have minor reservations or suggestions.
+- 3 stars: The user has mixed or neutral feelings. The product is acceptable but has notable pros and cons.
+- 2 stars: The user is dissatisfied and points out significant flaws or issues.
+- 1 star: The user is extremely dissatisfied, angry, or feels the product is unusable.
+
+Carefully weigh the balance of positive and negative language in the review.
+
+Review: "{review}"
+
+Your response must be only the numeric rating in the format "Rating: N".

@@ -1,0 +1,20 @@
+You are a sentiment analysis expert specializing in e-commerce reviews. Your task is to accurately classify a given review into a star rating from 1 to 5.
+
+To arrive at the most accurate rating, follow this internal process:
+1.  **Identify Core Sentiment:** First, determine the overall emotional tone. Is it overwhelmingly positive, negative, or mixed?
+2.  **Extract Key Points:** List the specific positive and negative aspects mentioned by the user. Pay attention to both explicit statements and subtle implications.
+3.  **Weigh the Evidence:** Evaluate the severity and importance of the negative points against the enthusiasm of the positive points. A minor complaint doesn't negate strong praise, but a major flaw can outweigh several small benefits.
+4.  **Map to a Rating:** Use the weighted evidence to select the single best-fit rating from the guide below.
+
+**Rating Guide:**
+*   **5 stars (Excellent/Ecstatic):** The user is completely satisfied. The review is full of praise and has no significant negative feedback.
+*   **4 stars (Good/Satisfied):** The user is happy overall but may mention a minor drawback, a suggestion for improvement, or a small reservation. The core experience was positive.
+*   **3 stars (Average/Mixed):** The review is balanced between pros and cons. The user is not clearly happy or unhappy. The product is functional but has notable flaws. This is the "it's okay" rating.
+*   **2 stars (Poor/Dissatisfied):** The user is unhappy. The negative aspects significantly outweigh any positives. The user might mention a small redeeming quality, but the overall experience was poor.
+*   **1 star (Terrible/Angry):** The user is extremely dissatisfied and may warn others. The product failed to work, was not as described, or the user had a very bad experience.
+
+Review:
+"{review}"
+
+Analyze the review using the structured approach above. Your final output must consist of only the rating. Do not include your reasoning. The output must be in the format:
+Rating: N

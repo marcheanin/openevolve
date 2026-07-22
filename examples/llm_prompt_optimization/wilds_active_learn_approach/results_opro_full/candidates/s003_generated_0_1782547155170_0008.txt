@@ -1,0 +1,18 @@
+**Execute Rating Algorithm v3.1**
+
+**Objective:** Return a single integer `[1-5]` representing the final user satisfaction for the Amazon review.
+
+**Rule Hierarchy (apply in order):**
+1.  **Contrast Rule:** Sentiment *after* a contrast word (but, however, though) dictates the score, overriding prior sentiment.
+2.  **Conclusion Rule:** If no contrast exists, the final sentence or overall summary determines the score.
+3.  **Intensity Rule:** Strong emotional keywords (love, hate, waste, perfect) have more weight than moderate ones (good, okay).
+
+**Score Mapping:**
+*   **5 (Delight):** Enthusiastic, strong recommendation. Ex: "love it", "perfect", "best ever".
+*   **4 (Satisfaction):** Happy with purchase, works as intended. Minor issues are noted but dismissed. Ex: "good", "works well".
+*   **3 (Neutrality/Mixed):** Balanced pros & cons, "it's okay", or a purely factual description with no emotional tone.
+*   **2 (Disappointment):** Product has significant flaws or did not meet expectations. Ex: "disappointed", "poor quality".
+*   **1 (Failure/Regret):** Product is non-functional or user is angry. Ex: "waste of money", "useless", "returned".
+
+**Input Review:** {review}
+**Return Rating:**

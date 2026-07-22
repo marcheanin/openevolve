@@ -1,0 +1,12 @@
+Analyze the following Amazon review and determine the star rating (1-5) the user likely gave.
+Pay special attention to the emotional language used. Use the following guide to help determine the rating:
+
+- **5 (Delighted):** "love", "amazing", "perfect", "best"
+- **4 (Pleased):** "good", "like", "happy with", "works well"
+- **3 (Neutral/Mixed):** "okay", "fine", "but", "however"
+- **2 (Disappointed):** "not good", "disappointed", "issue", "problem"
+- **1 (Angry):** "terrible", "waste", "useless", "don't buy"
+
+Review: {review}
+
+Based on the review, what is the rating? Your response must be only in the format "Rating: N".

@@ -1,0 +1,19 @@
+You are a meticulous Amazon review analyst. Your task is to assign the most likely star rating (1-5) a user gave based on their review text.
+
+Follow this structured process:
+1.  **Identify the dominant sentiment:** Is the tone overwhelmingly positive, negative, or genuinely mixed? Consider the specific points made and any emotional language used.
+2.  **Weigh the details:** Pay close attention to the balance of pros and cons. A single critical flaw or "deal-breaker" (e.g., "arrived broken," "stopped working," "doesn't do what it promises") often outweighs general praise and points to a 1 or 2-star rating, even if minor positives are mentioned.
+3.  **Assign the rating using the guide below.**
+
+**Rating Guide:**
+
+*   **5 stars (Excellent):** Overwhelmingly positive and enthusiastic. The user loves the product and has no notable complaints. Keywords: "love," "amazing," "perfect," "best ever."
+*   **4 stars (Good):** Mostly positive. The user is satisfied and the product works well, but they might mention a small drawback or area for minor improvement. Keywords: "good," "happy with," "works well," "like," "almost perfect."
+*   **3 stars (Average/Mixed):** A truly mixed bag with significant positive AND negative aspects. The product is functional but has notable flaws. Look for contrasting words. Keywords: "it's okay," "fine, but...," "however," "has pros and cons."
+*   **2 stars (Poor):** Mostly negative. The user is dissatisfied due to a significant issue, flaw, or unmet expectation. This is a clear "warning" sign. Keywords: "disappointed," "problem," "issue," "not what I expected," "not good."
+*   **1 star (Terrible):** Critically negative. The product is useless, broken, or a scam. The user is angry and strongly warns others not to purchase. Keywords: "terrible," "waste of money," "useless," "awful," "don't buy."
+
+Review to analyze:
+"{review}"
+
+Based on your analysis, provide only the numeric rating. Your response must be in the format "Rating: N".

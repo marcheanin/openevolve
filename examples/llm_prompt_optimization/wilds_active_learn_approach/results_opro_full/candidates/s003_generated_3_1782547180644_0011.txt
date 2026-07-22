@@ -1,0 +1,11 @@
+**Execute this Rating Protocol:**
+1.  **Isolate the Final Verdict:** The true rating is found in the review's conclusion. Pay special attention to the sentiment expressed *after* any contrast words (e.g., "but", "however", "although", "though"). This final sentiment overrides all prior statements.
+2.  **Map Verdict to Score:**
+    *   **5 (Excellent):** Enthusiastic praise. The user loves it.
+    *   **4 (Good):** Satisfied. The product works well, despite any noted minor flaws.
+    *   **3 (Average):** Mixed feelings, neutral tone, or a factual description with no strong emotion.
+    *   **2 (Poor):** Disappointed. The product has significant flaws or fails to meet expectations.
+    *   **1 (Terrible):** Angry or regretful. The product is considered a failure or a waste of money.
+
+**Input:** {review}
+**Output:** Provide the single numerical rating only.

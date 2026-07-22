@@ -1,0 +1,76 @@
+{
+  "al_iter": 5,
+  "n_programs": 10,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.8164730235387045,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error was `gold 4 -> 5` (7 instances), often on reviews with positive but not superlative language, or praise for another person's enjoyment. I'm re-integrating a rule from a higher-performing prior prompt to classify \"praise for another person's enjoyment\" (e.g., 'my daughter loved it') as 4 stars, not 5.\n- To further address the 4 vs. 5 confusion, I've clarified that neutral plot summaries are 4 stars, while 5-star summaries must contain the reviewer's own emotional/enthusiastic adjectives (e.g., 'gripping', 'hilarious').\n- The `gold 3 -> 2` error occurred on reviews with a good start but a bad ending. I've ensured a specific rule for \"Good Start, Bad Ending\" is present and clear under the 3-star category.\n- I replaced a generic 4-star few-shot example with a misclassified anchor example (\"...enjoyed by my 8th grade daughter immensely...\") to directly teach the model how to handle this common failure pattern and prevent future anchor regressions.",
+      "prompt_snippet": "<System>\n    <Role>You are an expert sentiment classification model for Amazon product reviews. Your task is to assign a star rating from 1 to 5 based on the pr"
+    },
+    {
+      "rank": 2,
+      "score": 0.8128369775026061,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error is `gold 4 -> 5` (9 instances), often on reviews that are detailed plot summaries. The current 5-star rule for `Highly Engaged Summary` is too broad. I've narrowed it to `Summary with Personal Enthusiasm`, requiring explicit emotional language from the reviewer, not just plot detail.\n- I strengthened the corresponding 4-star rule for `Informational Plot Summary`, making it the default for reviews that describe \"what happens\" without strong personal delight. This directly targets the main confusion boundary.\n- The second top error is `gold 3 -> 2`. These reviews often start positive but end in disappointment. I added a specific 3-star rule for this \"Good Start, Bad Ending\" pattern.\n- I replaced two generic few-shot examples with two specific, misclassified examples from the error report. This provides direct, targeted learning on the most common failure modes (`gold=4->pred=5` and `gold=3->pred=2`).",
+      "prompt_snippet": "<System>\n    <Role>You are an expert sentiment classification model for Amazon product reviews. Your task is to assign a star rating from 1 to 5 based on the pr"
+    },
+    {
+      "rank": 3,
+      "score": 0.8116013074394348,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error source is confusion between 4 and 5 stars, particularly for media reviews (books). Gold=4 reviews with positive but non-ecstatic language are being overrated as 5. Gold=5 reviews that are long plot summaries are being underrated as 4.\n- I sharpened the 4-vs-5 star rules. The 4-star rule now explicitly lists examples of \"appreciative\" language (e.g., 'really like', 'pleasant mix') that should not be rated 5. The 5-star rule clarifies that a plot summary must be \"engaged and enthusiastic\" (e.g., using words like 'gripping') to earn 5 stars, contrasting it with a merely \"informational\" 4-star summary.\n- I replaced a generic 4-star few-shot example with a misclassified review (\"I really like these books...\") to directly teach the model that this phrasing is 4-star appreciation, not 5-star delight.\n- I added a new 5-star few-shot example using a misclassified long plot summary (\"CALL ME IRRESISTIBLE...\") to demonstrate that high engagement and detail in a summary can signal 5-star satisfaction, fixing a key anchor regression pattern.",
+      "prompt_snippet": "<System>\n    <Role>You are an expert sentiment classification model for Amazon product reviews. Your task is to assign a star rating from 1 to 5 based on the pr"
+    },
+    {
+      "rank": 4,
+      "score": 0.810028512864099,
+      "has_mutation_log": true,
+      "mutation_log": "- The previous fitness score dropped significantly. An analysis showed the current prompt regressed on key distinctions compared to the top-performing prompt (Program 1). I've reverted the core structure of the DynamicRules to be closer to that successful version.\n- The main error sources were the 4-vs-5 and 4-vs-3 boundaries, especially for book reviews that are plot summaries. I've sharpened the rules to distinguish between an \"Engaged/Enthusiastic Summary\" (5 stars) and a neutral \"Informational Plot Summary\" (4 stars) to fix anchor regressions.\n- Added a new rule for 4-star reviews: \"Mixed with Positive Conclusion\" for cases like \"I have mixed feelings, but overall I liked it,\" which were being incorrectly rated as 3-star.\n- Clarified that reviews that simply categorize a product (\"lighter fair\") without major flaws are 4-star, not 3-star.\n- Replaced the few-shot examples with the set from the top-performing prompt, as it is better balanced and includes examples that reinforce the key rule changes (e.g., a long plot summary being 5 stars).",
+      "prompt_snippet": "<System>\n    <Role>You are an expert sentiment classification model for Amazon product reviews. Your task is to assign a star rating from 1 to 5 based on the pr"
+    },
+    {
+      "rank": 5,
+      "score": 0.8081652207224458,
+      "has_mutation_log": true,
+      "mutation_log": "- The previous cycle saw a significant fitness drop, with major errors in distinguishing 4 and 5-star reviews, especially for book summaries. Anchor regressions occurred on detailed plot summaries being misclassified as 4 instead of 5.\n- I've reverted the prompt's rules to a previous high-performing version (Program 1), which has a much clearer distinction between 4-star \"informational summaries\" and 5-star \"engaged, enthusiastic summaries\".\n- To specifically target the top error patterns, I replaced two few-shot examples.\n- Replaced a simple 4-star example with a misclassified `gold=4, pred=3` review (\"I have mixed feelings...\") to better teach the model how to handle mixed reviews with a positive conclusion.\n- Replaced a 5-star example with a misclassified Anchor example (\"\"Zombie,\" the novel...\") to reinforce that long, detailed, and \"gripping\" plot summaries signal 5-star engagement, directly addressing the main source of regression.",
+      "prompt_snippet": "<System>\n    <Role>You are an expert sentiment classification model for Amazon product reviews. Your task is to assign a star rating from 1 to 5 based on the pr"
+    },
+    {
+      "rank": 6,
+      "score": 0.8003925538186306,
+      "has_mutation_log": true,
+      "mutation_log": "- The top error is `gold=5 -> pred=4` (19 cases). Analysis of examples like \"Good. not too sweet\" and a product solving a \"severe trouble\" shows workers down-rating for comparisons or problem descriptions. I've updated the 5-star rule \"Simple & Satisfied\" to explicitly include \"problem-solved\" scenarios and favorable comparisons as 5-star signals.\n- The second top error is `gold=4 -> pred=5` (7 cases). Reviews with general enthusiasm for a genre (\"90s rock\") or quoted praise are being over-rated. I refined the 4-star \"Descriptive Praise\" rule to clarify that appreciation for a category or agreeing with others' praise is 4-star, not 5-star personal enthusiasm.\n- Replaced two few-shot examples (a generic 4-star and 5-star) with misclassified examples from the artifacts that directly target these two top error patterns, providing concrete guidance on the tricky 4-vs-5 boundary.",
+      "prompt_snippet": "<System>\n    <Role>You are an expert sentiment classification model for Amazon product reviews. Your task is to assign a star rating from 1 to 5 based on the pr"
+    },
+    {
+      "rank": 7,
+      "score": 0.7980037101707861,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error source is the 4-vs-5 star boundary, particularly for media reviews (books). I've restructured the prompt to a simpler per-star list, inspired by the top-performing program.\n- To address `gold 5 -> 4` errors where detailed plot summaries are underrated, I added a rule that \"Highly Engaged Summaries\" (detailed, positive plot descriptions) are 5 stars, as the engagement implies high satisfaction.\n- To address `gold 4 -> 5` errors where enthusiasm for the subject is mistaken for 5-star delight, I clarified that \"Appreciation\" (4 stars) includes enthusiasm for the subject matter/genre if it's not matched by praise for the specific item's *craft*.\n- To fix `gold 4 -> 3` errors on mixed reviews, I refined the 4-star rule to specify that a \"firm, overriding positive conclusion\" secures the 4-star rating, even after multiple critiques.\n- I replaced three few-shot examples with misclassified and anchor regression examples from the artifacts to directly teach the model these tricky boundary cases and fix regressions.",
+      "prompt_snippet": "<System>\n    <Role>You are an expert sentiment classification model for Amazon product reviews. Your task is to assign a star rating from 1 to 5 based on the pr"
+    },
+    {
+      "rank": 8,
+      "score": 0.7960417498161578,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error source was confusion between 4 and 5 stars, particularly for media reviews and plot summaries, leading to `gold 4 -> 5` and `gold 5 -> 4` errors, including anchor regressions.\n- I replaced the blunt \"Plot Summary as Review -> 4 stars\" rule. It's now split into two nuanced rules: \"Implicitly Enthusiastic Summary\" for 5-star reviews and \"Neutral Plot Summary\" for 4-star reviews, using tone as the differentiator.\n- I sharpened the 4-vs-5 boundary by renaming and clarifying the \"Appreciation vs. Enthusiasm\" rule to \"Report of Quality vs. Personal Delight\", emphasizing the difference between analytical praise (4-star) and emotional joy (5-star).\n- I replaced a 4-star few-shot example with a misclassified `gold=4, pred=5` review. This new example directly teaches the model to handle reviews with enthusiastic words that are fundamentally analytical/appreciative, not personal delight.",
+      "prompt_snippet": "<System>\n    <Role>You are an expert sentiment classification model for Amazon product reviews. Your task is to assign a star rating from 1 to 5 based on the pr"
+    },
+    {
+      "rank": 9,
+      "score": 0.7907815195144611,
+      "has_mutation_log": true,
+      "mutation_log": "- The previous prompt suffered from anchor regressions, particularly misclassifying enthusiastic (e.g., \"gripping\") plot summaries as 4-star instead of 5-star. I've added a new `Enthusiastic Summary` rule for 5 stars and clarified the 4-star rule to apply only to `Neutral Plot Summary` to fix this critical 5-vs-4 boundary issue.\n- The `gold=4 -> 3` error was common for reviews with mixed feelings but an overall positive conclusion. The models were over-penalizing critiques. I've replaced a 3-star few-shot example with a misclassified `gold=4` review that exemplifies this \"mixed but liked it\" pattern, directly teaching the correct classification.\n- To further address `gold=4 -> 3` errors, I clarified the `Appreciation vs. Enthusiasm` rule to correctly handle reviews that simply categorize a product (e.g., \"lighter fair\"), preventing them from being wrongly demoted to 3 stars under the \"conditional recommendation\" rule.",
+      "prompt_snippet": "<System>\n    <Role>You are an expert sentiment classification model for Amazon product reviews. Your task is to assign a star rating from 1 to 5 based on the pr"
+    },
+    {
+      "rank": 10,
+      "score": 0.7755686440745864,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n    <Role>You are an expert sentiment classification model for Amazon product reviews. Your task is to assign a star rating from 1 to 5 based on the pr"
+    }
+  ]
+}

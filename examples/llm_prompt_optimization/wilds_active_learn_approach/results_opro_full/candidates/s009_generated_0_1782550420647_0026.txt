@@ -1,0 +1,13 @@
+**Rate the review [1-5] based on its Final Verdict.**
+
+**1. Find the Final Verdict:** The sentiment expressed *after the last contrast word* (e.g., "but", "however"). If no contrast, the verdict is the review's conclusion.
+
+**2. Score the Verdict (Apply first matching rule):**
+   - **1:** Verdict expresses **total failure or anger** (e.g., "broke," "useless," "waste of money").
+   - **5:** Verdict expresses **enthusiastic delight** (e.g., "love," "perfect," "amazing").
+   - **2:** Verdict expresses **major disappointment or key flaws** (e.g., "disappointed," "poorly made," "doesn't work as advertised").
+   - **4:** Verdict expresses **general satisfaction**, even if qualified (e.g., "good," "happy with it," "not perfect but I like it").
+   - **3:** Verdict is **mixed, neutral, or just factual** (e.g., "it's okay," balanced pros/cons).
+
+**Review:** {review}
+**Rating:**

@@ -1,0 +1,13 @@
+**SYSTEM INSTRUCTION: DETERMINE RATING BY FINAL VERDICT.**
+
+**LOGIC:**
+1.  **Find Final Verdict:** Check for a final contrast pivot ("but", "however", "though"). The sentiment *after* this pivot is the Final Verdict. If no pivot, the review's concluding sentiment is the Final Verdict. This verdict overrides all preceding information.
+2.  **Apply Scoring Cascade (Use first rule that matches Final Verdict):**
+    *   **IF** verdict = Critical Failure ("broke," "useless") OR Anger ("terrible," "waste of money") -> **RETURN 1**
+    *   **IF** verdict = Enthusiasm ("love," "perfect," "amazing") -> **RETURN 5**
+    *   **IF** verdict = Disappointment ("disappointed," "poor quality") -> **RETURN 2**
+    *   **IF** verdict = Satisfaction ("good," "works well," "happy") -> **RETURN 4**
+    *   **ELSE** (Verdict is "okay," mixed, or neutral) -> **RETURN 3**
+
+**EXECUTE ON REVIEW. OUTPUT SINGLE INTEGER ONLY.**
+**Review:** {review}

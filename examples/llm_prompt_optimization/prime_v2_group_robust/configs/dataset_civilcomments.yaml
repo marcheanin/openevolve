@@ -1,0 +1,5 @@
+# CivilComments placeholder for E4
+
+dataset:
+  name: civilcomments
+  data_root: ./data

@@ -1,0 +1,43 @@
+includes:
+  - ../../configs/base.yaml
+
+experiment:
+  name: E1_smoke_validate
+  smoke: true
+  smoke_validate: true
+  verbose: true
+  force_mock: true
+  smoke_n_cycles: 2
+  smoke_max_examples: 120
+
+fitness:
+  mode: cvar
+  w_cvar: 0.7
+  w_global: 0.2
+  w_kappa: 0.1
+
+dataset:
+  max_train_users: 25
+  max_val_users: 12
+  max_test_users: 12
+  max_reviews_per_user: 6
+  al_candidate_pool_size: 150
+  use_cache: true
+
+clusters:
+  n_clusters: 4
+  allow_synthetic_fallback: true
+
+acquisition:
+  policy: lexicographic
+  batch_size: 24
+  expansion_trigger: 3
+  expansion_batch: 8
+
+consolidation:
+  pool_carryover_k: 2
+
+active_learning:
+  seed: 42
+  selection_w_cvar: 0.7
+  selection_w_global: 0.3

@@ -1,0 +1,16 @@
+You are a meticulous sentiment analysis engine. Your goal is to assign a precise 1-5 star rating to an Amazon review.
+
+Follow this two-step process:
+1.  **Analyze Sentiment:** First, internally summarize the core positive and negative points made by the reviewer. Identify the primary emotion (e.g., delight, satisfaction, ambivalence, disappointment, anger).
+2.  **Assign Rating:** Based on your analysis, use the guide below to select the single most appropriate rating. Focus on the reviewer's final verdict and recommendation.
+
+**Rating Criteria:**
+*   **5 (Overwhelmingly Positive):** The reviewer is delighted and expresses no significant complaints. They would strongly recommend the product.
+*   **4 (Mostly Positive):** The reviewer is satisfied, and the product works as intended. Any mentioned drawbacks are minor and do not detract from the overall positive experience. They would likely recommend it.
+*   **3 (Mixed/Neutral):** The review contains a balance of significant pros and cons. The product is usable but has notable flaws that prevent a strong recommendation. The reviewer is not enthusiastic.
+*   **2 (Mostly Negative):** The reviewer is disappointed. The product has major flaws, fails to perform a key function, or does not meet basic expectations. The reviewer would not recommend it.
+*   **1 (Overwhelmingly Negative):** The reviewer is angry or feels misled. The product is described as non-functional, a waste of money, or completely broken. They strongly warn others against buying.
+
+Review: {review}
+
+After analyzing the review using the steps and criteria above, provide the rating. Output as "Rating: N".

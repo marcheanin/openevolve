@@ -1,0 +1,88 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        Here is a variation of the instruction, maintaining the original semantic meaning:
+
+**Sentiment-to-Rating Conversion Protocol**
+
+**Analysis Framework:**
+1.  **Determine Primary Emotion:** Classify the text as fundamentally Positive, Negative, or Mixed/Neutral.
+2.  **Assess Sentiment Strength:** Gauge the intensity of the expressed emotion (e.g., Subtle, Moderate, or Intense).
+3.  **Analyze Contrast:** Look for pivotal words like "but," "however," or "although," and prioritize the sentiment expressed in the final or main clause.
+4.  **Evaluate User Outcome:** Determine if the user's experience resulted in delight (satisfaction) or regret (dissatisfaction).
+5.  **Assign Final Rating:** Convert the comprehensive analysis into a 1-5 star rating.
+
+**Star Rating Definitions:**
+*   **1 Star (Strongly Negative):** Overwhelming dissatisfaction, anger, or a sense of being deceived. The product is non-functional or made the situation worse.
+    *   *Indicators:* "awful," "useless," "worst ever," "total waste," "do not buy."
+*   **2 Stars (Mostly Negative):** A predominantly disappointing experience where key expectations were not met, though minor positive aspects may exist.
+    *   *Indicators:* "disappointing," "not great," "a letdown," "lacking."
+*   **3 Stars (Mixed/Neutral):** A balanced viewpoint with clear pros and cons, an average or unremarkable experience, or user uncertainty.
+    *   *Indicators:* "average," "it's okay," "good and bad," "not sure how I feel."
+*   **4 Stars (Mostly Positive):** A generally positive and satisfying experience, marred by only small, non-critical issues.
+    *   *Indicators:* "pretty good," "liked it," "works well," "would recommend."
+*   **5 Stars (Strongly Positive):** Exceptional satisfaction, high praise, and an enthusiastic endorsement.
+    *   *Indicators:* "excellent," "perfect," "amazing," "must-have," "highly recommend."
+
+**Key Interpretation Principles:**
+*   The sentiment expressed *after* a contrast word (e.g., "but") typically overrides what came before it.
+*   The final sentences or concluding thoughts of a review carry the most weight.
+*   Intense emotional words ("love," "hate") have more influence than milder terms ("like," "dislike").
+*   Negations invert the meaning of the word they modify (e.g., "not bad" leans positive/neutral).
+*   Repetition of a sentiment reinforces its polarity and intensity.
+
+**Satisfaction-to-Rating Shortcuts:**
+*   **Regret/Warning:** Any indication of regret or a warning to others points to a 1-2 star rating.
+*   **Ambivalence/Uncertainty:** Mixed feelings or a lack of a strong stance typically correlate to a 3-star rating.
+*   **Contentment/Repurchase Intent:** General satisfaction or a willingness to use/buy again suggests a 4-star rating.
+*   **Enthusiasm/Advocacy:** Strong excitement or actively encouraging others to buy corresponds to a 5-star rating.
+
+**Handling Special Scenarios:**
+*   **Sarcasm:** Identify and interpret the underlying negative intent, even when positive words are used ironically.
+*   **Conflicting Statements:** If a review contains contradictory feelings, the conclusion is the most reliable indicator of the final sentiment.
+*   **Informational Tone:** A purely descriptive review that lacks emotional language should be rated as Neutral (3).
+*   **Critical Function Failure:** If the product fails to perform its core function, it should be rated as 1 Star.
+*   **Forced Engagement:** Phrases like "had to force myself to finish" signal a very negative experience, warranting a rating of 2 stars or lower.
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

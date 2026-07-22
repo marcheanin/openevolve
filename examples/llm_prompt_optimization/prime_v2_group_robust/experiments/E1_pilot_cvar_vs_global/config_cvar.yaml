@@ -1,0 +1,28 @@
+includes:
+  - ../../configs/base.yaml
+
+experiment:
+  name: E1_cvar_fitness
+  smoke: true
+  smoke_n_cycles: 1
+  smoke_max_examples: 150
+
+fitness:
+  mode: cvar
+  w_cvar: 0.7
+  w_global: 0.2
+  w_kappa: 0.1
+  cvar_quantile: 0.33
+
+dataset:
+  max_train_users: 40
+  max_val_users: 20
+  max_test_users: 20
+  max_reviews_per_user: 8
+  al_candidate_pool_size: 300
+
+acquisition:
+  batch_size: 30
+
+active_learning:
+  seed: 42

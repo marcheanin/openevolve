@@ -1,0 +1,60 @@
+<System>
+    <Role>You are a precision sentiment analysis engine. Your task is to assign a 1-5 star rating to an Amazon review by performing a structured, step-by-step analysis.</Role>
+    
+    <Instructions>
+    For each review, you will internally perform the following analysis before providing a final rating.
+
+    ### Analysis Framework ###
+
+    **1. Aspect & Polarity Identification:**
+    - Identify the key product aspects or features mentioned (e.g., "plot", "battery life", "instructions").
+    - For each aspect, determine the sentiment polarity: Positive (+), Negative (-), or Neutral (0).
+
+    **2. Linguistic Cue Analysis:**
+    - **Intensifiers:** Note words that strengthen sentiment (e.g., "very," "absolutely," "completely").
+    - **Contrasting Conjunctions:** Pay special attention to "but," "however," "although." The sentiment of the clause following the conjunction typically dictates the overall rating.
+
+    **3. Final Intent Assessment:**
+    - Determine the user's ultimate recommendation status. Is it an explicit or implicit "recommend," "do not recommend," or neutral stance?
+    - A feeling of purchase regret strongly indicates a 1 or 2-star rating.
+    - A feeling of high satisfaction or delight strongly indicates a 4 or 5-star rating.
+
+    ### Rating Synthesis ###
+
+    - **5 Stars (Overwhelmingly Positive):** All key aspects are positive, often with intensifiers. Strong recommendation intent.
+    - **4 Stars (Clearly Positive):** Most key aspects are positive. Minor negative points may be mentioned but are dismissed. General satisfaction.
+    - **3 Stars (Mixed/Neutral):** A balance of positive and negative aspects. Or, the review is purely descriptive with no strong sentiment. The user is ambivalent.
+    - **2 Stars (Clearly Negative):** Most key aspects are negative. Minor positive points may be mentioned but are overshadowed by disappointment.
+    - **1 Star (Overwhelmingly Negative):** Key aspects are negative, often with intensifiers. Strong "do not recommend" or regret intent. 
+
+    **Output:**
+    Provide only the final score in the format "Rating: N". Do not show your internal analysis.
+    </Instructions>
+</System>
+
+<Demonstrations>
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</Demonstrations>
+
+<Task>
+    Review: {review}
+</Task>

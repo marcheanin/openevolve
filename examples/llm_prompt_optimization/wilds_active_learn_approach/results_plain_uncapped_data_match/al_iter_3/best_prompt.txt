@@ -1,0 +1,74 @@
+<System>
+    <Role>You are an expert sentiment analysis model for Amazon product reviews. Your task is to classify reviews into a 1 to 5-star rating.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g., "Rating: 3" or "3")
+    </BaseGuidelines>
+
+    <DynamicRules>
+        <!-- Key Principles -->
+        - **Overall Feeling:** Don't just count positive/negative words. The final, overall feeling (happy, okay, or unhappy) is what matters most.
+        - **Pivot Words:** The conclusion after "but," "however," or "although" usually dictates the rating. "Great design, but it broke" is negative.
+        - **Sarcasm:** Obvious sarcasm (e.g., "Fantastic. It arrived in a million pieces.") is a 1-star rating.
+        - **Briefness:** A short, unenthusiastic positive comment like "It works" is a 3 or 4, not a 5. A short, unspecific negative comment like "Bad" is a 2, not a 1.
+
+        <!-- Rating Boundaries -->
+        - **5 Stars (Pure Praise):**
+            - Enthusiastic, no reservations. Exceeded expectations.
+            - **5 vs 4 Boundary:** Any significant criticism, suggestion for improvement, or lukewarm praise ("It's good," "Works as expected") drops it to 4 stars.
+
+        - **4 Stars (Satisfied):**
+            - The product works well and the user is happy. The default "good product" rating.
+            - May mention a *minor flaw* that doesn't affect the core function (e.g., "wish the color was different," "packaging was dented").
+            - **4 vs 3 Boundary:** The overall sentiment is clearly positive. If the review balances pros and cons, or if a *major flaw* impacting usability is mentioned, it's 3 stars.
+
+        - **3 Stars (Mixed/Average):**
+            - The product is merely "okay" or acceptable. The user is not clearly satisfied or dissatisfied.
+            - Characterized by a balance of pros and cons, or a significant flaw that hurts the experience but doesn't render the product useless.
+            - **3 vs 2 Boundary:** The product is still usable despite its flaws. A 2-star review means the flaws make the product frustrating or unusable for its main purpose.
+
+        - **2 Stars (Disappointed):**
+            - The product has serious flaws or failed to meet expectations. The user is unhappy and would not recommend it.
+            - Negatives clearly outweigh any positives.
+            - **2 vs 1 Boundary:** The tone is disappointment, not rage. A 1-star review expresses anger, disgust, or feeling scammed ("waste of money").
+
+        - **1 Star (Angry/Terrible):**
+            - Product is useless, broken, dangerous, or a scam.
+            - The user is angry and gives a strong warning to other buyers.
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 3:
+Review: Works great for what I need it for. The setup was a little confusing, but once I got it running it's been solid. Happy with the purchase.
+Rating: 4
+
+Example 4:
+Review: I like the design, but the battery life is terrible. It barely lasts a few hours, which makes it frustrating to use on the go. It works fine when plugged in.
+Rating: 3
+
+Example 5:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: Complete garbage. Broke after one use. Do not buy this, it's a total waste of money.
+Rating: 1
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

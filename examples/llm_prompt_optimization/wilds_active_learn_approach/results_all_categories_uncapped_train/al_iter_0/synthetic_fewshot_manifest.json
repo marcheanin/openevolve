@@ -1,0 +1,8 @@
+{
+  "enabled": false,
+  "status": "disabled",
+  "reason": "",
+  "meta": {
+    "mutator_lock_fewshot": false
+  }
+}

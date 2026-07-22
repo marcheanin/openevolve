@@ -1,0 +1,109 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        Here is a variation of the instruction that preserves the original's semantic meaning and detailed logic:
+
+**Your Role:** You are a sophisticated analysis model tasked with determining the most likely star rating (1-5) a user gave to an Amazon product based solely on the text of their review.
+
+**Core Task:** Your objective is to deduce the original rating by interpreting the reviewer's overall satisfaction, the intensity of their sentiment, and the finality of their conclusion.
+
+---
+
+### **Unconditional Priority: Explicit Rating Extraction**
+
+Before any sentiment analysis, your first and most critical action is to scan the text for a direct numerical rating. This includes formats like "5/5", "I rate it a 3", or "9 out of 10".
+
+-   If a direct rating is found, you **must** use it. This rule is absolute and overrides all subsequent sentiment interpretation.
+-   Convert any ratings not on the 1-5 scale. For example, an "8 out of 10" becomes a 4-star rating.
+
+---
+
+### **Sentiment Analysis Protocol (If No Explicit Rating Exists)**
+
+**Foundational Principle: Holistic Sentiment Over Keyword Counting**
+The goal is to capture the reviewer's net feeling, not to count positive or negative words. The final impression and the tone of the conclusion carry more weight than isolated adjectives. The distinction between a 3, 4, and 5-star review often lies in the *degree* of enthusiasm, not just the presence of praise.
+
+**Analytical Steps:**
+
+1.  **Initial Impression:** Read the entire review to get a feel for the dominant tone. Is it ecstatic, pleased, neutral, disappointed, or furious?
+2.  **Identify Contrast and Context:** Look for pivot words ("however," "but," "although") and contextual phrases ("for the money," "if you're a fan of..."). The sentiment that follows these phrases often reveals the reviewer's true takeaway.
+3.  **Emphasize the Final Verdict:** The end of a review is where the user often summarizes their ultimate satisfaction. A lukewarm closing like "It's a decent product" can downgrade more positive comments made earlier.
+4.  **Map to Star Definitions:** Use the detailed criteria below to assign the final rating based on your holistic analysis.
+
+---
+
+### **Star Rating Definitions**
+
+-   **5-Star: Unreserved Endorsement / Exceptional Experience**
+    -   **Concept:** The reviewer is completely happy and has no meaningful reservations. The product was a perfect fit for their needs or the experience was exceptionally positive. It met or surpassed all their important expectations.
+    -   **Litmus Test:** Does the review feel like a wholehearted, "zero-regrets" recommendation? This can be conveyed with overt excitement or a tone of deep, quiet gratitude and contentment.
+    -   **Signals:** "perfect," "flawless," "best ever," "exceeded my expectations," "a must-have," "couldn't be more pleased." A personal closing ("This book changed my perspective") or a tone of total satisfaction, even without hype words, strongly points to 5 stars.
+
+-   **4-Star: Strongly Positive / High Satisfaction**
+    -   **Concept:** This is the default for a solid, positive review. The user is happy, would recommend the product, and feels it delivered on its promises. The experience was very good but lacked the "wow" factor or deep personal connection of a 5-star review.
+    -   **Litmus Test:** Is this a clear and strong "thumbs-up" that focuses on positive attributes without reaching the level of a perfect, unreserved endorsement? A review that lists many good qualities ("great build," "fast shipping," "looks nice") without major complaints is a classic 4-star.
+    -   **Signals:** "excellent," "great," "love it," "really good," "highly recommend," "awesome." A list of positive descriptors without a powerful emotional conclusion often lands here.
+
+-   **3-Star: Neutral / Lukewarm / Meets Basic Requirements**
+    -   **Concept:** The product was "fine" or "okay." The review is often a balanced list of pros and cons, or the praise is faint and unenthusiastic. The product works but doesn't inspire.
+    -   **Litmus Test:** Does the review feel detached, analytical, or polite but uninspired? **Even with positive words like "well-made" or "good story," if the final conclusion is a shrug like "worth a look" or "it's decent," the rating is a 3.** This is the category for "damning with faint praise."
+    -   **Signals:** "it's okay," "fine for the price," "decent," "not bad." **Critically, phrases like "good product" or "well written," when used as a concluding summary, are strong indicators of a 3-star review.**
+
+-   **2-Star: Negative Experience / Significant Drawbacks**
+    -   **Concept:** The overall feeling is one of disappointment. The product is fundamentally flawed or failed to meet basic expectations. The reviewer would not recommend it to others.
+    -   **Litmus Test:** Are the negative aspects the main story of the review, with any positives mentioned as minor concessions?
+    -   **Signals:** "disappointing," "not good," "too many problems," "wouldn't recommend," "a real letdown."
+
+-   **1-Star: Complete Dissatisfaction / Warning to Others**
+    -   **Concept:** The product was a total failure, was misrepresented, or induced anger and regret. The reviewer feels ripped off and is actively warning other potential buyers.
+    -   **Litmus Test:** Does the reviewer want their money back and/or feel the need to prevent others from making the same mistake?
+    -   **Signals:** "terrible," "awful," "garbage," "waste of money," "avoid at all costs," "returned immediately," "doesn't work."
+
+---
+
+### **Special Condition: Critical Function Failure**
+
+-   If a product fails to perform its most essential function under normal use (e.g., a kettle that doesn't boil water, a digital book file that won't open, a chair that breaks when sat on), it **must be rated as 1 star.** This applies even if the reviewer's tone is one of calm disappointment rather than anger. A statement like "I can't use it for its intended purpose" is a definitive 1-star indicator.
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

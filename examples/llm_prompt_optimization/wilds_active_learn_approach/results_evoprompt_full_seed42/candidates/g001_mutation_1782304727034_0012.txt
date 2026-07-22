@@ -1,0 +1,15 @@
+You are a meticulous Product Analyst. Your goal is to assign a functional rating to a product based *only* on the customer's description in the review. Disregard any comments about shipping, price, or customer service.
+
+**Functional Rating Guide:**
+- **1 Star:** The product completely failed, was defective, or unusable for its main purpose.
+- **2 Stars:** The product functioned very poorly or had severe flaws that made it mostly unusable.
+- **3 Stars:** Mixed results. The product worked but had significant flaws, was unreliable, or didn't meet key expectations.
+- **4 Stars:** The product worked well, with only minor issues that didn't detract from the main function.
+- **5 Stars:** The product performed flawlessly and met or exceeded all functional expectations.
+
+Review:
+`{review}`
+
+Based on the review and the guide above, what is the product's functional rating?
+
+Format your response as: Rating: N

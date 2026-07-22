@@ -1,53 +1,54 @@
-BATCH COMPOSITION: 56 Hard / 24 Anchor (batch=80, hard_frac=70.0%); Seen=187, Unseen=188; Pool Hard=66, Anchor=121.
+BATCH COMPOSITION: 56 Hard / 24 Anchor (batch=80, hard_frac=70.0%); Seen=256, Unseen=4744; Pool Hard=120, Anchor=136.
 CONFUSION MATRIX (from previous cycle batch):
-  - gold=4 -> pred=5: 17
-  - gold=5 -> pred=5: 16
-  - gold=4 -> pred=4: 12
-  - gold=3 -> pred=3: 9
-  - gold=5 -> pred=4: 6
+  - gold=5 -> pred=4: 19
+  - gold=5 -> pred=5: 13
+  - gold=4 -> pred=4: 8
+  - gold=4 -> pred=5: 7
+  - gold=2 -> pred=2: 7
 
 REPRESENTATIVE EXAMPLES BY CONFUSION TYPE:
-* Pair gold=4 -> pred=5:
-  - Review: "I have had these in my Honda Ridgeline for 3 months now and so far so good. I run them during the day since the road I commute on is one-lane each way with a lot of passing. At night they are much brighter than stock and I like the color temp much better."
-    Gold=4, Pred=5, Workers=[5, 5, 5]
-  - Review: "I love the way this interacts with the hub we have, to a degree. When the front door opens it signals the light plugged into this to turn on so it seems like someone is home. I don't like that there's a 20 second delay, but I guess if someone were to have to get up to manually turn on the light it w..."
-    Gold=4, Pred=5, Workers=[4, 5, 5]
+* Pair gold=5 -> pred=4:
+  - Review: "severe trouble with tipping and dropping bottles when putting them on the shelves of my shower prompted me to buy these solutions to the problem. I just sticky taped them into place.  no more picking up bottles or soap.  I should have drilled small holes at the bottom so water could drain.  will fix..."
+    Gold=5, Pred=4, Workers=[4, 4, 4]
+  - Review: "Good.  not too sweet (I thought grape was too sweet)."
+    Gold=5, Pred=4, Workers=[4, 4, 4]
 * Pair gold=5 -> pred=5:
-  - Review: "The early results seem good. It's not irritating my skin, even when it gets pretty close to my eyes. I think I laid it on a little thicker than necessary the first couple of times, so once I got a feel for it I was using less, which will make it a much better value over time too."
+  - Review: "4 stars with cost as a factor, 5 stars without.
+
+This product is not for everyone.
+If your car is just transportation and gets a quickie car wash a couple of times a year, don't bother.
+If you like a clean car, but think the clay barring is too much extra work, think again. This may be for you after..."
     Gold=5, Pred=5, Workers=[4, 5, 5]
-  - Review: "What this album did what showing up that the stone temple pilots were  starting to grow as a band. They have some hard rock stuff and the acoustic  song kitchenware and candy barsreminicent of core but there are also songs  like pretty penny and interstate love song that are quite different from  co..."
+  - Review: "The KASIMIR Hedgehog Cheese Grater isn't going to win any awards for its cheese grating ability, but its got to be one of the most unique kitchen accessories, ever. I have two, one gray, one red. This isn't meant to be the primary household cheese grater. Its more of a functional table adornment. I ..."
     Gold=5, Pred=5, Workers=[4, 5, 5]
 * Pair gold=4 -> pred=4:
-  - Review: "These things work awesome. I like that they are programmed right out of the box but they are also easy to re-program if you want to make them work with existing remotes you already have or separate the two remotes so that they don't control the same 5 outlets. My only gripe is that they take up too ..."
-    Gold=4, Pred=4, Workers=[4, 4, 5]
-  - Review: "Amazon asked me to review this within 30 days, but as I don't really want to take the risk of inducing artificial power surges/outages, what I saw is somewhat limited.
-
-It ships with the battery disconnected, so make sure you reconnect it. Mine took a little muscle to get the connecting clip back on..."
-    Gold=4, Pred=4, Workers=[4, 4, 5]
-* Pair gold=3 -> pred=3:
-  - Review: "A book recommended by some readers on a book blog that I follow.  It is apparent that I enjoy P.I. mystery/suspense books over a book like this one.  I was somewhat bored from start to finish as far as plot goes.  I give the author credit for the writing but it just didn't spark my normal interest."
-    Gold=3, Pred=3, Workers=[3, 2, 3]
-  - Review: "This set, while beautiful, is making me really re-think how Lenox boxes their items. This is the third Lenox item I have ordered that has arrived broken. The plate and bowl and cup made it in one piece, but the dessert plate was broken into pieces upon arrival.
-
-The set itself really is beautiful an..."
-    Gold=3, Pred=3, Workers=[3, 3, 3]
+  - Review: "What is right?  What is wrong?  Dose indeed the end justify the means?  This is basically the underling theme of this book.  When you think about it real hard and if you look back over your life, you will realize that each of us face these questions constantly.  Maybe not in the dramatic way it is a..."
+    Gold=4, Pred=4, Workers=[4, 4, 4]
+  - Review: "I would have preferred Canon brand but in it's defense this charger comes with a car charger connection and cable.  So although it's not brand name it does have it's redeeming quality."
+    Gold=4, Pred=4, Workers=[4, 3, 4]
+* Pair gold=4 -> pred=5:
+  - Review: "This helps to define 90s rock. This album sounds great even after a decade  now. Listen to songs like man in the box, sea of sorrow and i know  something about you. They are really stand out from the garbage on the  radio today like eve 6, matchbox 20, and the goo goo dolls. This album will  still s..."
+    Gold=4, Pred=5, Workers=[5, 5, 5]
+  - Review: "According to this book, Sherry "Seethaler is one of this generation's best science explainers."  And, I'd have to agree.  For more than 5 years, this science and health writer has been answering questions in her weekly "San Diego Union-Tribune" column.  She's compiled 162 of the best questions & ans..."
+    Gold=4, Pred=5, Workers=[5, 5, 5]
 
 CLUSTERED HARD EXAMPLES (review + gold label):
-  - Review: With a scary henchman a bad guy aspires to corner the mark of gold by going after Fort Knox. A woman dies in a sad way. Golf is played. Watchable.
+  - Review: This Legacy collection deserves to be scrapped now, they're old Digital remaster transfers
+FRANKENSTIEN & BRIDE OF FRANKENSTIEN have now reissued on Blu-ray in new HD transfers, the same 1:33:1 fullscreen ratio
+and the sound quality has been boosted up to new master stereo mixes
+incredible picture q...
+    Gold: 1
+  - Review: This helps to define 90s rock. This album sounds great even after a decade  now. Listen to songs like man in the box, sea of sorrow and i know  something about you. They are really stand out from the garbage on the  radio today like eve 6, matchbox 20, and the goo goo dolls. This album will  still s...
     Gold: 4
-  - Review: Occurs with John in the future after the bombs have dropped. He encounters a new type. He goes through his mom's tapes to see if she mentioned this type. Underwhelming.
-    Gold: 3
-  - Review: Story about a group of men sent to locate and return a Private Ryan as it turns out he is now his families' last heir. The men fight their way to locate the private with deaths along the way. Powerful and heartbreaking at times.
+  - Review: I had no idea what I was getting into with this author, my first adventure into Gina Maxwell, and I picked this book.  Well, I am so happy that I did, it was FABULOUS!!  The writing was eloquent, straight on, and perfect.  She touches on a hard subject yet keeps the other parts of the book light and...
     Gold: 4
-  - Review: Features two Lone Ranger feature films. The first which uses the character's name for the title is about a Territory which aspires to become a state. What appears to be bad Indian activity is preventing statehood. The Ranger investigates and discovers what is going on, then he assists the local Indi...
+  - Review: Craving the Alpha series is a great into to all of Kate Kent's characters.  In this story we meet Kristen a camp counselor.  After being bitten and recovering with a lycan family clan she must quickly make a decision on a mate.  Not knowing much she chooses wrong.  This has set the stage for some tw...
     Gold: 5
-  - Review: I did like the book but sometimes I felt like there was to much going on. I would have like more loving and less action I would recommend this to more mystery lovin book reader
-    Gold: 3
-  - Review: Durable camera made for little hands.  Easy to instal 4 AA batteries on sides (not included, no screwdriver needed).  The plastic/rubber material is good for a non-slip grip and there is a wrist strap for safety.
-
-Viewer is two windows so kids can use both eyes to see.  Or they can use the digital s...
+  - Review: This product is similar to Fossil's earlier leather wallet but for the addition of new branding, an embossed "Fossil" appearing at the bottom right on the outside of the wallet, and eliminating the older Fossil logo within the diamond that appeared on the bottom of the wallet's back. The leather is ...
     Gold: 5
-  - Review: Our little Bichon just loves the assortment of toys. But she is hard on them and once the squeker has been removed she is generally done with it. Good value compared to the local pet stores.
+  - Review: I have used many different kinds and brands of microfiber towels over the years. A lot of them promise great cleaning and no lint but don't deliver on either. The Zwipes get you both. They clean very well - not just glassware but even fingerprint-smeared phone and tablet screens! And lint? None at a...
     Gold: 5
-  - Review: Such cute dolls and the magic carpet is pretty, with one wheel on the bottom, so it rolls (not flys).  It doesn't roll very well, no matter what I do to try and make it work.  The carpet kind of dances in the front to the music. Shimmer and Shine are very pretty with their bright hair and big eyes, ...
-    Gold: 3
+  - Review: Soft material and just the right size for fine applications. Use an orbital buffer for all the large surfaces and use these to get everything else.
+    Gold: 4
+  - Review: The 18X24" size are pretty pricy compared to a plain paper silhouette target but from a reasonable distance it is obvious if you hit the mark you were aiming for. Having multiple targets on the same sheet can also simulate what may be lurking around the next corner.
+    Gold: 5

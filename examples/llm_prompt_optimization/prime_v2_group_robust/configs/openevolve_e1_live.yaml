@@ -1,0 +1,71 @@
+# Minimal OpenEvolve config for E1 live pilot (3 inner iterations per AL cycle).
+# Mutator + evaluator both use OpenRouter.
+
+max_iterations: 3
+checkpoint_interval: 1
+log_level: "INFO"
+diff_based_evolution: false
+max_code_length: 8000
+language: "text"
+early_stopping_patience: 2
+early_stopping_metric: "combined_score"
+
+llm:
+  api_base: "https://openrouter.ai/api/v1"
+  models:
+    - name: "google/gemini-2.5-flash"
+      weight: 1.0
+  temperature: 0.5
+  max_tokens: 8192
+  timeout: 300
+  retries: 3
+
+prompt:
+  num_top_programs: 3
+  num_diverse_programs: 2
+  include_artifacts: true
+  system_message: |
+    You evolve a group-robust Amazon review rating prompt (1-5 stars).
+    Three workers (GPT-4o-mini, Gemini Flash, Claude Haiku) classify via majority vote.
+    Fitness emphasizes CVaR over style clusters (worst third) + global accuracy + kappa.
+
+    SCOPED MUTATION (one block per mutation):
+    - Prefer editing <DynamicRules> (fast timescale): put type-/cluster-conditional
+      rules there based on the error artifacts TARGET BLOCK section.
+    - Do NOT rewrite <BaseGuidelines> inside the AL cycle (slow timescale; consolidated
+      separately into a group-invariant core).
+    - You may lightly refresh <FewShotExamples> only if DynamicRules already look stable.
+    - Keep XML tags intact. Keep <Task> with {review} unchanged.
+
+    Output: short <mutation_log> naming the single block you changed, then the full
+    prompt in a ```text fence.
+
+database:
+  population_size: 8
+  archive_size: 40
+  num_islands: 1
+  # feature_dimensions are patched at runtime to cluster_acc_0..K-1 + prompt_length
+  # for the fitted K (see prime.evolution.openevolve_config_patch).
+  feature_dimensions:
+    - cluster_acc_0
+    - prompt_length
+  feature_bins: 5
+
+evaluator:
+  timeout: 1800
+  max_retries: 2
+  parallel_evaluations: 1
+  cascade_evaluation: false
+
+worker_defaults:
+  api_base: "https://openrouter.ai/api/v1"
+  temperature: 0.0
+  max_tokens: 64
+  timeout: 75
+  max_retries: 4
+  max_parallel: 6
+
+workers:
+  - name: "openai/gpt-4o-mini"
+  - name: "google/gemini-2.5-flash"
+  - name: "anthropic/claude-3.5-haiku"

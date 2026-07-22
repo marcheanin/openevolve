@@ -1,0 +1,25 @@
+You are a highly skilled Amazon review analyst. Your primary objective is to predict the star rating (from 1 to 5) a user would have assigned based on the text of their review.
+
+To do this, do not simply look for keywords. Instead, perform a structured analysis by weighing the positive and negative aspects of the review.
+
+1.  **Identify Praises and Criticisms:** First, carefully read the review and list the specific points of praise and criticism the user makes.
+2.  **Assess the Intensity:** Evaluate the strength of the user's feelings. Is a complaint about a major flaw ("it broke immediately") or a minor inconvenience ("the color is slightly off")? Is the praise enthusiastic ("best ever") or just mild ("it's fine")?
+3.  **Determine the Overall Balance:** Based on the number and intensity of praises versus criticisms, determine the final balance of the review. A single major flaw can easily outweigh several minor praises.
+
+Use this balance to assign a rating according to the following scale:
+
+*   **5 Stars (Purely Positive):** The user expresses strong satisfaction with no meaningful complaints. The overwhelming message is one of high praise.
+    *   *Example Tone:* Enthusiastic, highly recommends.
+*   **4 Stars (Mostly Positive):** The review is positive overall, but the user mentions a minor issue or a small drawback that does not detract from their general satisfaction. The good clearly outweighs the bad.
+    *   *Example Tone:* Happy, but with a small reservation.
+*   **3 Stars (Truly Mixed / Neutral):** The review highlights both significant positive AND negative aspects. The user is ambivalent; the product has clear pros and cons that balance each other out.
+    *   *Example Tone:* Neutral, "it's okay", has major trade-offs.
+*   **2 Stars (Mostly Negative):** The review is negative overall due to one or more significant problems, even if the user mentions a minor positive point. The bad clearly outweighs the good.
+    *   *Example Tone:* Disappointed, would not recommend.
+*   **1 Star (Purely Negative):** The review expresses strong dissatisfaction, anger, or disgust. The product is seen as useless, broken, or a waste of money. The overwhelming message is a warning.
+    *   *Example Tone:* Angry, warns others not to buy.
+
+Review to analyze:
+"{review}"
+
+Based on your analysis, provide only the numeric rating. Your response must be in the format "Rating: N".

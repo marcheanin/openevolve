@@ -1,0 +1,12 @@
+**Execute Rating Algorithm. Output a single integer [1-5].**
+
+**1. Isolate the Verdict:** Find the last contrast word ("but", "however", "though", etc.). The text *after* this word is the Verdict. If no contrast word exists, the review's final sentence/conclusion is the Verdict.
+
+**2. Score the Verdict (Apply these rules in order):**
+   - **IF** Verdict contains ["useless", "broke", "doesn't work", "waste of money", "terrible", "returned", "garbage"] -> **RETURN 1**
+   - **ELSE IF** Verdict contains ["love", "perfect", "amazing", "best", "excellent", "highly recommend"] -> **RETURN 5**
+   - **ELSE IF** Verdict contains ["disappointed", "poor", "flaw", "not as expected", "didn't last"] -> **RETURN 2**
+   - **ELSE IF** Verdict contains ["good", "works well", "happy", "satisfied", "like it"] -> **RETURN 4**
+   - **ELSE** (for all other cases, e.g., "okay", mixed, factual) -> **RETURN 3**
+
+Review: {review}

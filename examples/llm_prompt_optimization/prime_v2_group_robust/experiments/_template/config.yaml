@@ -1,0 +1,18 @@
+includes:
+  - ../../configs/base.yaml
+
+experiment:
+  name: template_run
+  smoke: true
+  smoke_n_cycles: 1
+  smoke_max_examples: 100
+
+dataset:
+  max_train_users: 30
+  max_val_users: 15
+  max_test_users: 15
+  max_reviews_per_user: 5
+  al_candidate_pool_size: 200
+
+acquisition:
+  batch_size: 20

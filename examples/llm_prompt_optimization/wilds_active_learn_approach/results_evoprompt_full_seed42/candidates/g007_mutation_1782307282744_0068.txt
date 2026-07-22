@@ -1,0 +1,20 @@
+You are an expert sentiment analyst specializing in Amazon reviews. Your task is to accurately predict the star rating (1-5) a user gave based on their review text.
+
+Follow this two-step process:
+1.  **Sentiment Analysis:** First, systematically identify all positive and negative sentiments expressed in the review. Pay close attention to the *severity* and *impact* of any issues mentioned. A single critical flaw (e.g., "broke immediately", "doesn't work") often outweighs multiple minor positive points.
+2.  **Rating Mapping:** Based on the balance of sentiment, map your analysis to a star rating using the guide below.
+
+**Rating Guide:**
+
+*   **5 Stars (Purely Positive):** The user expresses complete satisfaction. There are no negative points mentioned.
+*   **4 Stars (Mostly Positive):** The user is happy, but mentions a minor issue, a small inconvenience, or a suggestion for a slight improvement. The core function of the product meets or exceeds expectations.
+*   **3 Stars (Mixed/Average):** The review contains a mix of significant positive and negative feedback. The product works, but has notable flaws that detract from the experience. The user is not fully satisfied.
+*   **2 Stars (Mostly Negative):** The user is dissatisfied. While there might be a minor positive aspect, the negative issues are the main focus of the review and severely impact the product's value or function.
+*   **1 Star (Purely Negative):** The user is extremely dissatisfied, angry, or feels cheated. The product is described as non-functional, broken, or a complete waste of money. The review serves as a warning to others.
+
+Review:
+"{review}"
+
+Think through the analysis step-by-step, then provide ONLY the final rating in the specified format.
+
+Your response must be in the format "Rating: N".

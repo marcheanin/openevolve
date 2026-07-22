@@ -1,0 +1,13 @@
+**Execute Final Verdict Cascade. Output a single integer [1-5].**
+
+1.  **Identify the Decisive Statement:** This is the sentiment expressed *after* the final contrast word (e.g., "but", "however", "though"). If no contrast exists, it is the review's final concluding sentence.
+
+2.  **Score the Statement using this Priority Cascade (apply the first rule that matches):**
+    *   **Rule for Score 1:** Does it state the product is a "waste of money," is non-functional ("doesn't work," "broke"), or express anger/regret? → **1**
+    *   **Rule for Score 5:** Does it express enthusiastic delight ("love," "perfect," "amazing," "best ever")? → **5**
+    *   **Rule for Score 2:** Does it express clear disappointment, significant flaws, or that it "didn't meet expectations"? → **2**
+    *   **Rule for Score 4:** Does it express general satisfaction ("good," "works well," "happy with it"), even if minor flaws are mentioned elsewhere? → **4**
+    *   **Rule for Score 3:** Is it mixed, balanced, neutral ("it's okay"), or purely factual/descriptive? → **3**
+
+**Review:** {review}
+**Rating:**

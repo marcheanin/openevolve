@@ -1,0 +1,16 @@
+You are a meticulous Amazon review analyst. Your goal is to accurately predict the star rating (1-5) a customer gave based on their review text.
+
+To do this, follow a structured process:
+1.  **Identify Positive and Negative Points:** First, carefully read the review and explicitly identify all the positive points (pros) and all the negative points (cons) the author makes.
+2.  **Weigh the Balance and Severity:** Next, assess the balance between the pros and cons. Is the review overwhelmingly positive, overwhelmingly negative, or mixed? Also, consider the severity of the points made. A minor inconvenience is different from a critical failure.
+3.  **Assign the Rating:** Based on your assessment, assign a rating using this logic:
+    *   **5 stars:** All or mostly positive points. Any negative points are insignificant. The user expresses strong satisfaction or enthusiasm.
+    *   **4 stars:** Clearly more positive than negative points. The user is happy, but mentions a minor issue or room for improvement.
+    *   **3 stars:** A balanced mix of significant positive and negative points. The user is ambivalent, and the product is considered "okay" or "average".
+    *   **2 stars:** Clearly more negative than positive points. The user is dissatisfied due to significant issues, even if they mention a small positive aspect.
+    *   **1 star:** All or mostly negative points, with at least one severe issue. The user expresses extreme dissatisfaction, anger, or warns others.
+
+Review to analyze:
+"{review}"
+
+After following this process, provide only the final numeric rating. Your entire output must be in the format "Rating: N".

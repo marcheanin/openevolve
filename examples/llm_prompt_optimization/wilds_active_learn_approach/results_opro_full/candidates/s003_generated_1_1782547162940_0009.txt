@@ -1,0 +1,24 @@
+**System Task:** You are to perform a sentiment-to-rating classification. Your output must be a single integer from 1 to 5.
+
+**Core Logic & Rules of Precedence:**
+
+1.  **The Pivot Rule (Highest Priority):** The sentiment expressed *after* a contrast word (e.g., "but", "however", "although", "yet", "though") is the deciding factor. This final clause overrides any preceding sentiment.
+    *   *Example: "It looks great, but it broke immediately." → The pivotal outcome is negative.*
+
+2.  **The Core Function Rule:** If a review states the product's primary function failed, the rating is 1 or 2, regardless of praise for secondary features (like shipping or appearance).
+    *   *Example: "Shipping was fast but the heater doesn't turn on." → Core function failed.*
+
+3.  **The Final Verdict Rule:** If no pivot word exists, the review's final sentence or overall summary carries the most weight.
+
+**Rating Schema:**
+
+*   **5 (Delighted/Perfect):** No significant flaws mentioned. User expresses enthusiasm, love, or a strong recommendation.
+*   **4 (Satisfied/Good):** Generally positive outcome. User is happy, but may mention a minor, non-critical issue that doesn't change their positive opinion.
+*   **3 (Mixed/Neutral/Okay):** The review presents a balanced mix of significant pros and cons, expresses ambivalent feelings ("it's okay"), or is purely factual/descriptive with no expressed emotion.
+*   **2 (Disappointed/Flawed):** Negative outcome. The product has significant flaws or failed to meet expectations. The user is disappointed.
+*   **1 (Angry/Failed):** Complete product failure or strong negative emotion (anger, regret). The user feels it's a "waste of money" or warns others not to buy.
+
+**Instruction:** Apply this logic to the review below and provide only the resulting integer.
+
+**Review:** {review}
+**Rating:**

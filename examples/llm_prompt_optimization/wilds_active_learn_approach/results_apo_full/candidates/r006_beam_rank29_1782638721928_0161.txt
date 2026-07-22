@@ -1,0 +1,100 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        Here is a variation of the instruction that maintains the original semantic meaning and logical flow, but uses different phrasing and structure.
+
+**New Instruction:**
+
+Your function is to reverse-engineer the 1-to-5 star rating from the text of an Amazon product review. Your analysis must capture the reviewer's final level of satisfaction by interpreting the subtle emotional tone of the text.
+
+**RULE #1: Prioritize Explicit Ratings**
+Your first and most critical task is to search the review for a direct numerical rating (e.g., "I rate this 4 out of 5," "7/10," "a solid 3-star book"). If such a rating is found, it is the definitive rating. You MUST convert it to the 1-5 star scale and use it as your final answer, bypassing the sentiment analysis protocol below.
+
+**If no explicit rating exists, proceed with the following sentiment analysis protocol:**
+
+**Core Principle: Judge the Overall Verdict, Not Just the Words**
+Your analysis must be holistic. The goal is to determine the reviewer's ultimate feeling about the product, not to simply tally positive and negative keywords. The concluding statements and the intensity of the praise are the most significant factors. The difference between a 3, 4, and 5-star review lies in the *degree of conviction* and *authenticity* of the endorsement.
+
+**Analytical Workflow:**
+1.  **Establish Tonal Baseline:** Perform a full read-through to get an initial sense of the review's overall tone—is it ecstatic, pleased, neutral, critical, or hostile?
+2.  **Identify Contrast & Context:** Pay close attention to pivot words ("but," "however," "although") and contextual qualifiers ("for the price," "if you're a fan of..."). The sentiment expressed *following* these phrases typically holds more weight.
+3.  **Prioritize the Final Statement:** The end of the review is often a summary of the reviewer's true takeaway. A lukewarm closing remark like "It was fine" can neutralize earlier, more positive comments.
+4.  **Assign Rating Based on Definitions:** Use the detailed criteria below to map the review's overall sentiment to a single star rating.
+
+**Star Rating Definitions:**
+
+-   **5 Stars (Unreserved Perfection & Enthusiastic Endorsement):**
+    -   **Concept:** The reviewer expresses overwhelming, unqualified positivity. The product is described as flawless, unique, or having a profound impact that far surpassed expectations. It's portrayed as a "best-in-class" item.
+    -   **Litmus Test:** Does the review use superlative language ("best," "perfect," "favorite") or describe a deeply personal or impactful experience? Is the endorsement passionate and without caveats?
+    -   **Telltale Signs:** "masterpiece," "flawless," "life-changing," "exceeded all expectations," "couldn't live without it." A heartfelt "thank you" to the creator can also signify this level of appreciation.
+
+-   **4 Stars (Strong Satisfaction & Solid Recommendation):**
+    -   **Concept:** This is the **standard for a very positive review without hyperbole.** The user is clearly happy, found the product to be of high quality, and would recommend it. The product delivered on its promise but wasn't necessarily a "once-in-a-lifetime" experience.
+    -   **Litmus Test:** Is the review a clear and enthusiastic endorsement that highlights positive features without any major drawbacks?
+    -   **Telltale Signs:** A cluster of strong positive adjectives is a key indicator. This includes: **"great," "excellent," "fantastic," "wonderful," "loved it," "awesome,"** "highly recommend."
+
+-   **CRITICAL DISTINCTION: 4 vs. 5 Stars**
+    1.  **The "Great" vs. "Best" Rule:** If a review is full of positive words like "great," "awesome," or "loved it" but avoids superlatives like "best," "perfect," or "favorite," **assign a 4-star rating.**
+    2.  **Enthusiasm is Not Superlative:** Passionate but general praise like "Highly recommended!" or "An awesome product!" points to a strong **4-star** review, not a 5-star one.
+    3.  **Caveats Cap the Rating at 4:** If a review contains superlative praise but adds a condition ("...for a beginner," "...for this price point"), the rating is capped at **4 stars** because the praise is not universal.
+
+-   **3 Stars (The "It's Fine" Rating / Mixed Bag):**
+    -   **Concept:** The experience was adequate but uninspired. The review might present a balanced list of pros and cons or describe something that works but doesn't excite. This is the home of lukewarm or polite praise.
+    -   **Litmus Test:** Does the praise feel generic, non-committal, or like the reviewer is simply being polite?
+    -   **Telltale Signs:** "it's okay," "decent," "fine for the price," "not bad." Phrases like "good book" or "well-made" can signal a 3-star rating when they stand alone or conclude the review without further enthusiasm.
+
+-   **2 Stars (Significant Disappointment):**
+    -   **Concept:** The overall message is definitively negative. The product has major flaws, failed to meet reasonable expectations, and the reviewer is left dissatisfied.
+    -   **Litmus Test:** Do the complaints and negative aspects form the core of the review, making any positive remarks feel like minor afterthoughts?
+    -   **Telltale Signs:** "disappointing," "not what I expected," "too many problems," "had to struggle with it," "would not recommend."
+
+-   **1 Star (Total Failure or Buyer's Remorse):**
+    -   **Concept:** A complete failure of the product or an experience that elicited anger, a sense of being deceived, or a desire to warn others.
+    -   **Litmus Test:** Does the reviewer feel their money was wasted and are they actively trying to prevent others from making the same mistake?
+    -   **Telltale Signs:** "awful," "terrible," "useless," "waste of money," "avoid at all costs," "returned for a refund," "broke immediately."
+
+**Override Rule: Critical Product Failure**
+-   If a review describes a product as non-functional, broken on arrival, or fundamentally defective (e.g., a device that doesn't power on, a book with pages missing), it should be rated as **1 star**, as it fails its most basic purpose.
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

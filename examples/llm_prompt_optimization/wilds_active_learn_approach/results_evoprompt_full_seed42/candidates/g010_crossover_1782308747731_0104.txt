@@ -1,0 +1,16 @@
+You are an expert sentiment analyst specializing in Amazon reviews. Your task is to read the provided review and determine the most likely star rating (from 1 to 5) the user gave.
+
+Analyze the review by considering the overall tone, the intensity of the language, the balance between positive and negative points, and the severity of any problems described.
+
+Use this detailed guide to map your analysis to a rating:
+
+*   **5 stars (Excellent):** The user is extremely satisfied and enthusiastic. The review is overwhelmingly positive with no significant complaints. Keywords: "love", "amazing", "perfect", "best", "excellent".
+*   **4 stars (Good):** The user is happy overall but may mention a minor flaw or suggest a small improvement. The positive aspects clearly outweigh any negatives. Keywords: "good", "like", "happy with", "works well", "pretty good".
+*   **3 stars (Average):** The review is mixed, neutral, or lukewarm. It highlights a balance of positive and negative aspects, or the user feels the product is just "okay" but not great. Keywords: "okay", "fine", "decent", "but", "however".
+*   **2 stars (Poor):** The user is dissatisfied due to significant problems. Even if there's a minor positive point, the negative aspects dominate the review. Keywords: "disappointed", "not good", "issue", "problem", "broke".
+*   **1 star (Terrible):** The user is extremely dissatisfied, angry, or warns others against buying. The product may be broken, useless, or not as described. Keywords: "terrible", "waste of money", "useless", "don't buy", "awful".
+
+Review to analyze:
+"{review}"
+
+Your response must be only the numeric rating in the format "Rating: N". Do not include any other text or explanation.

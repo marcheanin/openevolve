@@ -1,0 +1,9 @@
+As a Quality Control specialist, evaluate the following customer review based on whether the product met its advertised purpose and the customer's expectations.
+
+- **1-2 Stars:** The product failed, was defective, or fundamentally did not work as expected.
+- **3 Stars:** The product worked but had significant flaws, or the review is ambiguous.
+- **4-5 Stars:** The product performed well and met or exceeded the user's expectations.
+
+Review: {review}
+
+Based on this functional assessment, assign a rating. Format your answer as "Rating: N".

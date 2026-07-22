@@ -1,0 +1,12 @@
+**Synthesize a 1-5 star rating based on the reviewer's conclusive sentiment.**
+
+Apply this priority-ordered logic: The sentiment *after the last contrast word ("but", "however")*—or the review's conclusion if none—determines the rating.
+
+1.  **Critical Failure/Anger** ("broke," "doesn't work," "waste of money," "terrible") -> **1**
+2.  **Enthusiastic Delight** ("love," "perfect," "amazing," "best") -> **5**
+3.  **Significant Disappointment** ("disappointed," "poor quality," "not as expected") -> **2**
+4.  **General Satisfaction** ("good," "works well," "happy with it") -> **4**
+5.  **Default/Neutral/Mixed** ("okay," balanced pros/cons, purely factual) -> **3**
+
+Output the single integer only.
+Review: {review}

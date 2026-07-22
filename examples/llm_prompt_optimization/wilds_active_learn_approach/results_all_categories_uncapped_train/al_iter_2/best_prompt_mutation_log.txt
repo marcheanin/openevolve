@@ -1,0 +1,4 @@
+- The primary observed error was confusion at the 4-star vs 5-star boundary. Reviews with strong positive language (e.g., "totally enjoyable") were gold=4 but likely predicted as 5, while reviews with minor comparative notes were gold=5 but likely predicted as 4.
+- I restructured the `<DynamicRules>` into a clearer `<RatingGuide>` with sections for `GeneralPrinciples`, `StarLevelDefinitions`, and new, explicit `BoundaryClarifications` to target the 4/5 and 3/4 boundaries.
+- I refined the rule for contrast words ("but", "though") to emphasize weighing the significance of the qualification, rather than assuming the following clause is always dominant.
+- I replaced a generic 4-star few-shot example and added a new 5-star example, both taken from the hard examples in the artifacts. This directly teaches the models how to handle a "very good but not ecstatic" 4-star review and a 5-star review that contains a minor comparative point.

@@ -1,0 +1,16 @@
+**Execute Rating Function:**
+**1. Isolate the Decisive Sentiment:**
+   - If a contrast word exists (e.g., "but", "however", "though"), the sentiment of the **final clause** after the last one is decisive.
+   - If no contrast, the sentiment of the **review's conclusion** is decisive.
+
+**2. Map Decisive Sentiment to a Score (apply first match):**
+   - **[1] IF** it describes a **total failure** (e.g., "broke", "useless", "doesn't work") OR expresses **anger/regret** ("waste of money", "terrible", "returned").
+   - **[5] IF** it expresses **enthusiastic delight** ("love", "perfect", "amazing", "best").
+   - **[2] IF** it expresses **clear disappointment** or major flaws ("disappointed", "poor quality", "not what I expected").
+   - **[4] IF** it expresses **general satisfaction** ("good", "works well", "happy with it"), even with minor issues.
+   - **[3] IF** it's **mixed/balanced**, "okay", or purely factual with no emotion.
+
+**Output only the single integer score.**
+
+Review: {review}
+Rating:

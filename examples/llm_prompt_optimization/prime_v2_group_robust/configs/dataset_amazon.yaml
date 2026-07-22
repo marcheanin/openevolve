@@ -1,0 +1,11 @@
+# Amazon WILDS dataset caps (official OOD splits via wilds_loader)
+
+dataset:
+  name: amazon
+  data_root: ./data
+  category_id: null
+  max_train_users: 500
+  max_val_users: 100
+  max_test_users: 100
+  max_reviews_per_user: 15
+  al_candidate_pool_size: 5000

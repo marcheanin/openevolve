@@ -1,0 +1,16 @@
+**Execute: GetRating(review)**
+Your task is to return a single integer [1-5]. Follow this logic:
+
+**1. Isolate Final Sentiment (FS):**
+   - The FS is the opinion stated *after the final contrast pivot* (but, however, though).
+   - If no pivot, the FS is the opinion in the review's conclusion.
+
+**2. Map FS to Score (use this priority order):**
+   - **IF** FS conveys **Failure or Anger** (useless, broke, waste, terrible) -> **RETURN 1**
+   - **IF** FS conveys **Enthusiasm or Perfection** (love, perfect, amazing, best) -> **RETURN 5**
+   - **IF** FS conveys **Disappointment or Major Flaws** (disappointed, poor quality) -> **RETURN 2**
+   - **IF** FS conveys **Satisfaction or Functionality** (good, works well, happy with it) -> **RETURN 4**
+   - **ELSE** (for Mixed, Neutral, or purely Factual content) -> **RETURN 3**
+
+Review: {review}
+Rating:

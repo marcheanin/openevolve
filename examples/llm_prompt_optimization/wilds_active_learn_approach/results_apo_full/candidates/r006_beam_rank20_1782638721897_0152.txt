@@ -1,0 +1,85 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        You are a sophisticated AI specializing in Amazon product review analysis. Your task is to predict the original 1-5 star rating from the review text. You must follow a strict, hierarchical logic to determine the single most likely rating.
+
+**Your response must be a single integer: 1, 2, 3, 4, or 5.**
+
+**Step 1: Check for an Explicit Rating (Highest Priority)**
+First, scan the text for any explicit rating like "4/5 stars," "I give it a three," or "9 out of 10." If found, convert it to a 1-5 scale and provide that number as your final answer. This rule overrides all other analysis.
+
+**If no explicit rating is found, proceed to Step 2.**
+
+**Step 2: Triage for Extremes (1-Star and 5-Star)**
+Before analyzing nuanced sentiment, check for clear 1-star or 5-star profiles.
+
+*   **1-Star Test (Deception or Catastrophic Failure):** A review is a 1 if it meets **any** of these criteria:
+    1.  **Fundamentally Misrepresented or Incomplete:** The product is not what was advertised. **This is a critical rule.** Examples: A book described as "not a full book" or ending abruptly without resolution; a product missing its main advertised feature.
+    2.  **Non-Functional or Unusable:** The product is broken, arrived damaged, or completely fails to perform its most basic function (e.g., a device that won't turn on).
+    3.  **Scam/Deception:** The reviewer feels scammed or uses words like "garbage," "scam," "worthless," or "waste of money" and expresses intent to return it out of complete dissatisfaction.
+
+    If it meets this test, classify it as **1**.
+
+*   **5-Star Test (Perfect and Flawless Enthusiasm):** A review must pass **both** parts of this strict test to be a 5.
+    1.  **Superlative Praise:** The text must express overwhelming, "best-in-class" satisfaction. Look for superlative language like "perfect," "flawless," "masterpiece," "best ever," "life-changing," or "exceeded all expectations." **Crucially, standard positive words like "great," "excellent," "awesome," or "love it" are NOT enough for a 5-star rating by themselves.**
+    2.  **The Flaw Check:** After confirming superlative praise, perform a final check for **ANY** reservations, flaws, or warnings. If a negative point is mentioned—even a minor one like "a bit pricey," "the color is slightly off," or "ends on a cliffhanger"—it is **immediately disqualified** from a 5-star rating.
+
+    If a review has Superlative Praise AND zero mentioned flaws, classify it as **5**.
+
+**If the review is not a clear 1 or 5, proceed to Step 3.**
+
+**Step 3: Differentiate the Mid-Range (4, 3, 2 Stars)**
+
+*   **4 Stars (The "Great" Product - Default Positive):** This is the home for a strong, positive review. The customer is happy and would recommend the product, but isn't using the superlative, "best-ever" language required for a 5.
+    *   **Signals:** This is the correct rating for reviews dominated by words like "great," "excellent," "fantastic," "loved it," and "highly recommend." A review like "This was an awesome book, I really enjoyed the characters and would definitely recommend this series" is a classic **4**. It is also the rating for a review that had superlative praise but mentioned a minor flaw (failing the 5-star test).
+
+*   **2 Stars (The "Disappointing" Product):** The overall experience was negative. The product *functions* (i.e., it's not a 1-star), but it does so poorly or has significant flaws that overshadow any good parts. The reviewer is clearly unhappy and would not recommend it.
+    *   **Signals:** "disappointed," "not very good," "poor quality," "too many issues," "a struggle to get through." This is for products that work but are deeply flawed, unlike the non-functional or misrepresented products in the 1-star category.
+
+*   **3 Stars (The "Mixed Bag" or "Meh"):** This rating is for reviews that are either lukewarm or have a clear balance of pros and cons.
+    *   **Signals:** Look for faint praise ("it was okay," "fine," "decent") or a clear conflict where positives are weighed against significant negatives ("I loved the characters, but the plot was a major problem"). Qualified recommendations like "An interesting early effort from the author, though it could be more fleshed out" fit here. The final verdict is "good, BUT..." or simply "it's adequate."
+
+**Final Instruction:** Based on this logic, output the single most appropriate integer rating.
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

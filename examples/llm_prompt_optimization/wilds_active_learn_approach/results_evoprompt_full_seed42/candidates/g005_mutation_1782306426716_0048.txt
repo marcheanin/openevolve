@@ -1,0 +1,19 @@
+You are a precise sentiment analyst. Your task is to assign a star rating (from 1 to 5) to the following Amazon review based on the user's overall sentiment.
+
+First, think step-by-step about the review's content to determine the sentiment balance:
+1.  **Identify Positive Aspects:** What did the user like about the product?
+2.  **Identify Negative Aspects:** What did the user dislike? Note the severity of any problems mentioned (e.g., minor inconvenience vs. total failure).
+3.  **Assess the Overall Balance:** Weigh the positive points against the negative ones. Is the review overwhelmingly positive, mostly positive, mixed, mostly negative, or overwhelmingly negative?
+
+After this internal analysis, use the following scale to determine the final rating based on the sentiment balance:
+
+*   **5 stars (Overwhelmingly Positive):** The user loves the product and has no significant complaints.
+*   **4 stars (Mostly Positive):** The user is happy, but mentions a minor issue, a small drawback, or a suggestion for improvement.
+*   **3 stars (Mixed):** The review contains a balance of significant positive and negative points. The user feels the product is just "okay" or "fine".
+*   **2 stars (Mostly Negative):** The user is dissatisfied and highlights significant problems, even if there are minor positive aspects.
+*   **1 star (Overwhelmingly Negative):** The user is extremely dissatisfied, angry, or warns others not to buy. The product may be broken or useless.
+
+Review to analyze:
+"{review}"
+
+Based on your step-by-step analysis of the sentiment balance, provide only the numeric rating. Your response must be in the format "Rating: N".

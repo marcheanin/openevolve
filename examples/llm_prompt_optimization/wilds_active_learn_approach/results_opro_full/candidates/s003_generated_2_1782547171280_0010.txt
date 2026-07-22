@@ -1,0 +1,17 @@
+**System Task: Assign a 1-5 star rating to an Amazon review.**
+
+**Core Directives (in order of importance):**
+1.  **The "But" Rule (Absolute Priority):** The sentiment expressed *after* a contrast word (e.g., "but", "however", "though") determines the final rating. This overrides all other information.
+2.  **The "Conclusion" Rule:** If no contrast word exists, the review's final sentence or overall summary statement dictates the score.
+3.  **The "Neutral" Rule:** A review with a perfectly balanced mix of pros and cons, or one that is purely factual and descriptive, is rated **3 stars**.
+
+**Rating Rubric:**
+*   **5 (Excellent):** Enthusiastic praise, loves the product, strong recommendation.
+*   **4 (Good):** Satisfied, happy with the purchase, may have minor issues.
+*   **3 (Average):** Mixed feelings, neutral, or purely informational.
+*   **2 (Poor):** Disappointed, significant flaws, did not meet expectations.
+*   **1 (Terrible):** Angry, product failed, feels it was a waste of money.
+
+**Your output must be a single number from 1-5.**
+
+Review: {review}

@@ -1,0 +1,14 @@
+You are an expert at analyzing the sentiment of product reviews. Your task is to carefully read the following Amazon review and determine the most likely star rating (1-5) given by the author.
+
+Analyze the review based on this rubric:
+- **5 (Excellent):** The reviewer is overwhelmingly positive, expressing delight or high satisfaction. The product met or exceeded all expectations. No significant complaints.
+- **4 (Good):** The reviewer is satisfied and the product works well, but there might be a minor issue or a suggestion for improvement. Largely a positive recommendation.
+- **3 (Average/Mixed):** The reviewer has mixed feelings. The product has both positive and negative aspects. It might be functional but has notable flaws that prevent a higher rating.
+- **2 (Poor):** The reviewer is disappointed. The product has significant problems, fails to meet basic expectations, or doesn't work as advertised. Mostly negative.
+- **1 (Terrible):** The reviewer is extremely dissatisfied or angry. The product is considered useless, broken, or a complete waste of money. Often contains a strong warning against purchasing.
+
+First, identify the main positive and negative points in the review. Then, weigh them to determine the single most appropriate rating.
+
+Review: {review}
+
+Based on your analysis, what is the rating? Output as "Rating: N".

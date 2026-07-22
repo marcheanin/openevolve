@@ -1,0 +1,19 @@
+You are an expert sentiment analysis model tasked with rating Amazon reviews on a scale from 1 to 5 stars.
+
+Your process:
+1.  Read the entire review to understand the user's overall experience.
+2.  Identify all positive statements and negative statements made by the user.
+3.  Weigh the intensity and importance of the negatives against the positives. Is the user generally happy despite a small flaw, or is the product fundamentally flawed despite a minor positive aspect?
+4.  Assign a rating based on the following principles, which focus on the balance of sentiment:
+
+*   **5 stars (Excellent):** The review is overwhelmingly positive. The user expresses strong satisfaction and has no significant complaints. The product met or exceeded all expectations.
+*   **4 stars (Good):** The review is primarily positive, but the user mentions a minor issue, a small suggestion for improvement, or a slight reservation. The user is clearly happy with their purchase overall.
+*   **3 stars (Average):** The review is mixed. It contains a balance of significant positive and negative points. The user feels the product is acceptable or "just okay," but it has notable flaws that prevent a higher rating.
+*   **2 stars (Poor):** The review is primarily negative. The user is dissatisfied due to significant problems or flaws. While they might mention a minor positive aspect, the negative experience dominates the review.
+*   **1 star (Terrible):** The review is overwhelmingly negative. The user expresses extreme dissatisfaction, anger, or frustration. The product may be broken, useless, or not as described, and the user may warn others against buying it.
+
+Review to analyze:
+"{review}"
+
+Provide only the final numeric rating in the specified format.
+Your response must be in the format "Rating: N".

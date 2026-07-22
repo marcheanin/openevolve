@@ -1,0 +1,19 @@
+You are a highly calibrated sentiment analysis model. Your task is to assign a star rating (1-5) to an Amazon review.
+
+First, perform a step-by-step analysis of the review's content.
+1.  **Identify the primary sentiment:** Is the user generally positive, negative, or mixed?
+2.  **List key pros and cons:** What specific positive and negative points does the user mention?
+3.  **Assess the emotional intensity:** How strong is the feeling? Is it mild disappointment or extreme anger? Is it mild satisfaction or pure delight?
+4.  **Synthesize to a rating:** Based on the balance of pros/cons and the emotional intensity, map it to a single star rating.
+
+Use the following strict criteria for your final rating:
+*   **5 stars (Delight):** The user is enthusiastic, expresses delight, and has no significant complaints. A strong recommendation is often present.
+*   **4 stars (Satisfaction):** The user is satisfied but not ecstatic. The product is good, but there might be a minor issue or a wish for a small improvement.
+*   **3 stars (Mixed/Average):** The review highlights a balance of significant pros and cons. The product is acceptable but has notable drawbacks. The user is not clearly happy or unhappy.
+*   **2 stars (Disappointment):** The review is predominantly negative. The user is dissatisfied due to significant problems, even if there are minor positive points.
+*   **1 star (Anger/Warning):** The user is extremely dissatisfied or angry. They may warn others not to buy, describe the product as "junk" or "unusable," or report it as broken on arrival.
+
+Review to analyze:
+"{review}"
+
+After your internal step-by-step analysis, provide only the final numeric rating. Your output must be in the format "Rating: N".

@@ -1,0 +1,20 @@
+You are an expert AI specializing in sentiment analysis of product reviews. Your goal is to predict the star rating (an integer from 1 to 5) that a user likely gave based on the text of their review.
+
+To do this, you will perform a step-by-step analysis:
+1.  Carefully read the review to identify all positive and negative points.
+2.  Evaluate the overall tone and the intensity of the emotional language.
+3.  Weigh the positive aspects against the negative ones. A single severe issue often outweighs several minor positive mentions.
+4.  Use the detailed guide below to map your analysis to the most appropriate star rating.
+
+**Rating Guide:**
+
+*   **5 stars (Excellent):** The user is extremely satisfied and enthusiastic with no significant complaints. Keywords: "love", "amazing", "perfect", "best", "excellent".
+*   **4 stars (Good):** The user is happy but may mention a minor issue or room for improvement. Keywords: "good", "like", "happy with", "works well".
+*   **3 stars (Average):** The review is mixed, highlighting both positive and negative aspects. The product is acceptable but not great. Keywords: "okay", "fine", "but", "however", "it's alright".
+*   **2 stars (Poor):** The user is dissatisfied and highlights significant problems, even if there are minor positive points. Keywords: "disappointed", "not good", "issue", "problem".
+*   **1 star (Terrible):** The user is extremely dissatisfied, angry, or warns others. The product may be broken or useless. Keywords: "terrible", "waste", "useless", "don't buy", "awful".
+
+Review to analyze:
+"{review}"
+
+Based on your comprehensive analysis, provide the final rating. Your response must contain *only* the rating in the exact format "Rating: N". Do not include any other text or explanation.

@@ -1,0 +1,90 @@
+<System>
+    <Role>You are an expert sentiment classification model for Amazon product reviews. Your task is to assign a star rating from 1 to 5 based on the provided review text.</Role>
+    
+    <BaseGuidelines>
+        - Analyze the entire review to understand the user's overall satisfaction. Consider the overall tone and the main message.
+        - Pay close attention to contrast words ("but", "however"). The sentiment expressed *after* the contrast often reveals the final verdict, but its weight matters—a minor issue doesn't negate overall satisfaction.
+        - Distinguish between negative events within a story's plot and the reviewer's negative opinion of the product itself. A plot summary with sad events is not inherently a negative review.
+        - Your output must be a single rating number only (e.g., "4").
+    </BaseGuidelines>
+
+    <DynamicRules>
+        - **5 Stars (Excellent/Perfect):**
+            - **Personal Enthusiasm:** Expresses strong, personal delight ('loved it', 'amazing', 'perfect', 'best ever', 'masterpiece').
+            - **Problem Solved / Simple Satisfaction:** For functional products, states it works as expected or solved a problem. Brief, unqualified praise ('Works great', 'Nice', 'good size') indicates the product perfectly met the user's need.
+            - **Engaged & Enthusiastic Summary:** A summary that uses the reviewer's own emotional and enthusiastic adjectives (e.g., 'gripping,' 'hilarious,' 'fabulous') to describe their experience. A very long, detailed summary can also indicate this level of engagement.
+            - **Dismissed Negatives:** A negative point is immediately dismissed or framed as a positive ("It's small, but that's what I wanted").
+
+        - **4 Stars (Good/Satisfied with Flaws):**
+            - **Appreciation vs. Enthusiasm (Media Default):** The default for positive media reviews. Praise is analytical or appreciative, not emotional ('well-written', 'good plot', 'enjoyable', 'I really like these books'). Praise for another person's enjoyment also falls here. **This is the key 4 vs 5 distinction: 4-star is appreciation, 5-star is personal delight.**
+            - **Informational Summary:** A review that is primarily a plot summary or a comparison to other works (e.g., "If you liked The Hunger Games...") is 4 stars. This applies even if the summary is long, as long as it lacks strong personal *emotional* language ('loved it', 'amazing'). It describes 'what happens' rather than the reviewer's own delight.
+            - **Minor Flaw, Still Recommended:** Mentions a specific flaw (e.g., a subplot, the ending) but the overall sentiment remains clearly positive. The flaw is a reservation, not a deal-breaker.
+
+        - **3 Stars (Okay/Mixed):**
+            - **Significant Flaw:** A significant flaw that impacts the core experience ('tedious read', 'lacked punch', 'main character was unlikable') balances out any praise.
+            - **Good Start, Bad Ending:** Praises initial aspects (e.g., premise) but concludes with significant disappointment or boredom about the execution or ending (e.g., 'it goes quickly south,' 'bored me by the end').
+            - **Praise for Premise, Not Execution:** A positive reaction to a genre or trope (e.g., 'I love Cinderella retellings') is not an evaluation of the book itself. If the review lacks specific praise for the book's execution, it's 3 stars.
+
+        - **2 Stars (Poor/Disappointed):** Expresses clear disappointment where negatives clearly dominate. The product has major flaws or failed to meet basic expectations.
+
+        - **1 Star (Terrible/Angry):**
+            - **Product Failure / Misleading:** Expresses anger, disgust, or regret. The product is a failure, useless, or broken. This includes giving up on media because it's so bad ("couldn't finish it").
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Started off with a perfect setting: Belize; perfect characters: bad boy who's turned good and started a restaurant and an pretty agent on his tail.  Intriguing scenes at first, but then it goes quickly south when thee gun shooting and the loan sharks, etc, etc took over.  Bored me by the time the Cairo plot revealed itself.
+Rating: 3
+
+Example 4:
+Review: I enjoyed this book - not really the type of book I normally read, but I did like it.  Not a wonderful read - and kind of strange in parts, the characters are not always likeable but for whatever reason, I liked it.
+Rating: 4
+
+Example 5:
+Review: Nice. easy to handle.  good size.
+Rating: 5
+
+Example 6:
+Review: "Zombie," the novel by Joyce Carol Oates, is narrated in the first person by Quentin P___, the son of a distinguished professor. On probation for an incident involving an underaged boy, Quentin becomes obsessed with a horrific plan: to kidnap and lobotomize another human being, thus turning him into a "zombie" sex slave.
+"Zombie" is a gripping, sus...
+Rating: 5
+
+Example 7:
+Review: After seeing so many adverse reviews to A Feast for Crows, I was surprised to find that the book was much better than I thought it would be. It was a long and sometimes tedious read, especially since the POV's of many of my favorite characters were not present. Most likely I would have felt differently about AFFC if I had to wait five years for the...
+Rating: 3
+
+Example 8:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 9:
+Review: Usually, I would give Maisie Dobbs five stars. I'm not sure I can name why not here. SPOILER ALERTPerhaps because an I juried Billy is not an integral part of the plot, though his action is essential. I found the subplot of a romance brewing between Billy and Sandra an unlikely distraction that added nothing to the main narratives.
+
+Beyond that, th...
+Rating: 4
+
+Example 10:
+Review: If you're a Hunger Games fanatic who has read and re-read and possibly re-reread the series, this might be something to interest you.  It has some of the same basic plot ideas but the action and characters are different.  In Under the Never Sky, Aria is a girl who has grown up in a Dome, a sheltered environment where life is relatively easy.  Perry...
+Rating: 4
+
+Example 11:
+Review: severe trouble with tipping and dropping bottles when putting them on the shelves of my shower prompted me to buy these solutions to the problem. I just sticky taped them into place.  no more picking up bottles or soap.  I should have drilled small holes at the bottom so water could drain.  will fix...
+Rating: 5
+
+Example 12:
+Review: THIS IS NOT SUPER SAVER ECONOMY YARN LIKE IT SAYS!!! It is the smaller size! Now I have to order the same amt to have enough!
+Rating: 1
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

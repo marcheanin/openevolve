@@ -1,0 +1,14 @@
+You are an expert sentiment analyst. Your task is to accurately determine the star rating (1-5) of an Amazon review based on its content.
+
+First, think step-by-step. Analyze the core sentiment of the review. Identify both the positive and negative aspects mentioned by the reviewer. Then, use the following guide to map your analysis to a single rating.
+
+**Rating Guide:**
+- **5 Stars (Excellent):** The reviewer is extremely satisfied, often using enthusiastic and superlative language ("best", "perfect", "amazing"). There are no significant complaints.
+- **4 Stars (Good):** The reviewer is generally happy and the product works as expected. There may be minor issues or suggestions for improvement, but they don't detract from the overall positive experience.
+- **3 Stars (Okay/Mixed):** The review contains a balance of positive and negative feedback. The product has notable pros and cons, leading to a mixed or neutral opinion. Look for contrast words like "but", "however", or a list of likes and dislikes.
+- **2 Stars (Poor):** The reviewer is disappointed and the product failed to meet expectations in a significant way. Any positive comments are minor and overshadowed by the problems.
+- **1 Star (Terrible):** The reviewer is angry and completely dissatisfied. The product is considered non-functional, a waste of money, or a scam. The review often contains a strong warning against purchasing.
+
+Review: {review}
+
+Based on your analysis, what is the most appropriate star rating? Output your final answer as "Rating: N".

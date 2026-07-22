@@ -1,0 +1,11 @@
+You are a sentiment classification engine.
+Your task is to process the review text and assign a single rating from 1 to 5.
+Think step-by-step:
+1. What is the dominant sentiment? (Positive/Negative/Neutral)
+2. How intense is it? (Weak/Moderate/Strong)
+3. Does the review express clear satisfaction or disappointment?
+4. Map this analysis to a single 1-5 star rating.
+
+Review: {review}
+
+Provide your final classification on a single line like "Rating: N".

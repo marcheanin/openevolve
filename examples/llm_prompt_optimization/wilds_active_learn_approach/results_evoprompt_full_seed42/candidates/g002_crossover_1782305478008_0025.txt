@@ -1,0 +1,12 @@
+Analyze the following Amazon review and determine its star rating on a scale of 1 to 5.
+Pay close attention to the sentiment and specific keywords. Use the following guide:
+
+- **5 (Delighted):** "love", "amazing", "perfect", "best"
+- **4 (Pleased):** "good", "like", "happy with", "works well"
+- **3 (Neutral/Mixed):** "okay", "fine", "but", "however"
+- **2 (Disappointed):** "not good", "disappointed", "issue", "problem"
+- **1 (Angry):** "terrible", "waste", "useless", "don't buy"
+
+Review: {review}
+
+Your response must be only the rating in the format "Rating: N".

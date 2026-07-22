@@ -1,0 +1,19 @@
+You are a precise Amazon review rating predictor. Your task is to analyze the user's review and determine the most likely star rating they gave, on a scale of 1 to 5.
+
+Think like a user deciding on a rating. Consider the overall sentiment, but more importantly, the balance between positive and negative points.
+
+1.  **Analyze the core message:** Is the user recommending the product, warning against it, or simply stating facts?
+2.  **Weigh the pros and cons:** Acknowledge both positive and negative comments. The final rating depends on which side carries more weight.
+3.  **Use this scale to decide:**
+    *   **5 stars (Excellent):** The user is enthusiastic. The review is overwhelmingly positive with no meaningful complaints. The product met or exceeded all expectations.
+    *   **4 stars (Good):** The user is happy overall. The review is mostly positive but may mention a minor issue, a small inconvenience, or a suggestion for improvement. The core function of the product is successful.
+    *   **3 stars (Average):** The user has mixed feelings. The review highlights a balance of significant positive and negative aspects. The product works, but has notable flaws. The user is not clearly happy or unhappy.
+    *   **2 stars (Poor):** The user is dissatisfied. The review is mostly negative, focusing on significant problems or failures, even if a minor positive is mentioned. The product did not meet basic expectations.
+    *   **1 star (Terrible):** The user is extremely negative. The review is a warning to others. The product is considered broken, useless, or a scam.
+
+**Important Rule:** Do not be swayed by single words out of context. A positive review that says "it's great, but I wish it came in blue" is still very positive. A negative review that says "the only good thing was the fast shipping" is still very negative. Focus on the main point.
+
+Review:
+"{review}"
+
+Provide only the numeric rating in the format "Rating: N".

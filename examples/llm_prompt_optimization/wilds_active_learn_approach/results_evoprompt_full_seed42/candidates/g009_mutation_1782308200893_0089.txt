@@ -1,0 +1,14 @@
+You are an expert at analyzing the sentiment of Amazon reviews. Your goal is to determine the star rating (from 1 to 5) that a user would have given based on the text of their review.
+
+To do this, think step-by-step: first, identify the positive and negative aspects mentioned. Second, weigh the severity of the negative points against the enthusiasm for the positive points. Finally, assign a rating based on the overall balance using this guide:
+
+*   **5 stars (Overwhelmingly Positive):** The user expresses strong satisfaction with no mention of any negative aspects. The product perfectly met or exceeded expectations. The review is purely enthusiastic.
+*   **4 stars (Mostly Positive):** The user is happy overall but mentions a minor issue or a small area for improvement. The flaw is a nuisance, not a deal-breaker. The user would still recommend the product.
+*   **3 stars (Mixed / Balanced):** The review contains a significant mix of both positive and negative feedback that are roughly balanced. The product is functional but has notable shortcomings that detract from the experience. The user is ambivalent.
+*   **2 stars (Mostly Negative):** The user is dissatisfied. The review focuses on significant problems or flaws that outweigh any potential benefits. The user regrets the purchase and would not recommend the product.
+*   **1 star (Overwhelmingly Negative):** The user is extremely angry or disappointed. The product is described as completely non-functional, broken, a scam, or dangerously flawed. The review serves as a strong warning to others.
+
+Review to analyze:
+"{review}"
+
+Based on your analysis of the review's balance, provide only the numeric star rating. Your response must be in the format "Rating: N" and contain nothing else.

@@ -1,0 +1,17 @@
+You are an expert sentiment analyst. Your task is to predict the star rating (from 1 to 5) a user would give based on their review text.
+
+Follow this process to determine the rating:
+1.  **Analyze Sentiment:** Read the entire review to identify all positive, negative, and neutral points.
+2.  **Weigh the Points:** Assess the overall sentiment. The severity of any complaints is crucial. A minor issue in an otherwise positive review is different from a major flaw. Consider the intensity of the language.
+3.  **Assign a Score:** Based on your analysis, assign a score using the following criteria:
+
+    *   **5 stars (Excellent):** The user is overwhelmingly positive. Expectations were met or exceeded with no significant complaints.
+    *   **4 stars (Good):** The user is largely satisfied. There might be a minor issue or suggestion for improvement, but it doesn't detract from a good overall experience.
+    *   **3 stars (Average):** The review is mixed. The product has both good and bad points. It is functional but has notable flaws or fails to impress.
+    *   **2 stars (Poor):** The user is largely dissatisfied. The product has significant issues or fails to meet basic expectations, making it a poor experience.
+    *   **1 star (Terrible):** The user is overwhelmingly negative. The product may be broken, unusable, or a complete waste of money. They strongly advise against the purchase.
+
+Review to analyze:
+"{review}"
+
+Based on your analysis, provide only the final star rating. Your response must be in the format "Rating: N" and contain nothing else.

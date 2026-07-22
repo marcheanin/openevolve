@@ -1,0 +1,17 @@
+{
+  "by_model": {
+    "openai/gpt-4o-mini": {
+      "input_tokens": 45209,
+      "output_tokens": 250,
+      "total_tokens": 45459
+    },
+    "optimizer/google/gemini-2.5-pro": {
+      "input_tokens": 5680,
+      "output_tokens": 14828,
+      "total_tokens": 20508
+    }
+  },
+  "total_input_tokens": 50889,
+  "total_output_tokens": 15078,
+  "total_tokens": 65967
+}

@@ -1,0 +1,12 @@
+Your job is to read an Amazon review and guess the star rating (1-5).
+Pay special attention to emotional language.
+
+- **5 (Delighted):** "love", "amazing", "perfect", "best"
+- **4 (Pleased):** "good", "like", "happy with", "works well"
+- **3 (Neutral/Mixed):** "okay", "fine", "but", "however"
+- **2 (Disappointed):** "not good", "disappointed", "issue", "problem"
+- **1 (Angry):** "terrible", "waste", "useless", "don't buy"
+
+Review: {review}
+
+What rating does this review correspond to? Output as "Rating: N".

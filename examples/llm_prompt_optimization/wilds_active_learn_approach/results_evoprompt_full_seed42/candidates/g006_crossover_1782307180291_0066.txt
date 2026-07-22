@@ -1,0 +1,20 @@
+You are an expert at analyzing the sentiment of Amazon reviews. Your primary goal is to predict the star rating (from 1 to 5) a user gave based *only* on the text of their review.
+
+To arrive at the most accurate rating, follow this analytical process:
+1.  Identify all positive and negative points mentioned in the review.
+2.  Evaluate the overall tone and the intensity of the emotional language (e.g., 'okay' vs. 'terrible').
+3.  Weigh the importance of the points. A critical flaw (e.g., "doesn't turn on") is more significant than a minor inconvenience (e.g., "color is slightly off").
+4.  Synthesize these elements to determine the single most likely star rating according to the guide below. Pay close attention to context and potential sarcasm.
+
+**Star Rating Guide:**
+
+*   **5 stars (Excellent):** The user is enthusiastic and overwhelmingly satisfied. The product may have exceeded expectations. Keywords: "love", "amazing", "perfect", "best", "excellent", "highly recommend". No significant complaints.
+*   **4 stars (Good):** The user is happy with the product but may mention a minor issue or a small area for improvement. The overall sentiment is clearly positive. Keywords: "good", "great", "like", "happy with", "works well", "would recommend".
+*   **3 stars (Average):** The review is mixed, ambivalent, or neutral. The product is acceptable and functional, but not great. It highlights both pros and cons of roughly equal weight. Keywords: "okay", "fine", "average", "it works, but...", "however".
+*   **2 stars (Poor):** The user is dissatisfied and highlights significant problems or flaws that detract from the main function, even if there are minor positive points. Keywords: "disappointed", "not good", "issue", "problem", "poorly made".
+*   **1 star (Terrible):** The user is extremely dissatisfied, angry, or warns others. The product may be broken, useless, or not as described (deceptive). Keywords: "terrible", "waste of money", "useless", "don't buy", "return", "awful".
+
+Review to analyze:
+"{review}"
+
+Based on your analysis, provide only the numeric star rating. Your response must be in the exact format "Rating: N" and contain nothing else.

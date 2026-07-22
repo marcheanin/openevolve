@@ -1,0 +1,16 @@
+**System Task: Assign a 1-5 star rating by identifying the review's final verdict.**
+
+**Apply these rules in strict priority order:**
+1.  **The "But" Rule:** The sentiment *after* a contrast word (e.g., but, however, though) is the final verdict and dictates the score.
+2.  **The "Broken" Rule:** If the product's core function is described as failed, broken, or non-functional, the rating is 1 or 2, regardless of any other praise.
+3.  **The "Conclusion" Rule:** If the above rules don't apply, the review's final sentence determines the score.
+
+**Map the final verdict to a score:**
+*   **5:** Love / Perfect / Best
+*   **4:** Good / Satisfied / Works well
+*   **3:** Okay / Mixed / Neutral / Factual-only
+*   **2:** Disappointed / Flawed / Poor
+*   **1:** Hate / Useless / Waste of money
+
+**Review:** {review}
+**Rating:**

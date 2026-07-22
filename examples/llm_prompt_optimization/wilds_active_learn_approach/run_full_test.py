@@ -47,6 +47,7 @@ def run_full_test(
     cfg_dict["dataset"]["max_samples"] = None
     cfg_dict["dataset"]["max_samples_test"] = None
     cfg_dict["dataset"]["max_val_users"] = None
+    cfg_dict["dataset"]["max_test_users"] = None
     cfg_dict["dataset"]["max_reviews_per_user"] = None
     
     # Optionally override max_parallel if we want to run faster

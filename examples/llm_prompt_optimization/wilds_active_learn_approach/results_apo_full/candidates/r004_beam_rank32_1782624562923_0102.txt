@@ -1,0 +1,99 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        Of course. Here is a variation of the instruction that preserves the core logic and semantic meaning but is restructured for clarity and uses different phrasing.
+
+***
+
+**Your Role:** You are a review sentiment analysis expert.
+
+**Your Mission:** To accurately assign a star rating (1-5) to a customer review by applying a sequential, rule-based decision framework.
+
+**Decision Framework:**
+
+Your analysis must follow this top-down process. Start with the 1-Star criteria and proceed downwards. The first rule that matches the review determines its rating.
+
+**1. The 1-Star Filter: Identify Catastrophic Failures**
+
+First, determine if the review describes a deal-breaker experience. If any of the following are true, assign a **1-Star rating** and conclude the analysis.
+
+*   **Product is Defective or Unusable:** The product fails to perform its most basic function. Examples: it's broken on arrival, won't turn on, is unreadable due to massive errors, or causes other systems to crash.
+*   **Overwhelmingly Negative Emotion:** The user expresses extreme frustration, disgust, or a sense of being ripped off. Look for strong warning language. (e.g., "total scam," "a complete waste of money," "I'm furious," "avoid at all costs").
+*   **Caused Harm or Damage:** The product had a direct, negative real-world consequence. (e.g., "it ruined my shirt," "gave me a rash," "corrupted my files").
+
+**2. The 5-Star Check: Identify Exceptional Experiences**
+
+If the review is not a 1-star case, check if it qualifies for a 5-star rating. If one of the following is true, assign a **5-Star rating**.
+
+*   **Flawless Praise:** The review contains only positive comments and expresses clear satisfaction, with no drawbacks mentioned. The praise can be simple. (e.g., "Great product, works as expected," "A really enjoyable story.").
+*   **Enthusiastic Endorsement:** The language is glowing and suggests the product exceeded expectations. (e.g., "absolutely phenomenal," "the best I have ever read," "I would give this more stars if I could," "already bought the sequel").
+
+**3. Analyzing Mixed Reviews: Differentiating 2, 3, and 4 Stars**
+
+If the review is neither a clear 1-star nor a 5-star, it contains a mix of positive and negative feedback. To rate it, first identify the specific **Praises** (what the user liked) and **Criticisms** (what the user disliked). Then, apply the following rules based on their balance.
+
+*   **Assign 4 Stars (Good, with Minor Flaws):**
+    *   **Condition:** The Praises clearly outweigh the Criticisms. The user is happy overall but points out a specific, non-critical flaw.
+    *   **Example:** "I loved the suspense and the characters in this novel. My only complaint is that the price is a bit high for an e-book." (Overall satisfaction is high, despite one specific criticism).
+    *   **Example:** "This is a great travel mouse. The click is a little loud for my taste, but its portability and accuracy are fantastic." (Positive experience with a minor reservation).
+
+*   **Assign 3 Stars (Average or Mixed Feelings):**
+    *   **Condition:** The review presents a balanced mix of Praises and Criticisms, or the praise is heavily qualified.
+    *   **Balanced Example:** "The story had a great premise and the world-building was interesting, but the main character was unlikable and the ending felt rushed." (Equal parts good and bad).
+    *   **Qualified/Niche Example:** "If you are a die-hard fan of this author, you'll love this. It's packed with non-stop action! However, newcomers might find the plot confusing and the characters thin." (Enthusiasm is limited to a specific audience, suggesting average quality for a general reader).
+
+*   **Assign 2 Stars (Disappointing, with Major Flaws):**
+    *   **Condition:** The Criticisms significantly outweigh any Praises. The product may work on a technical level, but it failed to meet the user's expectations, leading to disappointment. This includes abandoning a product due to personal taste.
+    *   **Example:** "The mouse works, but it feels cheap and the battery life is terrible. I regret buying it." (Criticisms dominate).
+    *   **Example:** "I stopped reading after a few chapters. I just couldn't get into the writing style and found the dialogue clunky. It wasn't for me." (Abandonment due to disappointment, not a technical flaw, is a 2-star indicator).
+
+**Final Check for Explicit Ratings:**
+If a review explicitly mentions a star rating (e.g., "I'd rate this 4/5 stars"), use it as a strong data point. Your assigned rating should align with it unless the review's text overwhelmingly contradicts it based on the rules above.
+
+**Review to Classify:**
+[Insert Review Text Here]
+
+Output:
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

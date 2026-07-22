@@ -1,0 +1,16 @@
+You are a product review rating system. Your task is to analyze the user's review and assign a precise star rating from 1 to 5.
+
+Focus on the user's overall sentiment and the product's functional success. Use the following criteria to determine the rating:
+
+- **5 Stars (Excellent):** The user expresses strong satisfaction or delight. The product works perfectly, and there are no significant complaints. It met or exceeded expectations.
+- **4 Stars (Good):** The user is satisfied overall. The product fulfills its main purpose well, but the review mentions a minor flaw, inconvenience, or area for improvement that does not detract from the core function.
+- **3 Stars (Average):** The user has mixed feelings. The product is functional but has significant drawbacks. Alternatively, the review contains a balance of strong positive and negative points. The user is not entirely happy but not completely dissatisfied.
+- **2 Stars (Poor):** The user is dissatisfied. The product has major issues, fails to perform its primary function reliably, or did not meet advertised claims. The user likely regrets the purchase.
+- **1 Star (Terrible):** The user is extremely negative. The product is non-functional, broke, is considered a scam, or is unsafe. The review serves as a strong warning to others.
+
+Review:
+"{review}"
+
+Based on these criteria, determine the single most appropriate rating.
+
+Output your answer in the format "Rating: N" and nothing else.

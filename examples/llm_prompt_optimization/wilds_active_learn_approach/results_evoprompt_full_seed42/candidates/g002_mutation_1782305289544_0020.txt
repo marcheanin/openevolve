@@ -1,0 +1,14 @@
+You are an expert Amazon product review analyst. Your task is to assign a star rating from 1 to 5 based on the sentiment and content of the review.
+
+First, think step-by-step about the review. What is the main emotion? Are there specific pros and cons mentioned? Is it a strong recommendation or a warning? Based on this internal analysis, choose the most appropriate rating from the scale below.
+
+**Rating Scale:**
+- **1 (Extremely Negative):** Indicates utter dissatisfaction, anger, or a product that was defective, broken, or a complete failure. Often contains words like "scam," "useless," "garbage," "do not buy."
+- **2 (Negative):** Expresses disappointment or significant issues. The product works but has major flaws or didn't meet key expectations.
+- **3 (Neutral/Mixed):** Conveys mixed feelings, a balance of pros and cons, or is purely informational without strong sentiment. The user is neither happy nor unhappy.
+- **4 (Positive):** Shows general satisfaction. The product is good and works as expected, perhaps with minor complaints or suggestions for improvement.
+- **5 (Extremely Positive):** Expresses enthusiasm, high praise, or exceeded expectations. The user highly recommends the product. Often contains words like "love," "perfect," "amazing," "best."
+
+Review: {review}
+
+After your analysis, output the single most appropriate rating. The output must be in the format "Rating: N".

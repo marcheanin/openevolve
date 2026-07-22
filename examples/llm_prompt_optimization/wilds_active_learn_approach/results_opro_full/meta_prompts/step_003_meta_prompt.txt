@@ -1,0 +1,217 @@
+Create a piece of text at the beginning of the answer to enhance the precision in solving diverse amazon product review 1-5 star rating classification problems.
+text:
+You are an expert Amazon review analyst. Your task is to rate the following review from 1-5 stars. Think step-by-step to determine the reviewer's true sentiment and level of satisfaction before providing your final answer.
+
+**Your internal thought process:**
+1.  **Identify Core Sentiment:** Is it Positive, Negative, or Mixed/Neutral?
+2.  **Analyze Intensity & Nuance:** Extract key phrases. Is it mild ("okay") or strong ("terrible")? Is there a contrast ("good, but...")? Prioritize the final conclusion.
+3.  **Determine Final Satisfaction:** Based on the analysis, what is the reviewer's ultimate take? Are they delighted, satisfied, neutral, disappointed, or angry?
+4.  **Map to Score:**
+    - 5: Delight/Enthusiasm
+    - 4: Satisfaction with minor complaints
+    - 3: Mixed/Neutral/Average
+    - 2: Disappointment with major flaws
+    - 1: Anger/Regret/Product failure
+
+After following this process, rate the review by providing only the single numerical score from 1-5.
+
+Review: {review}
+Rating:
+score:
+42
+
+text:
+Assign a star rating (1-5) to the Amazon review based on the user's final sentiment and satisfaction.
+Scale:
+1: Very Negative (e.g., hate, worthless, regret)
+2: Negative (e.g., disappointed, flawed)
+3: Mixed/Neutral (e.g., okay, some pros and cons)
+4: Positive (e.g., good, liked it, satisfied)
+5: Very Positive (e.g., love, excellent, highly recommend)
+
+Prioritize the sentiment expressed in the conclusion of the review, especially after any contrast words like "but" or "however".
+
+Review: {review}
+score:
+49
+
+text:
+You are a precise review rating system. Your task is to assign a single 1-5 star rating based on a strict analysis of the user's final satisfaction.
+
+**Guiding Principles:**
+1.  **Conclusion is Key:** The final sentence or overall conclusion of the review carries the most weight.
+2.  **Contrast is Decisive:** Sentiment expressed *after* a contrast word (e.g., "but", "however", "although") overrides the preceding part of the review.
+3.  **Factual Reviews are Neutral:** If a review only describes features without expressing emotion, rate it as 3 stars.
+
+**Rating Scale:**
+*   **5 (Excellent):** Enthusiastic, delighted, strong recommendation. Keywords: *love, perfect, amazing, best ever*.
+*   **4 (Good):** Satisfied, happy with the purchase despite minor issues. Keywords: *good, works well, recommend*.
+*   **3 (Average):** Mixed feelings, balanced pros/cons, or purely informational. Keywords: *okay, average, decent*.
+*   **2 (Poor):** Disappointed, significant flaws, did not meet expectations. Keywords: *disappointed, poor quality, returned*.
+*   **1 (Terrible):** Angry, regretful, complete product failure. Keywords: *awful, waste of money, useless, avoid*.
+
+Review: {review}
+Rating:
+score:
+51
+
+text:
+Using the system rules, rate this review from 1-5 stars: {review}
+score:
+57
+
+text:
+As an AI sentiment analysis expert, you are to assign a 1-5 star rating to the provided Amazon review.
+
+Follow this two-step process:
+1.  **Analyze Sentiment:** First, perform a silent, internal analysis of the review. Identify the primary emotion (e.g., delight, satisfaction, neutrality, disappointment, anger). Pay close attention to contrast words like "but" or "however," as the sentiment that follows them is the most important.
+2.  **Assign Score:** Based on your analysis, map the dominant sentiment to a final score using this rubric:
+    *   **5:** User is delighted, enthusiastic, or gives a strong recommendation.
+    *   **4:** User is satisfied but may note a small issue.
+    *   **3:** User is neutral, has mixed feelings (balanced pros/cons), or the review is purely factual.
+    *   **2:** User is disappointed; the product has significant flaws.
+    *   **1:** User is angry or feels regret; the product is a complete failure or "waste of money."
+
+Provide only the single numeric rating as your final answer.
+
+Review: {review}
+Rating:
+score:
+57
+
+text:
+**Analyze the user's final satisfaction from the Amazon review and assign a 1-5 star rating.**
+
+**Primary Directive:** The review's conclusion and sentiment *after* contrast words (e.g., "but", "however", "though") are the most critical factors. This final sentiment overrides any initial praise or criticism.
+
+**Satisfaction-to-Score Mapping:**
+*   **5 stars (Delighted):** Enthusiastic praise. "Love," "excellent," "perfect," "highly recommend."
+*   **4 stars (Satisfied):** Generally positive. "Like," "good," "works well." May mention a minor flaw that doesn't affect overall satisfaction.
+*   **3 stars (Mixed/Neutral):** Ambivalent. Balanced pros and cons, "it's okay," or the review is purely factual with no strong sentiment.
+*   **2 stars (Disappointed):** Negative experience. Significant flaws, "disappointed," "didn't work," unmet expectations.
+*   **1 star (Angry/Regretful):** Complete product failure. "Hate," "waste of money," "terrible," "do not buy."
+
+Respond with the single integer rating only.
+
+Review: {review}
+Rating:
+score:
+61
+
+text:
+**Task:** Assign a 1-5 star rating to the Amazon review.
+
+**Core Principle:** Your rating must reflect the reviewer's **final verdict**. Prioritize sentiment stated after contrast words (e.g., "but", "however").
+
+**Scale:**
+*   **5 (Very Positive):** Enthusiastic, "love it", strong recommendation.
+*   **4 (Positive):** Satisfied, "liked it", minor issues noted.
+*   **3 (Neutral/Mixed):** "Okay", balanced pros and cons, purely factual.
+*   **2 (Negative):** Disappointed, significant flaws, unmet expectations.
+*   **1 (Very Negative):** Angry, "waste of money", product failed.
+
+Output a single number (1-5) only.
+
+Review: {review}
+score:
+64
+
+text:
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        Step-by-Step Classification Process:
+        1. Identify overall sentiment: Positive, Negative, or Mixed
+        2. Detect intensity: Weak, Moderate, Strong
+        3. Detect contrast (e.g., "but", "however") and prioritize the final or dominant clause
+        4. Evaluate user satisfaction outcome (regret vs delight)
+        5. Map to final rating
+
+        Star Rating Criteria:
+        - 1 (Very Negative):
+          Strong dissatisfaction, anger, regret, product failure
+          Signals: "terrible", "worst", "waste", "don’t buy", "made it worse"
+        
+        - 2 (Mostly Negative):
+          Clear disappointment with minor positives
+          Signals: "disappointed", "not good", "couldn’t finish", unmet expectations
+        
+        - 3 (Mixed / Neutral):
+          Balanced pros and cons, uncertainty, or average experience
+          Signals: "okay", "not sure", "good but...", "hard to tell"
+        
+        - 4 (Mostly Positive):
+          Generally satisfied with small issues
+          Signals: "enjoyed", "liked", "good", "would recommend"
+        
+        - 5 (Very Positive):
+          Strong enthusiasm and recommendation
+          Signals: "love", "amazing", "fantastic", "highly recommend"
+
+        Core Decision Rules:
+        - Sentiment AFTER contrast words ("but", "however") is usually dominant
+        - The ending/conclusion carries the most weight
+        - Strong emotional language overrides mild earlier statements
+        - Repeated sentiment strengthens polarity
+        - Negations flip meaning ("not good" → negative)
+
+        User Satisfaction Heuristics:
+        - Regret or “would not recommend” → 1–2
+        - Mixed feelings or uncertainty → 3
+        - Satisfaction or willingness to continue/use again → 4
+        - Enthusiasm or strong recommendation → 5
+
+        Edge Case Handling:
+        - Sarcasm: detect implied negativity despite positive wording
+        - Conflicting sentiment: weigh conclusion more than introduction
+        - Informational/descriptive reviews without emotion → 3
+        - Product fails core function → 1
+        - If forced to continue (e.g., “forced myself to finish”) → ≤2
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>
+score:
+65
+
+
+Generate an instruction that is different from all the instructions above, and has a higher score than all the instructions above. The instruction should begin with <INS> and end with </INS>. The instruction should be concise, effective, and generally applicable to all problems above.

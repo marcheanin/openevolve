@@ -1,0 +1,6 @@
+openai
+numpy
+pyyaml
+scikit-learn
+sentence-transformers
+tiktoken

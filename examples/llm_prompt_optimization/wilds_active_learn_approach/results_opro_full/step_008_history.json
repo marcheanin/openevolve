@@ -1,0 +1,102 @@
+[
+  {
+    "prompt_hash": "28017e07ca8e361e687d3bedaac683e8",
+    "score": 0.5125,
+    "step": 2
+  },
+  {
+    "prompt_hash": "13b79bd7085b5a12338e6cfd0527d929",
+    "score": 0.6375,
+    "step": 2
+  },
+  {
+    "prompt_hash": "4b5bfca7666f1fe16d4f99e2bab257cd",
+    "score": 0.3375,
+    "step": 3
+  },
+  {
+    "prompt_hash": "600f9bc7061500d0af0e10f3678b7407",
+    "score": 0.6,
+    "step": 3
+  },
+  {
+    "prompt_hash": "af1e5a71bba600fc320d571269259d43",
+    "score": 0.55,
+    "step": 3
+  },
+  {
+    "prompt_hash": "ec63708f5f4ecbca0877075f9f57f06b",
+    "score": 0.5875,
+    "step": 3
+  },
+  {
+    "prompt_hash": "51e06d58f25553a034ba4baf0e719f4e",
+    "score": 0.5875,
+    "step": 4
+  },
+  {
+    "prompt_hash": "62ba640a1d9826a698211dc404b95b3c",
+    "score": 0.6375,
+    "step": 4
+  },
+  {
+    "prompt_hash": "122849f065fed4f47519cafd020e2587",
+    "score": 0.5875,
+    "step": 4
+  },
+  {
+    "prompt_hash": "2c23ed03d858d7d294e25f70355be01e",
+    "score": 0.55,
+    "step": 5
+  },
+  {
+    "prompt_hash": "c0c954da576a5f37a5fb63d616239232",
+    "score": 0.6,
+    "step": 5
+  },
+  {
+    "prompt_hash": "e50aba9218d53b56f5bc454ada4597d9",
+    "score": 0.5375,
+    "step": 5
+  },
+  {
+    "prompt_hash": "1245893410164bdcf99b3788ffc931b3",
+    "score": 0.5125,
+    "step": 6
+  },
+  {
+    "prompt_hash": "9884ad04414e6ac195321579fde6a544",
+    "score": 0.5625,
+    "step": 6
+  },
+  {
+    "prompt_hash": "3b268c38784576d1a805bee103be0b4e",
+    "score": 0.5125,
+    "step": 7
+  },
+  {
+    "prompt_hash": "b62aff69b759d6d2b19dbe07403517e4",
+    "score": 0.3375,
+    "step": 7
+  },
+  {
+    "prompt_hash": "30b57157ea4ea3b9666e59ce2f86b235",
+    "score": 0.4125,
+    "step": 7
+  },
+  {
+    "prompt_hash": "a9247e88dfc29775e69584936d7b4588",
+    "score": 0.5125,
+    "step": 8
+  },
+  {
+    "prompt_hash": "e363b8501004ee1f13e28c3759b81137",
+    "score": 0.6125,
+    "step": 8
+  },
+  {
+    "prompt_hash": "a4a1b39c27a965014df3176ab5fc9442",
+    "score": 0.525,
+    "step": 8
+  }
+]

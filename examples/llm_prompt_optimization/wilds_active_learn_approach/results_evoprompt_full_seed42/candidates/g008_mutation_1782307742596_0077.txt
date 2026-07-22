@@ -1,0 +1,22 @@
+You are an expert Amazon review analyst. Your task is to dissect a user's review and assign a single, precise star rating from 1 to 5 that captures their overall experience.
+
+Think step-by-step to decide the rating:
+1.  **Identify the Core Function:** What was the product supposed to do?
+2.  **Assess Performance:** Did the product perform its core function? How well?
+3.  **Find Pros & Cons:** List the specific positive points and negative points mentioned.
+4.  **Weigh the Impact:** How severe are the negative points? Are they minor inconveniences or deal-breaking flaws? Do the pros outweigh the cons?
+
+Use this rubric to map your analysis to a final rating. The key is the user's *net satisfaction* after weighing the pros and cons.
+
+*   **5 Stars (Excellent):** The user is delighted. The product perfectly met or exceeded all expectations. Any mentioned cons are negligible. Examples: "love it," "perfect," "best ever."
+*   **4 Stars (Good):** The user is satisfied. The product works well for its main purpose, but has minor issues or flaws that don't ruin the overall positive experience. Examples: "great, but...", "mostly happy with it."
+*   **3 Stars (Average):** The user has mixed feelings. The product works, but has significant drawbacks that temper their satisfaction. It's functional but flawed. The experience was just "okay." Examples: "it works, however...", "good and bad."
+*   **2 Stars (Poor):** The user is dissatisfied. The product has major flaws, fails to perform its core function reliably, or caused frustration. The negative aspects significantly outweigh the positive ones. Examples: "disappointed," "big problems," "barely works."
+*   **1 Star (Terrible):** The user is angry or feels cheated. The product is non-functional, defective, arrived broken, or was not as described. It's a complete failure. Examples: "useless," "don't buy," "waste of money," "scam."
+
+Review:
+"{review}"
+
+Based on your analysis, provide only the final star rating in the specified format. Do not include your reasoning in the final output.
+
+Rating: N

@@ -1,0 +1,16 @@
+**Task: Assign a 1-5 star rating based on the user's final, conclusive satisfaction.**
+
+**Decision Logic (Apply in strict order of priority):**
+1.  **Pivot Rule:** The sentiment *after* a contrast word ("but," "however," "though") dictates the final rating, overriding all preceding text.
+2.  **Failure Rule:** If the product's core function fails (e.g., "doesn't work," "broke"), the rating is a **1** or **2**, regardless of praise for secondary features (like appearance or shipping).
+3.  **Neutrality Rule:** A purely factual/descriptive review with no emotional language, or one with perfectly balanced pros & cons, is a **3**.
+
+**Final Verdict-to-Score Mapping:**
+*   **5 (Delight):** Enthusiastic praise ("love," "perfect," "best"). No significant flaws.
+*   **4 (Satisfaction):** Happy with purchase. Works as advertised, despite any minor, dismissed flaws.
+*   **3 (Neutrality):** Mixed/ambivalent feelings ("it's okay") or a purely factual report.
+*   **2 (Disappointment):** Significant flaws. Did not meet primary expectations.
+*   **1 (Failure/Regret):** Product is non-functional, or user is angry/regretful ("waste of money").
+
+**Review:** {review}
+**Rating (single integer [1-5]):**

@@ -1,0 +1,15 @@
+As an AI sentiment analysis expert, you are to assign a 1-5 star rating to the provided Amazon review.
+
+Follow this two-step process:
+1.  **Analyze Sentiment:** First, perform a silent, internal analysis of the review. Identify the primary emotion (e.g., delight, satisfaction, neutrality, disappointment, anger). Pay close attention to contrast words like "but" or "however," as the sentiment that follows them is the most important.
+2.  **Assign Score:** Based on your analysis, map the dominant sentiment to a final score using this rubric:
+    *   **5:** User is delighted, enthusiastic, or gives a strong recommendation.
+    *   **4:** User is satisfied but may note a small issue.
+    *   **3:** User is neutral, has mixed feelings (balanced pros/cons), or the review is purely factual.
+    *   **2:** User is disappointed; the product has significant flaws.
+    *   **1:** User is angry or feels regret; the product is a complete failure or "waste of money."
+
+Provide only the single numeric rating as your final answer.
+
+Review: {review}
+Rating:

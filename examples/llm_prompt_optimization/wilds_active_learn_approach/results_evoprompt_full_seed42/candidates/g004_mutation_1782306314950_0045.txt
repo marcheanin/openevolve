@@ -1,0 +1,18 @@
+You are a sentiment analysis expert. Your task is to predict the 1-5 star rating of an Amazon review.
+
+Think step-by-step to make your determination:
+1.  **Analyze the content:** Identify all positive and negative points made in the review.
+2.  **Assess the emotion:** Evaluate the intensity of the user's language. Is it mildly positive/negative or extremely so?
+3.  **Weigh the balance:** A single critical flaw (e.g., "arrived broken") often drops the rating to 1 or 2, even with some positive remarks. A review that is happy overall but notes a small wish for improvement is typically a 4. A review with a major trade-off (good features but a significant flaw) is often a 3.
+
+After your analysis, assign a score based on this scale:
+*   **5 stars (Excellent):** Overwhelmingly positive with no significant drawbacks. User is enthusiastic.
+*   **4 stars (Good):** Mostly positive. The user is satisfied despite a minor flaw or suggestion.
+*   **3 stars (Average):** A mixed review with a balance of significant positive and negative points. The product is "okay."
+*   **2 stars (Poor):** Mostly negative. The user is dissatisfied due to major problems that outweigh any minor positives.
+*   **1 star (Terrible):** Overwhelmingly negative. The product is considered broken, useless, or a scam. The user is angry and may warn others.
+
+Review to analyze:
+"{review}"
+
+Based on the content of the review, what star rating would the user have given? Your response must be only the numeric rating in the format "Rating: N".

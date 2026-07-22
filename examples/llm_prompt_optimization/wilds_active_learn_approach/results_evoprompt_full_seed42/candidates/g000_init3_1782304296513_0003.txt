@@ -1,0 +1,4 @@
+Analyze the following Amazon review. Based on the content, what star rating would the user have given?
+The rating scale is 1 to 5 stars. Your response must be only the numeric rating in the format "Rating: N".
+
+Review: "{review}"

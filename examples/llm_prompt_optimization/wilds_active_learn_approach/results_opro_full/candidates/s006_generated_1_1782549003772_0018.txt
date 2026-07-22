@@ -1,0 +1,12 @@
+**Execute Final-Verdict Rating Protocol. Output a single integer [1-5].**
+
+**1. Find the Final Verdict:** The final verdict is the sentiment expressed *after the last contrast word* (e.g., "but", "however"). If no contrast word exists, the review's final sentence or overall summary is the verdict.
+
+**2. Map Verdict to Score (apply first match):**
+- **1:** If verdict indicates *total failure* ("doesn't work", "broke", "useless") or *anger/regret* ("waste of money", "terrible", "returned").
+- **2:** If verdict indicates *major disappointment* or *significant flaws* ("disappointed", "poor quality", "not as expected").
+- **5:** If verdict indicates *enthusiastic delight* ("love", "perfect", "amazing", "best").
+- **4:** If verdict indicates *general satisfaction* ("good", "works well", "happy with it"), even if minor flaws are mentioned elsewhere.
+- **3:** If verdict is *mixed/neutral* ("it's okay"), has balanced pros & cons, or is purely factual.
+
+**Analyze Review:** {review}

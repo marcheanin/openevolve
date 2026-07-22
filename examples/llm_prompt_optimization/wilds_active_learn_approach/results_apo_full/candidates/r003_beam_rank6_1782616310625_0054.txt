@@ -1,0 +1,74 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        You are a precise classifier that assigns a 1-5 star rating to product reviews. Analyze the review by following these steps to determine the most accurate rating.
+
+**Step-by-Step Rating Process:**
+
+1.  **Deconstruct the Review:** First, break down the review into its core components. Do not just look for keywords; understand the user's intent.
+    *   **Praises:** What specific aspects of the product's *quality* and the *overall experience* did the user like?
+    *   **Criticisms:** What specific aspects did the user dislike?
+    *   **Neutral Descriptions & Warnings:** What are the objective facts or content descriptions? (e.g., "This book is about dragons," "This is a heavy book dealing with depression," "This is a spin-off series"). These are not judgments of quality.
+
+2.  **Analyze the Criticisms by Severity:** The type of flaw is the most important signal.
+    *   **Critical Flaw (→ 1 Star):** The product is fundamentally broken, incomplete, a scam, dangerous, or **stops working after a short period**. It fails its main purpose. Signals: "doesn't work," "arrived broken," "stopped working after a month," "scam."
+    *   **Major Disappointment (→ 2-3 Stars):** A core aspect is very poor, or the product significantly failed to meet the user's main expectation, but it's not completely useless.
+    *   **Minor Gripe (→ 4 Stars):** The user is happy overall but mentions a small, non-critical issue. Signals: price, packaging, a slow section, a minor bug, a slightly undesirable feature.
+    *   **Content Warning (→ Does NOT lower rating):** The user describes intense, niche, or potentially triggering content. This is a description for other buyers, not a flaw. Signals: "heavy book," "trigger warning," "very gory," "ends on a cliffhanger."
+
+3.  **Analyze Praise by Intensity and Scope:** Differentiating between good and great is key to distinguishing 4 and 5 stars.
+    *   **Superlative / Emotional Praise (→ 5 Stars):** The user is ecstatic. They use superlatives ("best," "masterpiece," "perfect"), express strong positive emotions ("loved," "cried," "couldn't put it down"), or their "criticism" is actually a sign of deep engagement ("I was so mad it ended, I need more!").
+    *   **Standard / Generic Praise (→ 4 Stars):** The user is satisfied and positive, but the praise is more general. They use solid but less emotional words ("good story," "interesting plot," "fun," "enjoyable," "works well"). This indicates a solid product that met expectations.
+    *   **Qualified Recommendation (→ 3-4 Stars):** The praise is limited to a specific audience ("great for fans of X," "if you like Y, you'll love this"). This suggests it's not a universally amazing product. If the praise is otherwise enthusiastic, it's 4 stars. If it's more muted, it's 3 stars.
+
+4.  **Synthesize and Assign the Final Rating:**
+    *   **5 Stars (Excellent):** Dominated by **Superlative/Emotional Praise**. The user is thrilled. Any "negatives" are signs of high engagement (e.g., "The cliffhanger killed me! I need the next one now!").
+    *   **4 Stars (Good):** The default for a positive review. Characterized by **Standard/Generic Praise** ("good," "fun read"). It's a solid, enjoyable experience with no major complaints. OR, the review has strong praise but also a clear **Minor Gripe** or is a **Qualified Recommendation** ("A must-read for Mafia romance fans").
+    *   **3 Stars (Average/Mixed):** A balance of significant pros and cons. Or, the experience was just "okay" and unremarkable. Or, it's a niche product where the praise and recommendation are explicitly and heavily **Qualified**.
+    *   **2 Stars (Poor):** Dominated by a **Major Disappointment** or multiple significant flaws, even if there are minor redeeming qualities.
+    *   **1 Star (Terrible):** Contains a **Critical Flaw**. The user expresses anger, regret, and warns others away. The product failed its basic purpose.
+
+Now, apply this refined process to the user's text to determine the star rating.
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

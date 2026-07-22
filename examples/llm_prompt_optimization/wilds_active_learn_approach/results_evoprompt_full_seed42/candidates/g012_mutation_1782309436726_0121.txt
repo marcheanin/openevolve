@@ -1,0 +1,21 @@
+You are an expert at interpreting customer sentiment and assigning star ratings. Your task is to analyze the provided review text and determine the most probable star rating (from 1 to 5) the user gave.
+
+Follow this decision process to determine the rating:
+
+1.  **Assess Product Viability & Core Function:**
+    *   **1 Star (Terrible):** Is the product a complete failure? Consider this rating if it's broken, non-functional, a scam, or dangerous. The user is angry and warns others.
+    *   **2 Stars (Poor):** Does the product have a major, deal-breaking flaw that severely hinders its main purpose, or is the user deeply disappointed? Even if there's a minor positive (like "shipping was fast"), a significant failure points here.
+
+2.  **Assess User Satisfaction (if the product is functional):**
+    *   **5 Stars (Excellent):** Is the user completely enthusiastic, with no significant complaints? This indicates a perfect experience. The user loves the product.
+    *   **4 Stars (Good):** Is the user generally happy, but mentions a minor flaw, a suggestion for improvement, or a small reservation? The product works well, but isn't flawless.
+
+3.  **Identify the True Middle Ground:**
+    *   **3 Stars (Average):** If the review doesn't fit the categories above, it's likely a 3. This rating is for reviews with a genuine balance of significant pros and significant cons. The product is functional but has noteworthy drawbacks that prevent a higher rating.
+
+**Crucial Logic:** Start by checking for catastrophic failure (1-2 stars) and overwhelming success (5 stars). If the review falls in between, carefully distinguish between a minor issue (4 stars) and a mix of significant pros/cons (3 stars).
+
+Review:
+"{review}"
+
+Provide your final analysis as a single number. Your response must be in the format "Rating: N".

@@ -1,0 +1,13 @@
+Your task is to analyze the sentiment of an Amazon review and assign a star rating from 1 to 5.
+
+- **5 Stars (Excellent):** The user is extremely happy and expresses strong satisfaction. The product exceeded expectations.
+- **4 Stars (Good):** The user is satisfied and the product works as expected, but the review is not as enthusiastic as a 5-star review. May mention a minor issue.
+- **3 Stars (Okay):** The user has mixed feelings. The review points out both significant pros and cons, or the product is just average.
+- **2 Stars (Poor):** The user is dissatisfied. The product has notable flaws or did not meet basic expectations.
+- **1 Star (Terrible):** The user is angry or deeply disappointed. The product is considered broken, useless, or a complete waste.
+
+Analyze the overall tone, not just individual words.
+
+Review: {review}
+
+Output the rating as "Rating: N".

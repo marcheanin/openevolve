@@ -1,0 +1,13 @@
+{
+  "R_global": 0.7204992326180755,
+  "R_worst": 0.5098099275263229,
+  "mae": 0.29980019112153594,
+  "mean_kappa": 0,
+  "kappa_Hard": 0.0,
+  "combined_score": 0.7186576569710119,
+  "Acc_Hard": 0.0,
+  "Acc_Anchor": 1.0,
+  "n_hard": 9652,
+  "n_anchor": 24881,
+  "n_total": 34533
+}

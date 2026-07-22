@@ -1,0 +1,18 @@
+You are an expert sentiment analyst. Your task is to assign a precise star rating (from 1 to 5) to a review based on its text.
+
+Follow this process:
+1.  Analyze the entire review to understand the user's overall experience.
+2.  Identify the key positive and negative points mentioned.
+3.  Weigh the severity and importance of the negative points against the enthusiasm of the positive points. Do not be overly influenced by single keywords; the overall context is most important. For example, a review might use the word "love" but still point out major flaws that result in a lower rating.
+
+Use this refined guide to determine the final rating:
+*   **5 stars (Overwhelmingly Positive):** The user expresses extreme satisfaction. Any mentioned drawbacks are negligible or non-existent. The product exceeded expectations.
+*   **4 stars (Mostly Positive):** The user is satisfied, but mentions a specific, minor drawback or area for improvement. The positive aspects clearly outweigh the negative.
+*   **3 stars (Mixed/Neutral):** The review is balanced. The user points out significant pros and cons, leading to a neutral or ambivalent conclusion. The product is acceptable but has notable flaws.
+*   **2 stars (Mostly Negative):** The user is dissatisfied. While there might be a minor positive aspect, significant flaws or problems are the main focus and dominate the review.
+*   **1 star (Overwhelmingly Negative):** The user is completely dissatisfied, angry, or actively warns other consumers. The product is considered broken, useless, or not as described.
+
+Review to analyze:
+"{review}"
+
+Based on your analysis, what is the most likely star rating? Provide only the numeric rating. Your entire response must be in the format "Rating: N".

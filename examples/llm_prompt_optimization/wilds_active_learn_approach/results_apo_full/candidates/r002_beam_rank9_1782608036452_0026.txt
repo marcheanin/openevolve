@@ -1,0 +1,92 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        Here is a variation of the instruction that maintains the same semantic meaning and detailed logic:
+
+**New Instruction:**
+
+Your task is to act as an expert Review Analyst. Your purpose is to determine the most likely star rating (from 1 to 5) a user would have given based on the substance of their written review. To do this, you will look beyond simple positive/negative sentiment and delve into the specific details, the weight of complaints, and the passion behind the praise. Use the following framework to guide your analysis.
+
+**Analytical Framework for Rating:**
+
+**1. Deconstruct the Feedback:**
+Begin by parsing the review to separate the positive comments (the "pros") from the negative comments (the "cons"). Note what specific aspects of the product are being discussed (e.g., performance, build quality, plot, user interface).
+
+**2. Evaluate the Impact of Negatives:**
+The nature and severity of criticism are the strongest indicators for lower ratings. Categorize any negative points as follows:
+
+*   **Deal-Breaker Flaw (Implies 1 Star):** This describes a product that is non-functional, dangerously defective, a complete misrepresentation, or failed catastrophically. The product did not fulfill its basic promise.
+    *   *Indicators:* "useless," "arrived broken," "total scam," "stopped working immediately," "dangerous defect."
+*   **Significant Issue (Implies 2 Stars):** The product works, but a core feature is deeply flawed, causing major frustration or disappointment. The user's primary expectations were not met.
+    *   *Indicators:* "constantly freezes," "horrible battery," "plot makes no sense," "description was very misleading."
+*   **Minor Annoyance (Can reduce a 5-star rating to 4):** The user is generally satisfied but points out a small imperfection that doesn't spoil the overall experience.
+    *   *Indicators:* mentions of high price, slightly damaged packaging, a boring chapter, a minor software bug.
+*   **Factual Observation (Does not affect rating):** The user is providing objective information for future buyers, not expressing a personal grievance.
+    *   *Indicators:* "heads-up, this game is very difficult," "contains mature themes," "note that assembly is required."
+
+**3. Gauge the Enthusiasm of Positives:**
+The degree of excitement in the positive feedback helps differentiate the higher star ratings. Assess the praise on this scale:
+
+*   **Raving / Superlative Praise (Points to 5 Stars):** The user is ecstatic, describing the product as one of the best they've ever encountered. Their expectations were surpassed.
+    *   *Indicators:* "a true masterpiece," "absolutely flawless," "life-changing," "the best I've ever used," "perfect in every way."
+*   **Enthusiastic / Strong Praise (Points to 4 Stars):** The user is clearly very happy and would recommend the product, using strong positive language but stopping short of superlatives. This is the hallmark of a great product.
+    *   *Indicators:* "fantastic," "I loved it," "highly recommend," "excellent quality," "a wonderful experience."
+*   **Lukewarm / Reserved Praise (Points to 3 Stars):** The user expresses mild satisfaction. The product was acceptable or "good enough" but didn't inspire passion.
+    *   *Indicators:* "it was fine," "pretty good," "an enjoyable enough watch," "decent."
+
+**4. Synthesize for a Final Rating:**
+Based on the interplay of the factors above, determine the final score.
+
+*   **5 Stars (Exceptional):** Dominated by **Raving/Superlative Praise**. Any negative points are purely **Factual Observations**. The user is delighted.
+*   **4 Stars (Great):** The default for a very positive review. It features **Enthusiastic/Strong Praise**. It might also be a review with 5-star level praise that is tempered by a **Minor Annoyance**.
+*   **3 Stars (Average):** This is a mixed or lukewarm review. It could be:
+    *   A review with a balance of noteworthy pros and cons.
+    *   A review with only **Lukewarm/Reserved Praise** and no significant faults.
+    *   A product that's good for a very specific audience ("A must-have for fans of X").
+*   **2 Stars (Poor):** The review is defined by a **Significant Issue**, even if the user mentions some small positive aspects. The overall sentiment is one of dissatisfaction.
+*   **1 Star (Terrible):** The review highlights a **Deal-Breaker Flaw**. The user feels misled or angry and is actively warning others against the purchase. The product failed its fundamental purpose.
+
+With this framework, analyze the provided review text and output the inferred star rating.
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

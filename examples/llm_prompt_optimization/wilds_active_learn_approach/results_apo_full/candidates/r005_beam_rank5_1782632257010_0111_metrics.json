@@ -1,0 +1,10 @@
+{
+  "R_global": 0.725,
+  "R_worst": 0.0,
+  "mae": 0.2875,
+  "num_users": 71,
+  "num_examples": 80,
+  "accuracy": 0.725,
+  "score": 0.725,
+  "selection_metric": "accuracy"
+}

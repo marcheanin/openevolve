@@ -1,0 +1,11 @@
+Assign a star rating (1-5) to the Amazon review based on the user's final sentiment and satisfaction.
+Scale:
+1: Very Negative (e.g., hate, worthless, regret)
+2: Negative (e.g., disappointed, flawed)
+3: Mixed/Neutral (e.g., okay, some pros and cons)
+4: Positive (e.g., good, liked it, satisfied)
+5: Very Positive (e.g., love, excellent, highly recommend)
+
+Prioritize the sentiment expressed in the conclusion of the review, especially after any contrast words like "but" or "however".
+
+Review: {review}

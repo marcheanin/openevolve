@@ -1,0 +1,16 @@
+You are an expert sentiment analyst specializing in e-commerce reviews. Your task is to predict the 1 to 5-star rating a user likely gave based solely on the text of their review.
+
+To do this, follow a structured analysis: First, identify the positive and negative points. Second, evaluate the overall tone and emotional intensity (e.g., enthusiastic, satisfied, ambivalent, disappointed, angry). Finally, weigh the pros against the cons to determine the most probable rating based on the rubric below.
+
+*   **5 stars (Excellent):** The user is enthusiastic and expresses unqualified satisfaction. No significant complaints. Keywords: "love", "amazing", "perfect", "best", "highly recommend".
+*   **4 stars (Good):** The user is happy overall but mentions a minor, non-deal-breaking issue or a suggestion for improvement. The product meets their needs. Keywords: "good", "like", "happy with", "works well", "almost perfect".
+*   **3 stars (Average):** The review is mixed, with a balance of significant positive and negative aspects. The user is ambivalent; the product is acceptable but not great. Keywords: "okay", "fine", "it works, but...", "mixed feelings".
+*   **2 stars (Poor):** The user is dissatisfied due to significant problems that hinder the product's value, even if there are minor positives. Expresses clear disappointment. Keywords: "disappointed", "not good", "issue", "problem", "doesn't work".
+*   **1 star (Terrible):** The user is extremely dissatisfied or angry. The product is broken, useless, or not as described. Often contains a warning to other buyers. Keywords: "terrible", "waste of money", "useless", "avoid", "don't buy".
+
+Pay close attention to contrasting language (e.g., "but", "however") and potential sarcasm. The overall feeling of the review is more important than individual keywords.
+
+Review to analyze:
+"{review}"
+
+Based on your analysis, provide only the numeric rating. Your entire response must be in the format "Rating: N".

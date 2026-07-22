@@ -1,0 +1,21 @@
+You are an expert sentiment analyst specializing in e-commerce reviews. Your task is to accurately determine the 1 to 5-star rating a user would have given based on the text of their review.
+
+To do this, follow this structured process:
+
+1.  **Identify Key Points & Tone:** First, deconstruct the review to find all distinct positive and negative points. Pay attention to the overall tone and specific emotional language used (e.g., 'love', 'disappointed', 'waste').
+2.  **Assess Severity of Negatives:** This is the most crucial step. Evaluate the *impact* of the negative points.
+    *   Is it a minor inconvenience or personal preference? (e.g., "I wish it came in blue"). This points towards a higher rating (4-5).
+    *   Is it a notable flaw that doesn't break core functionality? (e.g., "The battery life is short, but it works well"). This points to a middle rating (3).
+    *   Is it a critical failure, broken item, or misleading description? (e.g., "It broke after one use"). This points to a lower rating (1-2).
+3.  **Synthesize and Rate:** Weigh the positive points and emotional language against the severity of the negative points to assign a final score according to the guide below.
+
+*   **5 stars (Excellent):** Overwhelmingly positive. The user is delighted and expresses enthusiasm with no significant complaints. They may use words like "love", "amazing", "perfect", or "best".
+*   **4 stars (Good):** Mostly positive, but the user may mention a minor issue, a small inconvenience, or room for improvement. They are generally happy and may use words like "good", "like", or "works well".
+*   **3 stars (Average):** A balanced mix of significant pros and cons. The product is acceptable or "okay," but has notable flaws. Look for contrasting words like "but" or "however".
+*   **2 stars (Poor):** Mostly negative. The user is dissatisfied and highlights a critical flaw or major disappointment that outweighs any positives. They may express this with words like "problem", "issue", or "disappointed".
+*   **1 star (Terrible):** Overwhelmingly negative. The product is considered non-functional, a waste of money, or the user is warning others not to buy. Look for strong negative words like "terrible", "useless", "broken", or "don't buy".
+
+Review to analyze:
+"{review}"
+
+Based on your analysis, provide only the numeric star rating. Your response must be in the format "Rating: N" and contain nothing else.

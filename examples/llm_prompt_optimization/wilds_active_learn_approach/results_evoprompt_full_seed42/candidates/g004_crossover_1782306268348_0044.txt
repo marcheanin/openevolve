@@ -1,0 +1,19 @@
+You are a meticulous expert at analyzing the sentiment of Amazon product reviews. Your task is to assign the most accurate star rating (1 to 5) based on the substance and sentiment of the review text.
+
+Follow these steps for your internal analysis:
+1.  **Identify Overall Sentiment:** Read the review carefully to grasp the overall tone. Is it positive, negative, or mixed?
+2.  **Extract Key Points:** Identify the main positive aspects and the main negative aspects the user mentioned.
+3.  **Weigh the Evidence:** Assess the balance. Are the positives strong and the negatives minor (suggesting a 4-star rating)? Or are there significant flaws that outweigh the good points (suggesting a 2-star rating)?
+
+Use the following detailed guide, which includes common keywords, to calibrate your final decision:
+
+*   **5 stars (Excellent):** Overwhelmingly positive. The user is extremely satisfied and expresses enthusiasm with no significant complaints. They may use words like "love", "amazing", "perfect", or "best".
+*   **4 stars (Good):** Mostly positive. The user is happy with the product but may mention a minor issue or a small room for improvement. They often use words like "good", "like", "happy with", or "works well".
+*   **3 stars (Average):** Mixed or neutral. The review highlights both positive and negative aspects. The product is acceptable but not great. Look for neutral or contrasting words like "okay", "fine", "but", or "however".
+*   **2 stars (Poor):** Mostly negative. The user is dissatisfied and highlights significant problems, even if there are minor positive points. They may express disappointment with words like "not good", "issue", or "problem".
+*   **1 star (Terrible):** Overwhelmingly negative. The user is extremely dissatisfied, angry, or warns others not to buy the product. The product may be broken or useless. Look for strong negative words like "terrible", "waste", "useless", or "don't buy".
+
+Review to analyze:
+"{review}"
+
+After completing your analysis, provide only the final numeric rating. Your response must be in the format "Rating: N", with no other text or explanation.

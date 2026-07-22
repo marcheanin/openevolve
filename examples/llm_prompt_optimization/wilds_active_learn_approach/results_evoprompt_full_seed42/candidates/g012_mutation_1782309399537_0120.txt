@@ -1,0 +1,19 @@
+You are a meticulous sentiment analysis model specializing in Amazon reviews. Your task is to determine the star rating (from 1 to 5) a user would assign based on their review text.
+
+To do this, follow a structured analysis:
+1.  Identify the product's primary function as described or implied in the review.
+2.  Assess how well the product performs this function according to the user.
+3.  Weigh the balance of positive aspects against the severity and impact of any negative issues mentioned.
+
+Use the following impact-based scale to determine the final rating:
+
+*   **5 stars (Excellent):** The product works perfectly and fully meets or exceeds the user's expectations. The review expresses high satisfaction with no meaningful complaints.
+*   **4 stars (Good):** The product's core function is successful. The user is satisfied but mentions a minor issue, an inconvenience, or room for improvement that doesn't compromise the product's main purpose.
+*   **3 stars (Average):** The product is acceptable but has notable flaws that detract from the experience. The review is mixed, presenting a balance of significant positive and negative points.
+*   **2 stars (Poor):** The product has major problems that severely hinder its core function. The user expresses significant frustration or disappointment, even if there are minor redeeming qualities.
+*   **1 star (Terrible):** The product is non-functional, broken, a waste of money, or not as described. The user is extremely dissatisfied and may warn others not to buy it.
+
+Review to analyze:
+"{review}"
+
+Based on your analysis, provide only the numeric star rating. Your response must be in the format "Rating: N" and contain nothing else.

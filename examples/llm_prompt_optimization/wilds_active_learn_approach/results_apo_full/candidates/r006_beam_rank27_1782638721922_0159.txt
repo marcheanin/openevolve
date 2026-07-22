@@ -1,0 +1,106 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        Here is a variation of the instruction that preserves the core logic and semantic meaning but is structured differently and uses alternative phrasing.
+
+***
+
+### **Objective: Reconstruct the Star Rating from a Review**
+
+Your goal is to accurately determine the 1-to-5 star rating a user assigned to a product based on the text of their review. This is a two-step process. Follow these rules in the specified order.
+
+---
+
+### **Step 1: The Literal Search (Highest Priority)**
+
+Before any analysis, your first and only initial action is to scan the text for a literal, explicitly stated rating.
+
+*   **Action:** Read the review and look for numbers or number-words that clearly indicate a score.
+*   **Examples:** "I give this 5 stars", "a 2/5 experience", "rated it a solid four", "8 out of 10", "one-star product".
+*   **The Golden Rule:** If you find an explicit rating, convert it to a 1-5 scale (e.g., 8/10 = 4 stars) and provide that number as the answer. **Do not proceed to Step 2.** Your work is done.
+
+---
+
+### **Step 2: The Inferential Analysis (Use Only If Necessary)**
+
+If and only if the review contains no explicit score, you must infer the rating by analyzing the sentiment, tone, and overall message.
+
+**Guiding Principles for Analysis:**
+
+*   **Conclusion over Keywords:** The final rating should reflect the reviewer's overall conclusion, not just a count of positive or negative words. A review listing many good features but ending with "I'm still not sure I'd recommend it" is not a 4 or 5-star review.
+*   **The "But" Factor:** Pay close attention to contrastive conjunctions ("but," "however," "although"). These words often signal a ceiling for the rating. Praise that comes before a "but" is almost always discounted by what follows.
+*   **Balance of Evidence:** Mentally list the pros and cons. The final rating is a reflection of how the reviewer weighed them.
+
+### **Rating Inference Guide (1-5 Stars)**
+
+**5 Stars: Enthusiastic Endorsement**
+*   **Core Idea:** The user is thrilled. The product surpassed their expectations and has become a new favorite. There is a sense of excitement or deep satisfaction. This is reserved for "wow" moments.
+*   **Indicators:** Superlative language (*best, perfect, amazing, flawless, life-changing*). The review expresses an emotional, overwhelmingly positive response.
+*   **Common Pitfall:** Do not award 5 stars for reviews that are merely positive. A simple "It's a great product, works well" is a 4-star review. A 5-star review needs that extra layer of enthusiasm.
+
+**4 Stars: Solid Recommendation**
+*   **Core Idea:** This is the default "good review." The product works as advertised, the user is happy, and they would recommend it. It met expectations without necessarily blowing them away.
+*   **Indicators:** Positive but measured language (*great, excellent, very good, works perfectly, highly recommend*). The review confirms the product's quality and function without any significant complaints.
+*   **Distinction:** A 4-star review can still acknowledge a better product exists ("This isn't as powerful as the pro model, but it's perfect for my needs"). The key is that the product *being reviewed* has no stated flaws.
+
+**3 Stars: The "It's Fine" Review**
+*   **Core Idea:** The product is adequate but not great. The reviewer's feelings are mixed, or the praise is faint. There is a significant trade-off.
+*   **Indicators:** Lukewarm words (*okay, fine, decent, adequate, does the job*). The review presents a clear balance of pros and cons ("The screen is great, but the battery life is terrible").
+*   **Logic:** This rating applies to "damning with faint praise" ("A decent effort") or when the overall conclusion is "meh" despite some positive points.
+
+**2 Stars: Significant Flaws / Disappointment**
+*   **Core Idea:** The product failed to meet basic expectations or has major problems that prevent normal enjoyment or use. The tone is one of frustration and dissatisfaction.
+*   **Indicators:** Focus on what's wrong. Phrases like *disappointed, frustrating, has issues, not as described, wouldn't buy again*. The reviewer feels let down.
+*   **Distinction:** Unlike a 3-star review with a pro/con balance, the negative aspects clearly outweigh any positives.
+
+**1 Star: Total Failure or Public Warning**
+*   **Core Idea:** The product is fundamentally broken, unusable, or the experience was so bad it serves as a warning to others. The tone is often angry or feels like a betrayal.
+*   **Triggers:**
+    *   **Complete Malfunction:** "Arrived broken," "doesn't work at all," "waste of money."
+    *   **Misrepresentation:** The product was not what was advertised at all, leading to anger.
+    *   **Strong Warning:** The reviewer's primary goal is to tell others "Do not buy this."
+
+**Final Output:** A single number from 1 to 5.
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

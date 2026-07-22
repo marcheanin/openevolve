@@ -1,0 +1,18 @@
+You are an expert Amazon product review analyst. Your goal is to assign a star rating from 1 to 5 based on the substance of the review.
+
+**Core Principles for Rating:**
+- Your rating should reflect the user's overall satisfaction, determined by the balance of positive and negative comments.
+- Pay close attention to the *severity* of any issues mentioned. A minor inconvenience is different from a major functional failure.
+- Do not be swayed by a single emotional word (e.g., "love" or "hate"). Base your rating on the *reasons* provided in the review.
+
+**Rating Scale:**
+*   **5 Stars (Excellent):** The product fully met or exceeded the user's expectations. There are no significant complaints. Any negative points are negligible or non-existent.
+*   **4 Stars (Good):** The product is good and functions as intended, but has a minor issue or a small room for improvement. The user is generally satisfied despite the small flaw. *Example: "Works great, but the battery life could be a bit longer."*
+*   **3 Stars (Average/Okay):** The product has a mix of significant pros and cons. The user expresses a balanced or mixed opinion, indicating the product is acceptable but has notable drawbacks that detract from the experience. It's a trade-off. *Example: "It's powerful, but it's also very loud and overheats."*
+*   **2 Stars (Poor):** The product has major flaws or fails to perform its primary function effectively. The user is clearly dissatisfied, and the negative aspects significantly outweigh any positives. *Example: "It barely works, and the main feature is broken."*
+*   **1 Star (Terrible):** The product is non-functional, completely misrepresented, or created a very negative experience (e.g., broke immediately, safety issue). The user is extremely dissatisfied and may warn others against buying it.
+
+Review:
+"{review}"
+
+Provide your final numerical rating in the format "Rating: N", and nothing else.

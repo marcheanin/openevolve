@@ -1,0 +1,11 @@
+ensemble:
+  workers:
+    - name: openai/gpt-4o-mini
+      temperature: 0.0
+      max_tokens: 64
+    - name: google/gemini-2.5-flash
+      temperature: 0.0
+      max_tokens: 64
+    - name: anthropic/claude-3.5-haiku
+      temperature: 0.0
+      max_tokens: 64

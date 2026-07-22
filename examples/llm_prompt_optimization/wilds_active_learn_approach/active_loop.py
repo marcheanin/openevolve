@@ -526,11 +526,16 @@ def _print_holdout_eval_shapes(cfg_dict: dict) -> None:
         texts, _, _ = _load_split_data(cfg_dict, split)
         n = len(texts)
         ms = _resolve_max_samples(ds, split)
-        max_u = ds.get("max_val_users")
+        if split == "test":
+            max_u = ds.get("max_test_users", ds.get("max_val_users"))
+            cap_label = "max_test_users"
+        else:
+            max_u = ds.get("max_val_users")
+            cap_label = "max_val_users"
         max_r_u = ds.get("max_reviews_per_user")
         print(
             f"  Holdout {split}: {n} reviews "
-            f"(max_val_users={max_u!r}, max_reviews_per_user={max_r_u!r}, stratify_users={st!r}); "
+            f"({cap_label}={max_u!r}, max_reviews_per_user={max_r_u!r}, stratify_users={st!r}); "
             f"{n_workers} workers, max_parallel={max_par} "
             f"→ ~{n * n_workers} LLM calls per full pass"
         )
@@ -555,7 +560,12 @@ def _evaluate_split_full(
         "uncertainty_threshold", 0.0
     )
     ds = config.get("dataset") or {}
-    max_u = ds.get("max_train_users") if split_name == "train" else ds.get("max_val_users")
+    if split_name == "train":
+        max_u = ds.get("max_train_users")
+    elif split_name == "test":
+        max_u = ds.get("max_test_users", ds.get("max_val_users"))
+    else:
+        max_u = ds.get("max_val_users")
     max_r_u = ds.get("max_reviews_per_user")
     n_rev = len(texts)
     n_w = len(workers)
@@ -581,6 +591,7 @@ def _evaluate_split_full(
     n = len(predictions)
     hard_correct, hard_total = 0, 0
     anchor_correct, anchor_total = 0, 0
+    hard_positions = []
 
     for i in range(n):
         pred = predictions[i]
@@ -590,6 +601,7 @@ def _evaluate_split_full(
         d_score = disagreement_score(wp, rating_min=1, rating_max=5)
         is_hard = (not correct) or (d_score > uncertainty_threshold)
         if is_hard:
+            hard_positions.append(i)
             hard_total += 1
             if correct:
                 hard_correct += 1
@@ -598,11 +610,29 @@ def _evaluate_split_full(
             if correct:
                 anchor_correct += 1
 
+    kappa_hard = 0.0
+    if hard_positions and len(wp_arr) > 1:
+        try:
+            from sklearn.metrics import cohen_kappa_score
+            hw = [np.array([wp_arr[k][j] for j in hard_positions]) for k in range(len(wp_arr))]
+            kappas = []
+            for i in range(len(hw)):
+                for j2 in range(i + 1, len(hw)):
+                    k = cohen_kappa_score(hw[i], hw[j2], weights="quadratic")
+                    if np.isnan(k):
+                        k = 0.0
+                    kappas.append(float(k))
+            if kappas:
+                kappa_hard = float(np.mean(kappas))
+        except Exception:
+            kappa_hard = 0.0
+
     return {
         "R_global": metrics.get("R_global", 0),
         "R_worst": metrics.get("R_worst", 0),
         "mae": metrics.get("mae", 0),
         "mean_kappa": metrics.get("mean_kappa", 0),
+        "kappa_Hard": kappa_hard,
         "combined_score": combined,
         "Acc_Hard": hard_correct / hard_total if hard_total > 0 else 0.0,
         "Acc_Anchor": anchor_correct / anchor_total if anchor_total > 0 else 1.0,
@@ -716,6 +746,23 @@ def _exit_on_api_error(
     sys.exit(1)
 
 
+def _tail_window(values: List[float], k: int = 3) -> List[float]:
+    if not values:
+        return []
+    k = max(1, int(k))
+    return values[-k:]
+
+
+def _avg_tail(values: List[float], k: int = 3) -> float:
+    w = _tail_window(values, k)
+    return float(np.mean(w)) if w else 0.0
+
+
+def _std_tail(values: List[float], k: int = 3) -> float:
+    w = _tail_window(values, k)
+    return float(np.std(w)) if len(w) >= 2 else 0.0
+
+
 def run_active_loop(
     n_al_iterations: int = 4,
     n_evolve_iterations: int = 15,
@@ -786,19 +833,27 @@ def run_active_loop(
     batch_size = al_cfg.get("batch_size", 80)
     hard_ratio = al_cfg.get("hard_ratio", 0.7)
     expansion_trigger = al_cfg.get("expansion_trigger", 5)
-    refresh_per_cycle = al_cfg.get("refresh_per_cycle", 0)
+    refresh_per_cycle = int(al_cfg.get("refresh_per_cycle", 0) or 0)
+    refresh_pct_on_progress = float(al_cfg.get("refresh_pct_on_progress", 0.0) or 0.0)
+    refresh_pct_on_plateau = float(al_cfg.get("refresh_pct_on_plateau", 0.0) or 0.0)
+    refresh_progress_min_delta = float(al_cfg.get("refresh_progress_min_delta", 0.005) or 0.005)
+    refresh_plateau_patience = int(al_cfg.get("refresh_plateau_patience", 2) or 2)
+    refresh_max_pct_pool_total = float(al_cfg.get("refresh_max_pct_pool_total", 0.40) or 0.40)
+    expansion_on_double_plateau = bool(al_cfg.get("expansion_on_double_plateau", False))
+    expansion_pct_pool = float(al_cfg.get("expansion_pct_pool", 0.0) or 0.0)
     consolidation_gate_delta = al_cfg.get("consolidation_gate_delta", 0.02)
     consolidation_gate_vs_best = al_cfg.get("consolidation_gate_vs_best_delta", 0.04)
-    soft_skip_near_best = al_cfg.get("soft_expansion_skip_near_best", 0.005)
     al_stop_patience = (cfg_dict.get("active_learning") or {}).get("al_early_stopping_patience", 0)
     al_stop_min_cycles = al_cfg.get("al_early_stopping_min_cycles", 2)
+    al_stop_min_delta = float(al_cfg.get("al_early_stopping_min_delta", 0.003) or 0.003)
+    al_stop_require_coverage = float(al_cfg.get("al_early_stopping_require_coverage", 0.0) or 0.0)
+    al_stop_require_evo_plateau = bool(al_cfg.get("al_early_stopping_evo_plateau", False))
+    selection_w_rworst = float(al_cfg.get("selection_weight_r_worst", 0.15) or 0.0)
+    selection_w_std = float(al_cfg.get("selection_weight_val_std", 0.30) or 0.0)
     min_hard_batch_ratio = al_cfg.get("min_hard_batch_ratio", 0.55)
     gap_warn_threshold = float(al_cfg.get("generalization_gap_warn_threshold", 0.03))
-    gap_stop_threshold = float(al_cfg.get("generalization_gap_stop_threshold", 0.08))
-    gap_stop_patience = int(al_cfg.get("generalization_gap_stop_patience", 2))
     if no_early_stop:
         al_stop_patience = 0
-        gap_stop_patience = 0
     synthetic_gen = SyntheticFewShotGenerator.from_config_dict(cfg_dict)
     sf_cfg_loop = al_cfg.get("synthetic_fewshot") or {}
     mutator_lock_fewshot = bool(sf_cfg_loop.get("mutator_lock_fewshot", False))
@@ -812,11 +867,21 @@ def run_active_loop(
     data_manager = DataManager(cfg_dict)
     error_analyzer = ErrorAnalyzer(data_manager)
     ds_cap = cfg_dict.get("dataset") or {}
+    al_pool_size_cfg = ds_cap.get("al_candidate_pool_size")
     print(
         f"  Train pool for AL: {data_manager.n_total} reviews "
-        f"(max_train_users={ds_cap.get('max_train_users')!r}; "
+        f"(max_train_users={ds_cap.get('max_train_users')!r}, "
+        f"al_candidate_pool_size={al_pool_size_cfg!r}, "
+        f"max_reviews_per_user={ds_cap.get('max_reviews_per_user')!r}, "
+        f"stratify_users={bool(ds_cap.get('stratify_users', False))!r}; "
         "lines above 'Split sizes' are before this cap)"
     )
+    # Persist AL candidate pool composition for reproducibility (no LLM cost).
+    try:
+        data_manager.save_pool_manifest(results_dir / "al_pool_manifest.json")
+        print(f"  AL pool manifest: {results_dir / 'al_pool_manifest.json'}")
+    except Exception as _e:
+        print(f"  WARN: failed to save al_pool_manifest.json: {_e}")
     _print_holdout_eval_shapes(cfg_dict)
     if smoke_mode:
         dur = _time.time() - t0
@@ -910,25 +975,50 @@ def run_active_loop(
     else:
         al_start = 0
 
-    # History of val_combined_score for soft expansion trigger
-    val_scores_history = []
-    gap_stop_bad_streak = 0
+    # Histories used for val-only selection / adaptive refresh / early stop.
+    val_scores_history: List[float] = []
+    val_rworst_history: List[float] = []
+    evo_scores_history: List[float] = []
+    val_plateau_streak = 0
     if log_entries:
         val_scores_history = [
             e.get("seed_val_score", e.get("val_combined_score", -1.0))
             for e in log_entries
         ]
+        val_rworst_history = [
+            float(e.get("val_R_worst", 0.0) or 0.0)
+            for e in log_entries
+        ]
+        evo_scores_history = [
+            float(e.get("evo_best_score", -1.0) or -1.0)
+            for e in log_entries
+        ]
 
     best_val_score = -1.0
+    best_selection_score = -1.0
+    best_val_avg3_score = -1.0
+    best_val_avg3_cycle = -1
     best_val_prompt = current_prompt
     best_val_cycle = -1
     if log_entries:
         for e in log_entries:
-            sv = e.get("seed_val_score", e.get("val_combined_score", -1.0))
-            ai = e.get("al_iter", -1)
+            sv = float(e.get("seed_val_score", e.get("val_combined_score", -1.0)) or -1.0)
+            ai = int(e.get("al_iter", -1))
             if sv > best_val_score:
                 best_val_score = sv
+            sel = e.get("selection_score", None)
+            if isinstance(sel, (int, float)):
+                if float(sel) > best_selection_score:
+                    best_selection_score = float(sel)
+                    best_val_cycle = ai
+            elif sv > best_selection_score:
+                # Backward compatibility for old logs without selection_score.
+                best_selection_score = sv
                 best_val_cycle = ai
+            va = e.get("val_combined_avg3", None)
+            if isinstance(va, (int, float)) and float(va) > best_val_avg3_score:
+                best_val_avg3_score = float(va)
+                best_val_avg3_cycle = ai
         best_val_prompt_path = results_dir / "best_val_prompt.txt"
         if best_val_prompt_path.exists():
             best_val_prompt = best_val_prompt_path.read_text(encoding="utf-8")
@@ -1416,6 +1506,7 @@ def run_active_loop(
                     else:
                         current_prompt = cons_prompt
                         consolidated = True
+                        val_ha = cons_val
                         seed_val_score = cons_score
                         print(
                             f"  Consolidated prompt ACCEPTED (Δ_val ≤ {consolidation_gate_delta} "
@@ -1441,12 +1532,30 @@ def run_active_loop(
             print("  Skipping consolidation (fewer than 2 programs in archive).")
             diag.log("consolidation_skip", al_iter=al_iter, reason="too_few_programs")
 
-        # Обновляем глобально лучший по validation промпт (для анализа и финального теста)
-        if seed_val_score > best_val_score:
+        # Val-only selection score (A1): smooth val, reward R_worst, penalize instability.
+        val_scores_history.append(seed_val_score)
+        val_rworst_history.append(float(val_ha.get("R_worst", 0.0) or 0.0))
+        evo_scores_history.append(float(best_evolution_score))
+        val_combined_avg3 = _avg_tail(val_scores_history, k=3)
+        val_combined_std3 = _std_tail(val_scores_history, k=3)
+        val_rworst_avg3 = _avg_tail(val_rworst_history, k=3)
+        selection_score = (
+            val_combined_avg3
+            + selection_w_rworst * val_rworst_avg3
+            - selection_w_std * val_combined_std3
+        )
+
+        # Обновляем глобально лучший промпт только по val-only selection score.
+        if selection_score > best_selection_score:
+            best_selection_score = selection_score
             best_val_score = seed_val_score
             best_val_prompt = current_prompt
             best_val_cycle = al_iter
             (results_dir / "best_val_prompt.txt").write_text(best_val_prompt, encoding="utf-8")
+
+        if val_combined_avg3 > (best_val_avg3_score + al_stop_min_delta):
+            best_val_avg3_score = val_combined_avg3
+            best_val_avg3_cycle = al_iter
 
         current_mutation_log = None
         if mutation_logs_snapshot:
@@ -1459,9 +1568,14 @@ def run_active_loop(
             "val_R_worst": val_ha["R_worst"],
             "val_mae": val_ha["mae"],
             "val_mean_kappa": val_ha["mean_kappa"],
+            "val_kappa_Hard": val_ha.get("kappa_Hard", 0.0),
             "val_combined_score": val_ha["combined_score"],
             "val_n_hard": val_ha["n_hard"],
             "val_n_anchor": val_ha["n_anchor"],
+            "val_combined_avg3": val_combined_avg3,
+            "val_combined_std3": val_combined_std3,
+            "val_r_worst_avg3": val_rworst_avg3,
+            "selection_score": selection_score,
             "batch_n_hard": len(hard_now),
             "batch_n_anchor": len(anchor_now),
             "n_seen": data_manager.n_seen,
@@ -1474,6 +1588,7 @@ def run_active_loop(
             "prompt_tokens": len(current_prompt) // 4,
             "mutation_log_present": bool(current_mutation_log),
             "mutation_log_chars": len(current_mutation_log) if current_mutation_log else 0,
+            "pool_coverage": float(data_manager.n_seen / max(1, data_manager.n_total)),
         }
         if current_mutation_log:
             (out_dir / "best_prompt_mutation_log.txt").write_text(
@@ -1523,52 +1638,58 @@ def run_active_loop(
         # =================================================================
         # Expansion / refresh check
         # =================================================================
-        # Use val_combined_score for soft expansion (stable across cycles)
-        val_scores_history.append(seed_val_score)
+        # Val-only adaptive schedule:
+        # - Success -> small refresh
+        # - Plateau -> larger refresh
+        # - Regression -> no refresh
+        val_delta = 0.0
+        if len(val_scores_history) >= 2:
+            val_delta = float(val_scores_history[-1] - val_scores_history[-2])
+            if val_delta > refresh_progress_min_delta:
+                val_plateau_streak = 0
+            elif abs(val_delta) <= refresh_progress_min_delta:
+                val_plateau_streak += 1
+            else:
+                val_plateau_streak = 0
 
-        soft_patience = al_cfg.get("soft_expansion_patience", 5)
-        soft_delta = al_cfg.get("soft_expansion_min_delta", 0.02)
+        coverage = float(data_manager.n_seen / max(1, data_manager.n_total))
+        refresh_decision = "none"
+        refresh_pct = 0.0
+        if coverage >= refresh_max_pct_pool_total:
+            refresh_decision = "coverage_cap"
+            refresh_pct = 0.0
+        elif val_delta > refresh_progress_min_delta and refresh_pct_on_progress > 0:
+            refresh_decision = "progress"
+            refresh_pct = refresh_pct_on_progress
+        elif val_delta < -refresh_progress_min_delta:
+            refresh_decision = "regression"
+            refresh_pct = 0.0
+        elif val_plateau_streak >= refresh_plateau_patience and refresh_pct_on_plateau > 0:
+            refresh_decision = "plateau"
+            refresh_pct = refresh_pct_on_plateau
+        elif refresh_per_cycle > 0:
+            # Backwards compatibility with old configs.
+            refresh_decision = "legacy_fixed"
+            refresh_pct = 0.0
 
-        needs_soft_expansion = False
-        if len(val_scores_history) >= soft_patience:
-            window_scores = val_scores_history[-soft_patience:]
-            window_max = max(window_scores)
-            window_start = window_scores[0]
-            if (window_max - window_start) < soft_delta:
-                needs_soft_expansion = True
-                print(f"  Soft expansion condition met: val improvement {window_max - window_start:.4f} < {soft_delta} over {soft_patience} cycles.")
-
-        needs_hard_expansion = data_manager.needs_expansion(threshold=expansion_trigger)
-
-        # After best_val update, best_val_score is the global max including this cycle's seed_val_score.
-        at_or_near_best_val = seed_val_score >= (best_val_score - soft_skip_near_best)
-        if needs_soft_expansion and not needs_hard_expansion and at_or_near_best_val:
-            print(
-                f"  Soft expansion SKIPPED: seed_val {seed_val_score:.4f} at/near best val "
-                f"{best_val_score:.4f} (threshold ±{soft_skip_near_best})."
-            )
-            diag.log(
-                "soft_expansion_skipped_near_best",
-                al_iter=al_iter,
-                seed_val_score=seed_val_score,
-                best_val_score=best_val_score,
-            )
-            needs_soft_expansion = False
-
-        if (needs_hard_expansion or needs_soft_expansion) and data_manager.n_unseen > 0:
+        needs_hard_expansion = expansion_trigger > 0 and data_manager.needs_expansion(threshold=expansion_trigger)
+        needs_plateau_expansion = bool(expansion_on_double_plateau and val_plateau_streak >= (2 * max(1, refresh_plateau_patience)))
+        if (needs_hard_expansion or needs_plateau_expansion) and data_manager.n_unseen > 0:
             if needs_hard_expansion:
                 reason = f"Hard={data_manager.n_hard} <= {expansion_trigger}"
+                n_add = max(expansion_trigger, int(batch_size * hard_ratio) - data_manager.n_hard)
             else:
-                reason = "Stagnation detected (val_combined_score plateau)"
+                reason = "double_plateau_on_val"
+                if expansion_pct_pool > 0:
+                    n_add = max(1, int(round(expansion_pct_pool * data_manager.n_total)))
+                else:
+                    n_add = 15
 
-            n_hard_needed = int(batch_size * hard_ratio) - data_manager.n_hard
-            min_add = expansion_trigger if needs_hard_expansion else 15
-            n_hard_needed = max(n_hard_needed, min_add)
-
-            print(f"  [POOL EXPANSION] Triggered. Reason: {reason}. Selecting {n_hard_needed} from Unseen...")
-            new_indices = data_manager.expand_pool(n_new=n_hard_needed, seed=42 + al_iter)
+            print(f"  [POOL EXPANSION] Triggered. Reason: {reason}. Selecting {n_add} from Unseen...")
+            new_indices = data_manager.expand_pool(n_new=n_add, seed=42 + al_iter)
 
             # Evaluate expanded examples before classifying as Hard/Anchor
+            exp_hard, exp_anchor = [], []
             if new_indices:
                 print(f"  [POOL EXPANSION] Evaluating {len(new_indices)} new examples...")
                 try:
@@ -1623,9 +1744,18 @@ def run_active_loop(
                 unseen=data_manager.n_unseen,
             )
 
-        # Pool refresh: promote Unseen → Seen, then label Hard vs Anchor (same logic as expansion)
-        if refresh_per_cycle > 0 and data_manager.n_unseen > 0:
-            n_refresh = min(refresh_per_cycle, data_manager.n_unseen)
+        # Pool refresh: promote Unseen → Seen, then label Hard vs Anchor.
+        n_refresh = 0
+        if data_manager.n_unseen > 0:
+            if refresh_decision == "legacy_fixed":
+                n_refresh = min(refresh_per_cycle, data_manager.n_unseen)
+            elif refresh_pct > 0:
+                n_refresh = min(max(1, int(round(refresh_pct * data_manager.n_total))), data_manager.n_unseen)
+
+        entry["refresh_decision"] = refresh_decision
+        entry["val_delta"] = val_delta
+        entry["val_plateau_streak"] = int(val_plateau_streak)
+        if n_refresh > 0 and data_manager.n_unseen > 0:
             print(f"  [POOL REFRESH] Adding {n_refresh} Unseen examples (will classify Hard/Anchor)...")
             refresh_indices = data_manager.expand_pool(n_new=n_refresh, seed=42 + al_iter + 1000)
             refresh_hard, refresh_anchor = [], []
@@ -1730,10 +1860,6 @@ def run_active_loop(
                 f"  [warn] Val-Test combined gap={val_test_gap:+.4f} "
                 f"(val={seed_val_score:.4f}, test={test_metrics['combined_score']:.4f})"
             )
-        if gap_stop_patience > 0 and val_test_gap >= gap_stop_threshold:
-            gap_stop_bad_streak += 1
-        else:
-            gap_stop_bad_streak = 0
         print(f"  Test: R_global={test_metrics['R_global']:.2%}  R_worst={test_metrics['R_worst']:.2%}  "
               f"combined={test_metrics['combined_score']:.4f}  Acc_Hard={test_metrics['Acc_Hard']:.2%}")
         diag.log("cycle_test", al_iter=al_iter, **{k: v for k, v in test_metrics.items() if isinstance(v, (int, float))})
@@ -1744,8 +1870,8 @@ def run_active_loop(
             test_combined=test_metrics["combined_score"],
             gap=val_test_gap,
             warn_threshold=gap_warn_threshold,
-            stop_threshold=gap_stop_threshold,
-            stop_streak=gap_stop_bad_streak,
+            stop_threshold=None,
+            stop_streak=None,
         )
 
         cycle_time = _time.time() - t_cycle_start
@@ -1755,6 +1881,7 @@ def run_active_loop(
         entry["cycle_time_s"] = round(cycle_time, 1)
         entry["best_val_cycle"] = best_val_cycle
         entry["global_best_val_score"] = best_val_score
+        entry["global_best_selection_score"] = best_selection_score
         log_entries.append(entry)
 
         log_path = results_dir / "active_loop_log.json"
@@ -1765,47 +1892,43 @@ def run_active_loop(
             print(f"\n  Pool exhausted and Hard={data_manager.n_hard}. Stopping.")
             break
 
-        if (
-            gap_stop_patience > 0
-            and gap_stop_bad_streak >= gap_stop_patience
+        avg3_no_improve = (
+            best_val_avg3_cycle >= 0
+            and (al_iter - best_val_avg3_cycle) >= al_stop_patience
             and (al_iter + 1) >= al_stop_min_cycles
-        ):
-            log_entries[-1]["generalization_gap_early_stopped"] = True
-            with open(log_path, "w", encoding="utf-8") as f:
-                json.dump(log_entries, f, indent=2)
-            print(
-                f"\n  AL early stopping (generalization gap): gap >= {gap_stop_threshold:.4f} "
-                f"for {gap_stop_bad_streak} consecutive cycle(s)."
-            )
-            diag.log(
-                "al_gap_early_stop",
-                al_iter=al_iter,
-                gap=val_test_gap,
-                gap_stop_threshold=gap_stop_threshold,
-                gap_stop_patience=gap_stop_patience,
-                stop_streak=gap_stop_bad_streak,
-            )
-            break
+        )
+        coverage_ok = coverage >= al_stop_require_coverage
+        evo_plateau_ok = True
+        if al_stop_require_evo_plateau:
+            if len(evo_scores_history) >= 4:
+                evo_plateau_ok = (max(_tail_window(evo_scores_history, 4)) - min(_tail_window(evo_scores_history, 4))) <= al_stop_min_delta
+            else:
+                evo_plateau_ok = False
 
         if (
             al_stop_patience > 0
-            and best_val_cycle >= 0
-            and (al_iter - best_val_cycle) >= al_stop_patience
-            and (al_iter + 1) >= al_stop_min_cycles
+            and avg3_no_improve
+            and coverage_ok
+            and evo_plateau_ok
         ):
             log_entries[-1]["al_early_stopped"] = True
             with open(log_path, "w", encoding="utf-8") as f:
                 json.dump(log_entries, f, indent=2)
             print(
-                f"\n  AL early stopping: no new best val for {al_stop_patience} cycle(s) "
-                f"(best at AL cycle index {best_val_cycle}, patience={al_stop_patience})."
+                f"\n  AL early stopping (val-only): no new best val_avg3 for {al_stop_patience} cycle(s), "
+                f"coverage={coverage:.2%} >= {al_stop_require_coverage:.2%}, evo_plateau_ok={evo_plateau_ok}."
             )
             diag.log(
                 "al_early_stop",
                 al_iter=al_iter,
                 best_val_cycle=best_val_cycle,
+                best_val_avg3_cycle=best_val_avg3_cycle,
                 patience=al_stop_patience,
                 best_val_score=best_val_score,
+                best_selection_score=best_selection_score,
+                coverage=coverage,
+                require_coverage=al_stop_require_coverage,
+                require_evo_plateau=al_stop_require_evo_plateau,
             )
             break
 
@@ -1852,6 +1975,7 @@ def run_active_loop(
         json.dump(
             {
                 "best_val_score": best_val_score,
+                "best_selection_score": best_selection_score,
                 "best_val_cycle": best_val_cycle,
                 "last_cycle_chars": len(current_prompt),
                 "best_val_chars": len(best_val_prompt),

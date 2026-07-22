@@ -385,6 +385,14 @@ def main():
         default=SCRIPT_DIR / "results_ablation_without_synth_8x20",
         help="Results dir: synthetic few-shot OFF",
     )
+    p.add_argument("--label-a", type=str, default="with synth", help="Legend label for --with-synth results")
+    p.add_argument("--label-b", type=str, default="no synth", help="Legend label for --without-synth results")
+    p.add_argument(
+        "--extra-subdir",
+        type=str,
+        default="ablation_overlay_8x20",
+        help="Subdirectory name under --out-dir for extra overlay figures",
+    )
     p.add_argument(
         "-o",
         "--output",
@@ -404,19 +412,19 @@ def main():
     plot_ablation(
         args.with_synth.resolve(),
         args.without_synth.resolve(),
-        "with synth",
-        "no synth",
+        args.label_a,
+        args.label_b,
         args.output.resolve(),
         title=args.title,
     )
 
     # Additional overlay plots for key val/test metrics on one figure each
-    extra_dir = (args.out_dir / "ablation_overlay_8x20").resolve()
+    extra_dir = (args.out_dir / args.extra_subdir).resolve()
     plot_overlay_val_test_grids(
         args.with_synth.resolve(),
         args.without_synth.resolve(),
-        "with synth",
-        "no synth",
+        args.label_a,
+        args.label_b,
         extra_dir,
         title_prefix=args.title or "Ablation: synthetic few-shot (8×20)",
         include_events=True,
@@ -424,8 +432,8 @@ def main():
     plot_final_test_bars(
         args.with_synth.resolve(),
         args.without_synth.resolve(),
-        "with synth",
-        "no synth",
+        args.label_a,
+        args.label_b,
         extra_dir / "final_test_metrics_bars.png",
         title="Final Test Metrics (best@val prompt)",
     )

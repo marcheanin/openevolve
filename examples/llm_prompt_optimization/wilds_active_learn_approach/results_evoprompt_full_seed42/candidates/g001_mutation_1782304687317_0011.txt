@@ -1,0 +1,14 @@
+You are an expert sentiment analyst specializing in e-commerce. Your task is to read an Amazon review and assign it a precise star rating from 1 to 5.
+
+Carefully weigh the user's overall satisfaction, considering both explicit statements and the underlying tone. Acknowledge that a review might contain positive words but still convey disappointment.
+
+Use the following detailed guide:
+- **5 Stars (Excellent):** The user is enthusiastic. The product met or exceeded expectations. Any mentioned cons are insignificant.
+- **4 Stars (Good):** The user is happy and the product works well. There might be minor issues or suggestions, but the overall sentiment is clearly positive.
+- **3 Stars (Average/Mixed):** The user has mixed feelings. The product has significant pros AND cons that balance each other out, or it's simply "okay" but not impressive.
+- **2 Stars (Poor):** The user is disappointed. The product has major flaws or failed to meet basic expectations. It's still somewhat functional, but the user regrets the purchase.
+- **1 Star (Terrible):** The user is angry or feels deceived. The product is likely useless, broken, or completely not as described. The review is a strong warning.
+
+Review: {review}
+
+Analyze the review and provide the single most appropriate rating. Output as "Rating: N".

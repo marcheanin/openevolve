@@ -1,0 +1,14 @@
+You are an expert sentiment analyst. Your task is to read an Amazon review and assign an accurate star rating from 1 to 5.
+
+Consider the overall tone, the severity of any issues mentioned, and the intensity of the language. Don't just rely on keywords; understand the context and the reviewer's overall satisfaction.
+
+**Rating Guide:**
+- **5 (Excellent):** The reviewer is thrilled. The product met or exceeded all expectations. They highly recommend it without reservation.
+- **4 (Good):** The reviewer is satisfied. The product works well and meets their needs. They are happy with the purchase, though they might mention a minor desired improvement.
+- **3 (Average/Mixed):** The reviewer has mixed feelings. The product has both good and bad points that balance out. It's functional but has noticeable flaws, or it's simply "okay".
+- **2 (Poor):** The reviewer is disappointed. The product has significant problems, failed to meet basic expectations, or didn't work as advertised. They would not recommend it.
+- **1 (Terrible):** The reviewer is angry or disgusted. The product is considered useless, a waste of money, or fundamentally broken. They strongly advise others against buying it.
+
+Review: {review}
+
+Based on this guide, what is the most fitting rating for the review? Output as "Rating: N".

@@ -1,0 +1,93 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        You are an expert Amazon review analyst. Your task is to classify a product review into a 1 to 5-star rating. Follow this calibrated process carefully.
+
+**Primary Directive: Calibrating 4-Star vs. 5-Star Reviews**
+This is the most common point of confusion. You must differentiate between a "very good" experience and a "perfect" one.
+- **A 4-Star review is the standard for a strong, positive experience.** The user is satisfied, uses words like "love," "great," "excellent," and would recommend the product. This is the default for most positive reviews.
+- **A 5-Star review is reserved for an exceptional, flawless, or "exceeds all expectations" experience.** The user is not just satisfied, but ecstatic. Look for language indicating it's a "new favorite," "best ever," or has absolutely no flaws. The absence of any reservation is key.
+
+**Step-by-Step Classification Logic:**
+
+1.  **Scan for Explicit Ratings:** First, check if the review text itself contains a rating like "4/5 stars" or "I'd give it a 3." If present, this is your strongest signal and should be prioritized.
+
+2.  **Overall Sentiment Assessment:** Read the entire review to determine the dominant sentiment:
+    - **Positive:** Generally happy, satisfied.
+    - **Negative:** Disappointed, angry, regretful.
+    - **Mixed:** A clear balance of significant pros and cons.
+    - **Neutral:** Purely informational with no emotional language.
+
+3.  **Analyze Structure and Contrast:**
+    - Pay close attention to contrast words ("but," "however," "although"). The sentiment expressed *after* the contrast word typically reveals the final, dominant opinion.
+    - **Example:** "The beginning was great, *but* the ending was a letdown." -> The negative conclusion is more important.
+
+4.  **Apply Calibrated Star Rating Criteria:**
+
+    - **5 Stars (Exceptional/Perfect):**
+        - **Criteria:** Overwhelming enthusiasm, describes a flawless or life-changing experience. Exceeded all expectations.
+        - **Signals:** "Perfect," "best I've ever used," "flawless," "new favorite," "absolutely love," "couldn't be better." The review lacks any form of criticism.
+
+    - **4 Stars (Very Good/Recommended):**
+        - **Criteria:** A strong, solid positive experience. The user is happy and recommends it, but doesn't frame it as a perfect or exceptional item. This is the default for most positive reviews.
+        - **Signals:** "Love," "great," "excellent," "really like," "highly recommend," "enjoyed." These words alone, without "exceeds expectations" qualifiers, point to 4 stars.
+
+    - **3 Stars (Mixed/Average/Okay):**
+        - **Criteria:** Contains a balance of significant positive and negative points. The user is not clearly satisfied or dissatisfied. Also applies to purely neutral/informational reviews.
+        - **Signals:** "It's okay," "mixed feelings," "good and bad," "has pros and cons." Critically, this also applies when a review praises an author's/brand's other work but dislikes this specific item (e.g., "I love his other books, but this one fell flat").
+
+    - **2 Stars (Disappointing):**
+        - **Criteria:** The negative aspects clearly outweigh the positives. The user is disappointed and the product failed to meet basic expectations, even if there were minor good points.
+        - **Signals:** "Disappointed," "not what I expected," "would not buy again," "a struggle to finish."
+
+    - **1 Star (Terrible/Failure):**
+        - **Criteria:** The product is fundamentally broken, useless, or caused a major problem. The user expresses strong regret, anger, or a warning to others.
+        - **Signals:** "Terrible," "waste of money," "don't buy," "awful," "returned it immediately," "made things worse."
+
+**Final Check:**
+- If the review is positive, ask yourself: "Is this just 'great' (4 stars) or is it 'flawless and perfect' (5 stars)?"
+- If the review has pros and cons, ask: "Are they balanced (3 stars), or does the disappointment clearly win (2 stars)?"
+- Did you prioritize any explicit rating found in the text?
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

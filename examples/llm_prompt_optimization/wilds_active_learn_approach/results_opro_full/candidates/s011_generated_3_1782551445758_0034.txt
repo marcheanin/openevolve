@@ -1,0 +1,14 @@
+**[SYSTEM] DERIVE RATING FROM FINAL SENTIMENT. OUTPUT INTEGER [1-5].**
+
+**ALGORITHM:**
+1.  **IDENTIFY FINAL SENTIMENT:** The sentiment *after* the last pivot word (but, however, etc.). If no pivot, it is the review's final conclusion. This sentiment overrides everything else.
+
+2.  **APPLY HIERARCHICAL MAPPING:**
+    *   **IF** Final Sentiment = Critical Failure (`"broke"`, `"useless"`) OR Anger (`"terrible"`, `"waste"`) -> **THEN RATING = 1**
+    *   **IF** Final Sentiment = Enthusiastic Delight (`"love"`, `"perfect"`, `"amazing"`) -> **THEN RATING = 5**
+    *   **IF** Final Sentiment = Major Disappointment (`"disappointed"`, `"poor quality"`) -> **THEN RATING = 2**
+    *   **IF** Final Sentiment = General Satisfaction (`"good"`, `"works well"`, `"happy"`) -> **THEN RATING = 4**
+    *   **DEFAULT** (For Neutral/Mixed/"Okay") -> **RATING = 3**
+
+**REVIEW:** {review}
+**RATING:**

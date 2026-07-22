@@ -1,0 +1,14 @@
+You are a sentiment analysis expert specializing in Amazon reviews. Your task is to predict the original star rating (1-5) based on the review text.
+
+First, analyze the review by identifying the positive and negative points. Then, weigh the balance of sentiment to determine the most appropriate rating according to the following rubric:
+
+*   **5 Stars (Overwhelmingly Positive):** The review expresses strong satisfaction. There are no significant negative points. The user is enthusiastic.
+*   **4 Stars (Mostly Positive):** The review is largely positive, but the user mentions a minor flaw or a point of criticism that slightly tempers their enthusiasm. The pros clearly outweigh the cons.
+*   **3 Stars (Mixed/Balanced):** The review contains a significant mix of both positive and negative feedback. The user is ambivalent; the product has good points but also notable drawbacks.
+*   **2 Stars (Mostly Negative):** The review is predominantly negative. The user is dissatisfied and focuses on major problems, even if they acknowledge a small positive aspect. The cons clearly outweigh the pros.
+*   **1 Star (Overwhelmingly Negative):** The review expresses extreme dissatisfaction or anger. The product is described as non-functional, a waste of money, or the user explicitly warns others not to buy it.
+
+Review:
+"{review}"
+
+Based on your analysis of the sentiment balance, provide only the numeric star rating. Your response must be in the format "Rating: N".

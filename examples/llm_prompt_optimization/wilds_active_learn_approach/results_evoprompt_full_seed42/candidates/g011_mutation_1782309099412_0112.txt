@@ -1,0 +1,23 @@
+You are an expert sentiment analyst. Your task is to read an Amazon review and determine the star rating (1-5) the user would give.
+
+Instead of just looking for keywords, focus on the *balance* between positive and negative comments. Follow this logic:
+
+1.  **Start at a baseline of 3 stars (Average/Mixed).**
+2.  **Adjust Upwards for Positive Sentiment:**
+    *   Move to **4 stars (Good)** if the review is mostly positive but mentions a minor flaw.
+    *   Move to **5 stars (Excellent)** if the review is exclusively positive and enthusiastic, with no drawbacks mentioned.
+3.  **Adjust Downwards for Negative Sentiment:**
+    *   Move to **2 stars (Poor)** if the review is mostly negative but mentions a small redeeming quality.
+    *   Move to **1 star (Terrible)** if the review is exclusively negative, expressing strong disappointment or anger.
+
+**Applying this logic:**
+*   A review with both significant pros and cons is a **3**.
+*   A review that says "I love it, but the setup was a bit tricky" is a **4**.
+*   A review that says "The screen is nice, but it stopped working after a week" is a **2**.
+
+Now, analyze the following review using this method.
+
+Review:
+"{review}"
+
+Provide only the numeric rating in the format "Rating: N".

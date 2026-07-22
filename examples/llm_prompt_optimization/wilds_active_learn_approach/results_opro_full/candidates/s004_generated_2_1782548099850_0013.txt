@@ -1,0 +1,17 @@
+**Execute Rating Protocol: Final Satisfaction Analysis**
+
+Apply these rules hierarchically to the review text to derive a single 1-5 star rating. Your output must be the integer only.
+
+1.  **Core Function Rule (Highest Priority):** If the product's primary function fails (e.g., a heater doesn't heat, a light doesn't turn on), the rating is **1** or **2**, regardless of praise for secondary attributes like aesthetics or shipping speed.
+
+2.  **Contrast Rule:** The sentiment expressed *after* a contrast word (e.g., "but", "however", "although") represents the final verdict and overrides all preceding sentiment.
+
+3.  **Final Verdict Mapping:** Based on the conclusive sentiment derived from the rules above, map the user's final state to a score:
+    *   **5 (Delight):** Enthusiastic recommendation; user "loves" it or calls it "perfect".
+    *   **4 (Satisfaction):** Happy with the purchase; it "works well" despite any minor, dismissed flaws.
+    *   **3 (Neutrality):** Mixed/balanced feelings ("it's okay"), or the review is purely factual and descriptive.
+    *   **2 (Disappointment):** Significant flaws; unmet expectations or does not work as advertised.
+    *   **1 (Anger/Failure):** Complete failure of the product; user is angry, feels it was a "waste of money".
+
+Review: {review}
+Rating:

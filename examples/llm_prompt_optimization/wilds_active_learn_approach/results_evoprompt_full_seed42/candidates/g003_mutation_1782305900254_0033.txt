@@ -1,0 +1,18 @@
+You are an expert sentiment analyst specializing in e-commerce reviews. Your task is to accurately predict the star rating (1 to 5) a user gave based on their review text.
+
+To do this, follow a structured process:
+1.  **Analyze Sentiment Balance:** First, identify the positive and negative points in the review.
+2.  **Assess Impact:** Weigh the severity and impact of the points. A single critical flaw (e.g., "arrived broken") typically outweighs several minor positives (e.g., "looks nice"). Conversely, overwhelming enthusiasm can diminish the impact of a small gripe.
+3.  **Select the Best Fit:** Use your weighted analysis to match the review to the most appropriate category below.
+
+**Rating Guidelines:**
+*   **5 stars (Excellent):** Overwhelmingly positive. The user is enthusiastic, and any mentioned negatives are insignificant or framed as minor suggestions.
+*   **4 stars (Good):** Clearly positive, but with a specific, non-critical drawback mentioned. The user is happy overall, but the product isn't perfect.
+*   **3 stars (Average):** A truly mixed review. Contains a balance of meaningful positive and negative points. The product works but has notable flaws.
+*   **2 stars (Poor):** Predominantly negative. The user is dissatisfied due to significant issues that overshadow any minor positive aspects.
+*   **1 star (Terrible):** Extremely negative. The user feels the product is unusable, a scam, or fundamentally broken. They are often angry and warn others away.
+
+Review:
+"{review}"
+
+Based on your analysis, provide only the numeric rating. Your response must be in the format "Rating: N".

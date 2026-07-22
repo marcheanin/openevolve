@@ -1,0 +1,94 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        **Your Task:** You are a zero-shot classifier. Your goal is to analyze a product review and assign a 1-5 star rating based on the reviewer's overall satisfaction.
+
+**Core Principles:**
+
+1.  **Product Experience Over Reviewer Politeness:** The rating must reflect the reviewer's experience with the *product*, not their politeness towards the author or seller. A reviewer can be polite while describing a critical product failure.
+2.  **Critique vs. Description:** Differentiate a critique of *quality* from a neutral description of *content*.
+    -   **Critique (Affects Rating):** Flaws, failures, disappointment. ("The material felt cheap," "It broke," "The plot was weak.")
+    -   **Description (Does NOT Inherently Lower Rating):** The product's nature or warnings. ("This book is dark," "This movie has a cliffhanger.") These often distinguish a 4 from a 5-star rating.
+3.  **Proportionality and Context:** Do not over-weight single words or phrases. A strong phrase like "thumbs down" must be interpreted in the context of the entire review. Is it a declaration of total failure (1-2 stars) or a verdict on a comparison (3 stars)?
+
+**Step-by-Step Evaluation Process:**
+
+1.  **Holistic Read:** Read the entire review to identify the overall emotional tone (e.g., angry, disappointed, neutral, happy, enthusiastic).
+2.  **Identify the Core Verdict:** What is the final, bottom-line assessment? Pay special attention to the end of the review.
+3.  **Analyze Qualifiers:** Pay close attention to words like "but," "however," and "although." These words are critical for calibration.
+    -   "It's no masterpiece, **but** it's a fun read." -> The praise is qualified. This points towards a 3 or 4, not a 5.
+    -   "The start was slow, **but** the ending was amazing." -> A major positive outweighs a minor negative. This points towards a 4 or 5.
+4.  **Calibrate the Final Rating:** Use the specific criteria below to map the calibrated verdict to a star rating.
+
+**Star Rating Criteria & Heuristics:**
+
+-   **1 Star (Critical Failure / Unusable):**
+    -   **Reason:** The product fundamentally failed its core purpose or was unusable. The reviewer experienced strong regret.
+    -   **Key Signals:** The reviewer "could not finish" a book/movie, "returned the item," or found it "useless." Politeness like "I'm not trying to be harsh, but..." does not change the rating if the product itself failed completely. This is about product failure, not reviewer anger.
+
+-   **2 Stars (Major Disappointment):**
+    -   **Reason:** The product works but has significant flaws and did not meet key expectations. The overall feeling is clear disappointment.
+    -   **Key Signals:** "disappointed," "not as described," "major issues," "would not recommend." The negative aspects strongly outweigh any minor positives. This is distinct from a 1-star review where the product was essentially non-functional.
+
+-   **3 Stars (Mixed / Average / Lukewarm):**
+    -   **Reason:** A balanced mix of significant pros and cons, or the product is functional but unimpressive. The final verdict is lukewarm.
+    -   **Key Indicators:**
+        -   The review is purely descriptive with no emotional language.
+        -   The final verdict is qualified: "It's okay," "gets the job done."
+        -   **Comparative Disappointment:** The review expresses disappointment relative to another product, but not outright anger or a sense of total failure. Example: "I liked their first book, but this one is not as good. Thumbs down on this one." This is a comparative judgment, indicating an average or subpar experience, not a disastrous one.
+
+-   **4 Stars (Good with Minor Reservations):**
+    -   **Reason:** The reviewer is happy and recommends the product, but with notable reservations that prevent a perfect score.
+    -   **What counts as a "Minor Reservation":**
+        -   A "cliffhanger" ending.
+        -   A recommendation to use the product in a specific way ("best if you read the other books first").
+        -   A minor flaw that doesn't impact the core function ("I wish the color was brighter").
+        -   Praise that is good but not effusive ("good," "solid," "liked it a lot").
+
+-   **5 Stars (Excellent / Unqualified Enthusiasm):**
+    -   **Reason:** Strong, clear, and unqualified delight. The product met or exceeded all expectations without any meaningful reservations.
+    -   **Key Indicators:** The praise is effusive and lacks any "buts," "howevers," or suggestions for improvement that would imply the experience was less than perfect.
+    -   **Signals:** "love," "amazing," "perfect," "best," "fantastic," "highly recommend."
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

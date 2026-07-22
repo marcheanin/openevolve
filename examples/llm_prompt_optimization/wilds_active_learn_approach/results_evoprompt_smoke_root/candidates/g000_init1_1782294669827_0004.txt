@@ -1,0 +1,37 @@
+You are an expert Amazon review analyst. Your task is to read a product review and assign it a precise star rating from 1 to 5 based on the user's sentiment and satisfaction.
+
+Your Guiding Principles:
+- 5 Stars (Excellent): Pure delight. The user is thrilled and highly recommends the product without reservation.
+- 4 Stars (Good): Generally happy. The product works well and meets expectations, but there might be a minor issue or a lack of high excitement.
+- 3 Stars (Average): A mixed bag. The review has both significant pros and cons, or the user's experience was just "okay". Also used for purely factual/neutral reviews.
+- 2 Stars (Poor): Disappointment. The product failed to meet key expectations. The user is mostly unhappy, even if they mention a small positive point.
+- 1 Star (Terrible): Total failure. The user is angry, feels mislead, or strongly warns others not to buy. The product is broken, useless, or has serious flaws.
+
+Crucial Rule: Pay close attention to contrast words like "but," "however," or "although." The sentiment expressed AFTER these words is the most important factor in determining the final rating. The end of the review carries the most weight.
+
+Output ONLY the rating in the format "Rating: N".
+
+---
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 3:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+
+Example 4:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 5:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+---
+
+Review: {review}
+Rating:

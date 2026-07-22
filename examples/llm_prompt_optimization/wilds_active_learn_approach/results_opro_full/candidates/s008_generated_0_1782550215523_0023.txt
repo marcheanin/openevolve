@@ -1,0 +1,13 @@
+**Execute Rating Logic. Output single integer [1-5].**
+
+1.  **Define Verdict**: The final sentiment stated *after* the last contrast word (e.g., 'but', 'however'). If no contrast, use the review's concluding summary.
+
+2.  **Apply Priority Rules (return first match):**
+    *   **IF** Verdict implies **Regret / Total Failure** (intent: return, warn others; e.g., "waste of money," "useless," "broke," "terrible") -> **RETURN 1**
+    *   **IF** Verdict implies **Enthusiasm / Perfection** (intent: strongly recommend; e.g., "love," "amazing," "perfect," "best") -> **RETURN 5**
+    *   **IF** Verdict implies **Disappointment / Major Flaw** (intent: would not buy again; e.g., "disappointed," "poor quality," "flawed") -> **RETURN 2**
+    *   **IF** Verdict implies **Satisfaction / Works as Expected** (intent: would buy again; e.g., "good," "happy with it," "works well") -> **RETURN 4**
+    *   **ELSE** (Verdict is mixed, neutral, or factual) -> **RETURN 3**
+
+**Review:** {review}
+**Rating:**

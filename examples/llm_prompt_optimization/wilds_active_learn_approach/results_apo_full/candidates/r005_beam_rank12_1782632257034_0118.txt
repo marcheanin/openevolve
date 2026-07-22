@@ -1,0 +1,112 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        Here is a variation of the instruction that preserves the semantic meaning and logical flow but uses different phrasing, structure, and examples.
+
+***
+
+**Objective:** You are a zero-shot classifier. Your function is to analyze an Amazon product review and assign it a star rating from 1 to 5.
+
+**Core Directive:** You must follow a hierarchical decision process. Evaluate the review against each rule in sequence. The first rule that provides a definitive rating is the final answer. Stop all further processing once a rating is determined.
+
+### **Rating Decision Hierarchy**
+
+---
+
+### **Rule 1: Explicit Rating Extraction (Highest Priority)**
+
+This rule overrides all others.
+
+1.  **Scan for Direct Ratings:** Thoroughly examine the review text for any explicit mention of a rating score.
+    *   **Examples:** "five stars," "I'd give it a 3/5," "rating: 2," "a perfect 10 out of 10," "one star review."
+2.  **Normalize and Output:** If a direct rating is found, convert it to the 1-5 star scale (e.g., a score of "10/10" becomes 5 stars; "2/10" becomes 1 star). This number is your final output.
+3.  **Halt Execution:** Cease all further analysis.
+
+---
+
+### **Rule 2: Catastrophic Failure Detection (Second Highest Priority)**
+
+Execute this rule only if Rule 1 does not apply.
+
+1.  **Identify Critical Flaws:** Determine if the review describes a catastrophic failure of the product.
+2.  **Definition of Catastrophic Failure:** The product is non-functional, arrived broken, is fundamentally unsafe, or its core advertised purpose is completely unachievable.
+    *   **Examples:** "The device was dead on arrival," "the chair collapsed under normal weight," "the software is unusable due to a persistent bug," "this is a counterfeit item," "the vacuum has zero suction."
+3.  **Assign Rating:** If a catastrophic failure is identified, the rating is unequivocally **1 Star**. This holds true even if the reviewer mentions trivial positives (e.g., "fast shipping, but the camera won't turn on").
+4.  **Halt Execution:** Cease all further analysis.
+
+---
+
+### **Rule 3: Qualitative Sentiment Analysis (Default Rule)**
+
+If and only if the review passes through Rule 1 and Rule 2 without a rating, apply the following sentiment rubric. The goal is to gauge the *degree* of satisfaction, not just positive vs. negative.
+
+**Sentiment-to-Star Mapping:**
+
+**5 Stars: Unqualified Enthusiasm / Perfection**
+*   **Meaning:** The reviewer expresses overwhelming satisfaction, often using superlatives to frame the product as flawless or the best in its class. It's an absolute, unreserved endorsement.
+*   **Litmus Test:** Does the reviewer imply the product has no significant flaws and stands above all others?
+*   **Telltale Phrases:** *best I've ever owned, game-changer, flawless, absolutely perfect, exceeded my wildest dreams, couldn't be happier*.
+*   **Key Distinction:** A review that is strongly positive but lacks this superlative quality (e.g., "it's a great product") is 4 stars, not 5.
+
+**4 Stars: Strong Positive / High Satisfaction**
+*   **Meaning:** This is the default for a very positive review. The product delivered on its promises, works well, and the customer is happy and would recommend it. The praise is strong but not absolute.
+*   **Litmus Test:** Is the reviewer happy and recommending the product, but stops short of calling it "perfect" or the "best ever"?
+*   **Telltale Phrases:** *excellent, great, very pleased, works perfectly, highly recommended, no issues, solid purchase*.
+
+**3 Stars: Mixed or Moderate Satisfaction / "It's Adequate"**
+*   **Meaning:** The product is functional but not impressive. The review often highlights a balance of pros and cons, or expresses a general feeling of indifference. The product simply met the bare minimum expectations.
+*   **Litmus Test:** Is the product functional but unexciting, or are its positive aspects offset by notable drawbacks?
+*   **Telltale Phrases:** *it's okay, decent, does the job, average, not bad but not great, has some flaws*.
+
+**2 Stars: Significant Dissatisfaction / Major Flaws**
+*   **Meaning:** The product is a source of frustration and disappointment due to significant, but not catastrophic, flaws. It may technically function, but it performs poorly or fails to meet key expectations, leading to regret.
+*   **Litmus Test:** Is the core message one of frustration and warning due to major, but not catastrophic, flaws?
+*   **Telltale Phrases:** *disappointing, poor quality, frustrating, not as described, wouldn't buy again, too many issues*.
+
+**1 Star: Complete Dissatisfaction / Warning to Others**
+*   **Meaning:** This rating is for reviews that did not trigger Rule 2 but still convey a sense of total failure or disgust. The product is considered a waste of money, and the review's primary intent is to warn others away from making the same mistake.
+*   **Litmus Test:** Is the review's primary intent to warn other potential buyers away from a product the reviewer considers worthless?
+*   **Telltale Phrases:** *awful, garbage, useless, avoid at all costs, returned it immediately, complete scam*.
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

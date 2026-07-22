@@ -1,0 +1,1 @@
+{"record_id": "s-01_init_1782544764906_0000", "source": "init", "step": -1, "score": 0.9, "metrics": {"R_global": 0.9, "R_worst": 0.9, "mae": 0.1, "num_users": 10, "num_examples": 10, "accuracy": 0.9, "score": 0.9, "selection_metric": "accuracy"}}

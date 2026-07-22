@@ -49,6 +49,33 @@ OPENROUTER_MODELS = {
 }
 
 
+def _load_dotenv_if_present() -> None:
+    """
+    Minimal .env loader (KEY=VALUE per line) to make local runs easier.
+    We avoid adding an external dependency (python-dotenv).
+    """
+    if os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY"):
+        return
+    here = os.path.dirname(os.path.abspath(__file__))
+    env_path = os.path.join(here, ".env")
+    if not os.path.exists(env_path):
+        return
+    try:
+        with open(env_path, "r", encoding="utf-8") as f:
+            for raw in f:
+                line = raw.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                k = k.strip()
+                v = v.strip().strip("'").strip('"')
+                if k and v and k not in os.environ:
+                    os.environ[k] = v
+    except Exception:
+        # Best-effort only; do not fail import.
+        return
+
+
 
 class LLMWorker:
     """
@@ -66,6 +93,7 @@ class LLMWorker:
         timeout: int = 60,
         max_retries: int = 3,
     ) -> None:
+        _load_dotenv_if_present()
         self.model_name = model_name
         self.api_base = api_base or self.DEFAULT_API_BASE
         self.temperature = temperature

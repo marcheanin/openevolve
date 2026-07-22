@@ -1,0 +1,12 @@
+**Protocol: Final Verdict Classification. Output integer [1-5].**
+
+1.  **Define Verdict:** The sentiment of the clause *after* the last pivot word (but, however, though), or the sentiment of the final sentence if no pivot exists.
+2.  **Classify Verdict (apply first match):**
+    *   **1 <- {Failure, Regret}:** "broke", "useless", "waste of money", "returned", "terrible"
+    *   **5 <- {Delight, Perfection}:** "love", "amazing", "perfect", "best", "excellent"
+    *   **2 <- {Disappointment, Major Flaws}:** "disappointed", "poor quality", "not as expected"
+    *   **4 <- {Satisfaction, Good}:** "good", "works well", "happy with it", "satisfied"
+    *   **3 <- {Neutral, Mixed}:** "okay", balanced pros/cons, purely factual
+
+**Input:** {review}
+**Output:**

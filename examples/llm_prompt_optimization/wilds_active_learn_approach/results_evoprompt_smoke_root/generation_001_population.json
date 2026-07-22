@@ -1,0 +1,50 @@
+[
+  {
+    "candidate_id": "g000_init0_1782294665767_0003",
+    "source": "init0",
+    "generation": 0,
+    "parent_ids": [],
+    "score": 0.6,
+    "metrics": {
+      "R_global": 0.6,
+      "R_worst": 0.0,
+      "mae": 0.4,
+      "num_users": 10,
+      "num_examples": 10,
+      "accuracy": 0.6,
+      "score": 0.6
+    }
+  },
+  {
+    "candidate_id": "g000_init1_1782294669827_0004",
+    "source": "init1",
+    "generation": 0,
+    "parent_ids": [],
+    "score": 0.6,
+    "metrics": {
+      "R_global": 0.6,
+      "R_worst": 0.0,
+      "mae": 0.4,
+      "num_users": 10,
+      "num_examples": 10,
+      "accuracy": 0.6,
+      "score": 0.6
+    }
+  },
+  {
+    "candidate_id": "g000_init2_1782294672022_0005",
+    "source": "init2",
+    "generation": 0,
+    "parent_ids": [],
+    "score": 0.6,
+    "metrics": {
+      "R_global": 0.6,
+      "R_worst": 0.0,
+      "mae": 0.5,
+      "num_users": 10,
+      "num_examples": 10,
+      "accuracy": 0.6,
+      "score": 0.6
+    }
+  }
+]

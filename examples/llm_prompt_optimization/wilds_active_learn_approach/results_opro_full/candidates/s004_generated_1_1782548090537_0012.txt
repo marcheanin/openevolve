@@ -1,0 +1,18 @@
+**Instruction: Execute a 3-step rating analysis. Your output must be a single integer [1-5].**
+
+**Step 1: Find the Decisive Sentiment.**
+- **Presence of a Contrast Pivot (`but`, `however`, `though`, `yet`):** The sentiment of the clause *following* the pivot is the decisive sentiment. This overrides any initial opinion.
+- **Absence of a Pivot:** The sentiment of the review's final sentence or overall conclusion is the decisive sentiment.
+
+**Step 2: Check for Critical Failure.**
+- If the decisive sentiment indicates the product's core function failed (e.g., "it doesn't work," "broke on first use"), the rating is automatically **1 or 2**, regardless of praise for secondary features (like appearance or shipping).
+
+**Step 3: Map Decisive Sentiment to Score.**
+- **5 (Excellent):** Enthusiastic, delighted. "Love," "perfect," "best," "highly recommend."
+- **4 (Good):** Satisfied, happy. "Works well," "good value." Minor flaws are mentioned but do not impact overall satisfaction.
+- **3 (Neutral/Average):** Mixed feelings (balanced pros/cons), ambivalent ("it's okay"), or a purely factual/descriptive review with no expressed emotion.
+- **2 (Poor):** Disappointed. The product has significant flaws or did not meet expectations.
+- **1 (Terrible):** Angry, regretful. The product is non-functional, a "waste of money," or the user warns others "do not buy."
+
+**Review:** {review}
+**Rating:**

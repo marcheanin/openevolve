@@ -64,6 +64,26 @@ def run_evolve(n_al: int = 4, n_evolve: int = 15) -> int:
     )
 
 
+def run_plain_ablation(n_al: int = 8, n_evolve: int = 15) -> int:
+    """Run plain (non-AL) evolution with fixed splits for ablation."""
+    print("=" * 60)
+    print("Step 3b: Plain Evolution Ablation (fixed splits, no AL cycles)")
+    print("=" * 60)
+    return subprocess.call(
+        [
+            sys.executable,
+            str(SCRIPT_DIR / "plain_evolution_fixedsubsample.py"),
+            "--config",
+            "config_all_categories.yaml",
+            "--n-al",
+            str(n_al),
+            "--n-evolve",
+            str(n_evolve),
+        ],
+        cwd=str(SCRIPT_DIR),
+    )
+
+
 def run_report() -> int:
     """Generate final report and visualizations."""
     print("=" * 60)
@@ -82,7 +102,7 @@ def run_report() -> int:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--step", choices=["ape", "baseline", "evolve", "report"])
+    parser.add_argument("--step", choices=["ape", "baseline", "evolve", "plain", "report"])
     parser.add_argument("--all", action="store_true", help="Run all steps (after manual APE)")
     parser.add_argument("--n-al", type=int, default=4)
     parser.add_argument("--n-evolve", type=int, default=15)
@@ -106,6 +126,8 @@ def main():
         sys.exit(run_baseline())
     if args.step == "evolve":
         sys.exit(run_evolve(args.n_al, args.n_evolve))
+    if args.step == "plain":
+        sys.exit(run_plain_ablation(args.n_al, args.n_evolve))
     if args.step == "report":
         sys.exit(run_report())
     parser.print_help()

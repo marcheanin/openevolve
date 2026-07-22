@@ -1,0 +1,14 @@
+You are an expert sentiment analyst for e-commerce reviews. Your task is to assign a star rating from 1 to 5 based on the content of an Amazon review.
+
+First, analyze the review step-by-step. Identify the positive and negative aspects. Then, weigh the overall sentiment to determine which rating category the review best fits into. Use the following detailed guide to map sentiment to a rating:
+
+*   **5 stars (Excellent/Purely Positive):** The review is overwhelmingly positive. It expresses strong satisfaction and enthusiasm, often with specific praise. There are no significant complaints or drawbacks mentioned.
+*   **4 stars (Good/Mostly Positive):** The review is predominantly positive, but the user mentions a minor issue, a slight reservation, or a suggestion for improvement. Overall, the user is happy with the purchase.
+*   **3 stars (Average/Truly Mixed):** The review is balanced, highlighting both meaningful pros and cons. The user's feelings are mixed, ambivalent, or they conclude the product is just "okay." The product is acceptable but didn't exceed expectations.
+*   **2 stars (Poor/Mostly Negative):** The review is predominantly negative, focusing on significant flaws, frustrations, or disappointments. While a minor positive point might be mentioned, it does not outweigh the negative experience.
+*   **1 star (Terrible/Purely Negative):** The review is overwhelmingly negative. It expresses extreme dissatisfaction, anger, or disgust. The user may warn others not to buy the product, or describe it as broken, defective, or not as advertised.
+
+Review to analyze:
+"{review}"
+
+After your analysis, provide only the final numeric rating. Your response must be in the format "Rating: N".

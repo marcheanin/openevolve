@@ -1,0 +1,41 @@
+{
+  "al_iter": 1,
+  "n_programs": 5,
+  "entries": [
+    {
+      "rank": 1,
+      "score": 0.7565450565450565,
+      "has_mutation_log": true,
+      "mutation_log": "- Targeted the top error (`gold=4 -> pred=5`) by refining the 4-star vs 5-star boundary rules. The new rules clarify that positive plot summaries or descriptions of quality are 4-star satisfaction, whereas 5-star requires personal, ecstatic delight.\n- Addressed other key errors (`gold=3 -> pred=4` and `gold=2 -> pred=1`) by sharpening boundary definitions. A major flaw now explicitly caps a review at 3 stars, and the 2-star vs 1-star distinction is clarified as disappointment vs. total product failure/anger.\n- Completely rebuilt the `<FewShotExamples>` to be perfectly balanced (2 examples for each rating from 1-5). This addresses the previous imbalance. I incorporated misclassified examples from the last run to directly teach the model how to handle tricky cases, especially for the 4->5 and 2->1 boundaries.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories. Your task is to assign a star rating from "
+    },
+    {
+      "rank": 2,
+      "score": 0.7260461964506082,
+      "has_mutation_log": false,
+      "mutation_log": null,
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories. Your task is to assign a star rating from "
+    },
+    {
+      "rank": 3,
+      "score": 0.7195581640158729,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error is `gold=4 -> pred=5`, where models over-index on positive language and ignore reservations or a negative start.\n- I've rewritten the `DynamicRules` for the 4/5-star boundary to be more explicit. The new rules define 5-star as \"delight\" and 4-star as \"satisfaction,\" and specify that a review describing a difficult start but a positive finish (e.g., \"I almost gave up, but it hooked me\") is a classic 4.\n- I also clarified that a 5-star review can contain helpful advice (e.g., on sizing) without being downgraded, addressing the `gold=5 -> pred=4` error.\n- I replaced a redundant 4-star few-shot example with a misclassified `gold=4` review from the artifacts, directly teaching the model to handle the \"difficult start, good ending\" pattern correctly.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories. Your task is to assign a star rating from "
+    },
+    {
+      "rank": 4,
+      "score": 0.7186765800547968,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error is `gold=4 -> pred=5`, where models over-index on positive language and ignore reservations or a negative start.\n- I've rewritten the `DynamicRules` for the 4/5-star boundary to be more explicit. The new rules define 5-star as \"delight\" and 4-star as \"satisfaction,\" and specify that a review describing a difficult start but a positive finish (e.g., \"I almost gave up, but it hooked me\") is a classic 4.\n- I also clarified that a 5-star review can contain helpful advice (e.g., on sizing) without being downgraded, addressing the `gold=5 -> pred=4` error.\n- I replaced a redundant 4-star few-shot example with a misclassified `gold=4` review from the artifacts, directly teaching the model to handle the \"difficult start, good ending\" pattern correctly.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories. Your task is to assign a star rating from "
+    },
+    {
+      "rank": 5,
+      "score": 0.7076295797483847,
+      "has_mutation_log": true,
+      "mutation_log": "- The primary error is confusion between 4 and 5 stars, especially `gold=4 -> pred=5`. Models are over-indexing on final positive sentiment, ignoring initial struggles.\n- Refined the 4-star and 5-star boundary definitions. Clarified that 5-star is for \"delight\" or a \"perfect solution,\" while 4-star is for \"strong satisfaction,\" including \"journey\" reviews that had a difficult start.\n- Explicitly added a rule for \"journey\" reviews (e.g., \"took a while to get into...\") to be classified as 4-star, not 5-star.\n- Added a new few-shot example for a 4-star review that was a key misclassification (`gold=4 -> pred=5`). This example (\"I got this on CD. Twice I attempted to listen... On the third try it hooked me.\") perfectly illustrates the new \"journey\" rule.\n- Replaced a generic 4-star few-shot example to keep the prompt length and rating balance consistent.",
+      "prompt_snippet": "<System>\n    <Role>You are a sentiment classification model for Amazon product reviews across all product categories. Your task is to assign a star rating from "
+    }
+  ]
+}

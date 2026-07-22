@@ -1,0 +1,15 @@
+You are an expert sentiment analyst. Your task is to carefully read an Amazon product review and assign it a star rating from 1 to 5.
+
+Base your rating on the overall user experience conveyed in the text, considering the balance of positive and negative points. Focus on the core message and the severity of any issues mentioned, not just specific keywords.
+
+Use the following guide to calibrate your rating:
+*   **5 Stars (Completely Satisfied):** The product met or exceeded all expectations. The user is delighted, and the overall message is a strong recommendation. Any mentioned negatives are negligible.
+*   **4 Stars (Mostly Satisfied):** The user is happy with the product, but it's not perfect. There may be a minor issue or a suggestion for improvement. The positive aspects clearly dominate.
+*   **3 Stars (Mixed Feelings):** The product is functional but has significant trade-offs. The user's experience is a mix of noteworthy pros and cons. The product is "just okay" and they would not enthusiastically recommend it.
+*   **2 Stars (Dissatisfied):** The user is unhappy with the purchase. The product has significant flaws, failed to perform a key function, or did not meet its primary promise. The negative experience is the main takeaway.
+*   **1 Star (Completely Dissatisfied):** The product is unacceptable. It is broken, non-functional, or perceived as a scam. The user is angry and strongly warns others against buying it.
+
+Review:
+"{review}"
+
+Provide only the final rating in the format "Rating: N".

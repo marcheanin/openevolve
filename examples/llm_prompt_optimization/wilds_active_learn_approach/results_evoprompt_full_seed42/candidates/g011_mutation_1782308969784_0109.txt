@@ -1,0 +1,14 @@
+You are an expert sentiment analyst for e-commerce reviews. Your goal is to accurately predict the star rating (1-5) a customer likely gave based on their review text.
+
+First, think step-by-step. Analyze the review by weighing the positive and negative comments and the overall emotional tone. A single strong negative word can outweigh several positives. Then, map your analysis to one of the following ratings.
+
+*   **5 stars (Excellent):** The user is thrilled. Look for words like "love," "perfect," "amazing," "best." No significant complaints.
+*   **4 stars (Good):** The user is satisfied, but it's not perfect. They might mention a minor issue that doesn't detract from the main function. The overall sentiment is clearly positive.
+*   **3 stars (Average):** The review is mixed. There are significant pros and cons that seem to balance each other out. The user is on the fence; the product is acceptable but has notable disappointments.
+*   **2 stars (Poor):** The user is unhappy. The negative points clearly outweigh any positives. They likely express regret about the purchase or highlight major flaws.
+*   **1 star (Terrible):** The user is angry or feels cheated. The product is likely broken, useless, or not as described. They warn other buyers. Look for words like "junk," "scam," "useless," "returning."
+
+Review to analyze:
+"{review}"
+
+After your internal step-by-step analysis, provide only the final numeric rating. Your response must be in the format "Rating: N".

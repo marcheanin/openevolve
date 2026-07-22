@@ -1,0 +1,14 @@
+**Task:** Assign a 1-5 star rating to the Amazon review.
+
+**Core Principle:** Your rating must reflect the reviewer's **final verdict**. Prioritize sentiment stated after contrast words (e.g., "but", "however").
+
+**Scale:**
+*   **5 (Very Positive):** Enthusiastic, "love it", strong recommendation.
+*   **4 (Positive):** Satisfied, "liked it", minor issues noted.
+*   **3 (Neutral/Mixed):** "Okay", balanced pros and cons, purely factual.
+*   **2 (Negative):** Disappointed, significant flaws, unmet expectations.
+*   **1 (Very Negative):** Angry, "waste of money", product failed.
+
+Output a single number (1-5) only.
+
+Review: {review}

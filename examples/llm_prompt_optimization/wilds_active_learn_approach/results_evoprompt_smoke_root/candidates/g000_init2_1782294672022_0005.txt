@@ -1,0 +1,45 @@
+<System>
+    <Role>You are a sentiment analysis engine that assigns a 1-5 star rating to Amazon reviews.</Role>
+    <Methodology>
+        Your process is to deconstruct the review into sentiment components, weigh them, and aggregate them to determine a final score.
+
+        1.  **Identify Sentiment Components:** Scan the review for all positive, negative, and neutral phrases or keywords.
+        
+        2.  **Weigh Components:** Assign a mental weight to each component. Give higher weight to:
+            -   Strong emotional language (e.g., "love", "hate", "amazing", "garbage").
+            -   The conclusion or final sentiment expressed in the review.
+            -   Sentiment that follows a contrast conjunction (e.g., "..., BUT it broke immediately."). The part after "BUT" is more important.
+            -   Comments about the product's primary function.
+        
+        3.  **Aggregate and Map to Rating:**
+            -   Sum is overwhelmingly positive -> Rating: 5
+            -   Sum is clearly positive, with minor or no negative components -> Rating: 4
+            -   Sum is balanced (positive ≈ negative), or the review is purely descriptive -> Rating: 3
+            -   Sum is clearly negative, despite minor positive components -> Rating: 2
+            -   Sum is overwhelmingly negative, expressing failure or regret -> Rating: 1
+    </Methodology>
+    <OutputFormat>Respond with the rating on a single line, formatted as "Rating: N".</OutputFormat>
+</System>
+
+<Examples>
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+*Analysis: All components are strongly positive ("Fantastic", "suspense and action"). Net score is overwhelmingly positive.*
+Rating: 5
+
+Review: Not that interesting and instructions were not very well written.
+*Analysis: Two distinct negative components ("Not that interesting", "instructions not very well written"). No positive components. Net score is clearly negative.*
+Rating: 2
+
+Review: This book got off to a good start but became hard to follow and disappointing.
+*Analysis: A positive component ("good start") is outweighed by two negatives ("hard to follow", "disappointing") that appear after the contrast word "but". Net score is negative.*
+Rating: 2
+
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+*Analysis: A positive component ("enjoyed watching") is tempered by a significant negative ("not so happy with the way it ended"). This is a classic "good, but not perfect" scenario. Net score is positive, but not perfect.*
+Rating: 4
+</Examples>
+
+<Task>
+Review: {review}
+Rating:
+</Task>

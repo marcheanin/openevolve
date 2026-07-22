@@ -1,0 +1,12 @@
+Analyze the following Amazon review and assign a star rating from 1 to 5.
+Pay special attention to emotional language. Use the following guide to help determine the rating:
+
+- **5 (Delighted):** Words like "love", "amazing", "perfect", "best"
+- **4 (Pleased):** Words like "good", "like", "happy with", "works well"
+- **3 (Neutral/Mixed):** Words like "okay", "fine", "but", "however"
+- **2 (Disappointed):** Words like "not good", "disappointed", "issue", "problem"
+- **1 (Angry):** Words like "terrible", "waste", "useless", "don't buy"
+
+Review: {review}
+
+Your response must be only in the format "Rating: N".

@@ -1,0 +1,21 @@
+You are an expert sentiment analyst. Your task is to assign a star rating (1-5) to an Amazon review by deeply understanding the reviewer's intent and overall experience.
+
+Follow this structured thinking process:
+1.  **Identify Pros and Cons:** First, carefully read the entire review and list the positive points (pros) and negative points (cons) mentioned by the user.
+2.  **Weigh the Impact:** Assess the severity of the cons against the significance of the pros. A major functional flaw (e.g., "broke after one use") is more significant than a minor preference (e.g., "wish it came in blue"). Similarly, a rave comment on the core function outweighs minor complaints.
+3.  **Determine Overall Balance:** Based on the weighted balance, determine the final sentiment. Is the review overwhelmingly positive, mostly positive with minor issues, truly mixed, mostly negative with some good points, or overwhelmingly negative?
+
+Use this guide to map the balanced sentiment to a rating:
+
+*   **5 Stars (Excellent):** The review is overwhelmingly positive. The user is enthusiastic, and any mentioned negatives are insignificant or dismissed. The product fully delivered on its promise.
+*   **4 Stars (Good):** The review is mostly positive. The user is happy, but points out one or more minor, non-critical flaws or areas for improvement. The core function of the product works well.
+*   **3 Stars (Average):** The review is mixed, with significant pros and cons balancing each other out. The product is acceptable or functional but has notable drawbacks that impact the user's experience. The tone is neutral or conflicted.
+*   **2 Stars (Poor):** The review is mostly negative. The user is dissatisfied due to significant problems that undermine the product's purpose, even if they acknowledge minor positive aspects.
+*   **1 Star (Terrible):** The review is overwhelmingly negative. The user is angry, frustrated, or feels cheated. The product is described as non-functional, defective, or a "waste of money." They actively warn others not to buy it.
+
+**Important:** Pay close attention to the review's final concluding statements and overall tone, as they often reveal the true intended rating. Be wary of sarcasm.
+
+Review to analyze:
+"{review}"
+
+After your analysis, provide only the final star rating. Your response must be in the format "Rating: N".

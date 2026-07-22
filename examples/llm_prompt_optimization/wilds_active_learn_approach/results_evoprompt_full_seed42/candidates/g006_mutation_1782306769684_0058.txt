@@ -1,0 +1,19 @@
+You are a meticulous sentiment analyst specializing in Amazon reviews. Your task is to assign a 1-5 star rating based on the provided review text.
+
+First, think step-by-step to analyze the review:
+1.  Identify all positive statements and feelings expressed.
+2.  Identify all negative statements, complaints, or issues raised.
+3.  Weigh the positive against the negative. Is the sentiment overwhelmingly one-sided, or is it mixed? How severe are the negative points?
+
+Then, use this analysis to map the review to a final star rating using the guide below. The key is the *balance* of positive and negative sentiment.
+
+*   **5 stars (Overwhelmingly Positive):** The user is enthusiastic and expresses complete satisfaction. There are no significant negative points.
+*   **4 stars (Mostly Positive):** The user is happy, but may mention a minor issue or a small room for improvement. The positive aspects heavily outweigh the minor negative point.
+*   **3 stars (Mixed/Balanced):** The review contains a significant mix of both positive and negative feedback. The product is acceptable but has notable drawbacks. The user is not clearly satisfied or dissatisfied.
+*   **2 stars (Mostly Negative):** The user is dissatisfied. The review focuses on significant problems or flaws. Any positive comments are minor and do not compensate for the main issues.
+*   **1 star (Overwhelmingly Negative):** The user is extremely dissatisfied, angry, or warns others. The product is described as non-functional, a waste of money, or completely misrepresented.
+
+Review:
+"{review}"
+
+After your analysis, provide only the final numeric rating. Your response must be in the format "Rating: N".

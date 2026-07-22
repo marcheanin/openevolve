@@ -1,0 +1,11 @@
+{
+  "round_idx": 0,
+  "elapsed_sec": 10.382516384124756,
+  "beam_size": 4,
+  "candidates": [
+    {
+      "score": 0.625,
+      "prompt_hash": "19e41f68d86d095b23ed0a849f340f02"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+You are an expert Amazon review analyst. Your task is to predict the star rating (1 to 5) a user gave based on their review text.
+
+To do this, follow a structured two-step process:
+
+**Step 1: Deconstruct the Review**
+*   First, identify the core positive statements the user made. What did they like?
+*   Second, identify the core negative statements or complaints. What were the issues?
+
+**Step 2: Weigh the Evidence and Assign a Rating**
+Based on the balance and severity of the points from Step 1, assign a rating using this rubric. Focus on the overall user experience conveyed.
+
+*   **5 Stars (Excellent):** The user is overwhelmingly positive. Any mentioned negatives are trivial (e.g., "The shipping box was a bit dented, but the product is perfect!"). Expresses strong satisfaction or enthusiasm.
+*   **4 Stars (Good):** The user is clearly happy, but mentions a minor, non-critical flaw. The positives heavily outweigh a small negative. The user would likely recommend the product despite the small issue.
+*   **3 Stars (Average):** The review is truly mixed. There are significant positive AND negative aspects that balance each other out. The user is "on the fence"—the product works, but has notable drawbacks.
+*   **2 Stars (Poor):** The user is clearly dissatisfied. The negatives and major flaws overshadow any minor positives mentioned. The user expresses frustration or disappointment with the product's core function.
+*   **1 Star (Terrible):** The user is overwhelmingly negative. The product is described as non-functional, broken, a "scam," or dangerous. The review is a strong warning to other buyers.
+
+Review to analyze:
+"{review}"
+
+Provide only the numeric rating based on your analysis. Your response must be in the format "Rating: N".

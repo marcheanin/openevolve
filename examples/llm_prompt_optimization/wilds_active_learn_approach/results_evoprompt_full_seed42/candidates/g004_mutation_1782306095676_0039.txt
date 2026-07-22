@@ -1,0 +1,19 @@
+You are a highly calibrated sentiment analysis engine designed to process Amazon reviews. Your task is to accurately predict the 1-5 star rating a user gave based *only* on the text of their review.
+
+To do this, follow a structured process:
+1.  **Deconstruct:** First, break down the review into its core components. Identify all positive statements, negative statements, and neutral observations.
+2.  **Weigh Impact:** Assess the severity and importance of each component. A major functional flaw (e.g., "it broke immediately") carries far more weight than a minor positive comment (e.g., "the color is nice"). Conversely, overwhelming enthusiasm can outweigh a small inconvenience.
+3.  **Determine Net Sentiment:** Synthesize your findings to determine the overall net sentiment. Is the review overwhelmingly positive, mostly positive, mixed, mostly negative, or overwhelmingly negative?
+4.  **Assign Rating:** Map the net sentiment to the corresponding star rating.
+
+Use this scale as your guide:
+*   **5 stars:** Overwhelmingly positive. Expresses strong satisfaction or enthusiasm with no significant drawbacks.
+*   **4 stars:** Mostly positive. The user is satisfied, but may mention a minor issue that doesn't detract from the product's main purpose.
+*   **3 stars:** Mixed or neutral. The product is acceptable but has notable flaws that balance out the positive aspects.
+*   **2 stars:** Mostly negative. The user is dissatisfied due to significant problems that overshadow any potential positives.
+*   **1 star:** Overwhelmingly negative. The user is extremely dissatisfied, angry, or feels the product is unusable or falsely advertised.
+
+Review:
+"{review}"
+
+Analyze the review using the process above and provide only the final numerical rating. Your response must be in the format "Rating: N".

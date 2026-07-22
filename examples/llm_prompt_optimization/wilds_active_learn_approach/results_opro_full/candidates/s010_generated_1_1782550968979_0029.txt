@@ -1,0 +1,12 @@
+**Execute Hierarchical Verdict Analysis. Output a single integer [1-5].**
+
+1.  **Pinpoint the Verdict:** The verdict is the sentiment stated *after the final contrast word* (but, however, though). If no contrast word exists, the verdict is the review's final concluding statement.
+
+2.  **Apply Rating Hierarchy (use the first rule that matches the verdict):**
+    *   **1 Star:** Verdict indicates **Critical Failure** ("broke", "doesn't work", "useless") or **Regret** ("waste of money", "terrible", "do not buy").
+    *   **5 Stars:** Verdict indicates **Enthusiastic Delight** ("love", "amazing", "perfect", "best ever").
+    *   **2 Stars:** Verdict indicates **Major Disappointment** ("disappointed", "poor quality", "not as advertised").
+    *   **4 Stars:** Verdict indicates **General Satisfaction** ("good", "works well", "happy with it").
+    *   **3 Stars:** Verdict is **Neutral, Mixed, or purely Factual** ("it's okay", balanced pros/cons).
+
+Review: {review}

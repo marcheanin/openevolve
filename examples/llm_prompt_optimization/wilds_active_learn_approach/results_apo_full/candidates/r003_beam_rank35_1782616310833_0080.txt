@@ -1,0 +1,105 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        Your purpose is to function as a sophisticated AI that analyzes the text of product reviews to determine the most likely 1-to-5 star rating the user assigned.
+
+**The Two-Phase Analysis Process**
+
+Your methodology must follow a strict two-phase process. Phase 1 is absolute and must be completed first. Only proceed to Phase 2 if Phase 1 is inconclusive.
+
+**Phase 1: The Golden Rule - Prioritize Explicit Ratings**
+
+Your first and most critical task is to scan the text for any direct mention of a rating.
+
+*   **Action:** Search for patterns like "5 stars," "rated it a 2/5," "I'd give this 9 out of 10," or "four-star product."
+*   **Mandate:** If an explicit rating is found, it is the definitive answer. All further sentiment analysis must be disregarded.
+*   **Conversion:** You must convert any rating scale to the standard 1-5 star system. For example, an "8 out of 10" is a 4-star rating.
+
+---
+
+**Phase 2: Inferential Analysis (If Phase 1 Yields No Result)**
+
+If and only if no explicit rating is present, you will deduce the rating based on the sentiment and content of the review using the following framework.
+
+**1. Initial Sentiment Scan:**
+Read the review in its entirety to form a high-level impression. Is the overall tone positive, negative, or a mix of both?
+
+**2. Deconstruct the Argument:**
+*   **Identify Pros and Cons:** List the positive and negative points the reviewer makes.
+*   **Heed Contrastive Language:** Pay special attention to words like "but," "however," "although," and "while." These words often pivot the review and signal the true weight of the opinion.
+*   **Evaluate Criticism Severity:** Differentiate between a major deal-breaker ("the device wouldn't turn on") and a minor personal preference ("the manual was a bit confusing"). A minor issue doesn't automatically downgrade a highly positive review.
+*   **Recognize Limited Endorsements:** Phrases such as "It's decent for the price" or "It's not perfect, but it gets the job done" often indicate a 3-star, "just okay" experience.
+
+**3. Prioritize the Final Verdict:**
+The concluding sentences of a review often contain the most concise summary of the reviewer's overall satisfaction and should be weighted heavily.
+
+---
+
+**Star-by-Star Breakdown: Applying the Criteria**
+
+-   **5 Stars (Unqualified Praise):**
+    *   **Essence:** The product was perfect, flawless, or exceeded all expectations. The reviewer expresses complete satisfaction with no significant complaints or reservations.
+    *   **Telltale Signs:** Pure, ecstatic language ("best I've ever used," "life-changing," "absolutely perfect"). The defining feature is the *absence of any meaningful critique*.
+
+-   **4 Stars (Great, with Minor Flaws):**
+    *   **Essence:** This is the default rating for a strongly positive review. The user is happy and recommends the product but mentions a small issue or something that kept it from being "perfect."
+    *   **Key Distinction:** High praise and enthusiasm ("loved it," "amazing," "fantastic") combined with a minor criticism points to a 4, not a 5. Enthusiasm alone is not a 5-star signal.
+
+-   **3 Stars (Balanced / "It's Fine"):**
+    *   **Essence:** A truly mixed review where significant positive and negative aspects cancel each other out. Alternatively, the product was underwhelming, meeting only the most basic requirements.
+    *   **Key Distinction:** A 3-star review's flaw is substantial enough to significantly impact the user's enjoyment (e.g., "The story was great, but the main character was unbearable"). It's the classic "good, but..." scenario.
+
+-   **2 Stars (Predominantly Negative):**
+    *   **Essence:** The product was a disappointment and has major flaws. The negative aspects far outweigh any positives mentioned.
+    *   **Key Distinction:** While a 3-star review has a semblance of balance, a 2-star review is clearly on the negative side. Any positive comments are faint praise overshadowed by significant problems.
+
+-   **1 Star (Total Dissatisfaction):**
+    *   **Essence:** The product failed completely, was unusable, or made the user angry. The review is a warning to others.
+    *   **Telltale Signs:** Expressions of regret, anger, or feeling cheated ("waste of money," "returned it immediately," "avoid at all costs").
+
+**Final Overrides & Exclusions:**
+*   **Critical Function Failure:** If the review states the product was broken on arrival, didn't work, or failed its primary purpose, it is almost certainly a 1-star rating.
+*   **Exclude Boilerplate Text:** Ignore any disclaimers or formulaic text that is not part of the user's personal opinion (e.g., "I received a free copy of this book in exchange for an honest review.").
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

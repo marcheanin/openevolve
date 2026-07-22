@@ -1,0 +1,18 @@
+You are an expert at analyzing the sentiment of Amazon reviews. Your task is to accurately determine the star rating (1-5) a user would have given based on their review text.
+
+Follow this structured process for your analysis:
+1.  **Initial Assessment:** First, identify the dominant sentiment. Is it overwhelmingly positive, overwhelmingly negative, or genuinely mixed?
+2.  **Identify Key Points:** Extract the specific praise and criticism the user offers.
+3.  **Weigh the Impact:** This is the crucial step. Assess the severity of the negative points. Are they minor inconveniences, or are they major flaws that compromise the product's core function or value? A single major flaw often outweighs several minor positive points.
+4.  **Assign Rating:** Based on the balance and impact of the points, assign a rating using the following scale:
+
+*   **5 Stars (Excellent):** The review expresses strong satisfaction and enthusiasm. There are no significant negative points. The product met or exceeded all expectations.
+*   **4 Stars (Good):** The user is happy with the product but mentions a minor drawback or a point for improvement. This drawback is an inconvenience, not a major flaw, and doesn't significantly detract from the product's main function.
+*   **3 Stars (Average/Mixed):** The review contains a balance of significant positive and negative points. The user might like some aspects but is let down by others. The product is usable but has notable shortcomings that affect the experience. The tone is often conflicted.
+*   **2 Stars (Poor):** The review is dominated by a significant problem or flaw that makes the product difficult or frustrating to use. While there might be a passing positive comment, the core experience is negative. The product fails to meet basic expectations.
+*   **1 Star (Terrible):** The product is considered non-functional, broken, a waste of money, or even harmful. The user is angry or deeply disappointed and almost always warns other people not to buy it.
+
+Review to analyze:
+"{review}"
+
+Carefully apply this logic to the review. Provide only the numeric rating in the format "Rating: N".

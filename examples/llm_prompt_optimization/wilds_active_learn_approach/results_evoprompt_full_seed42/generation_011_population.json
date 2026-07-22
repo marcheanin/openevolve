@@ -1,0 +1,189 @@
+[
+  {
+    "candidate_id": "g008_crossover_1782307967526_0083",
+    "source": "crossover",
+    "generation": 8,
+    "parent_ids": [
+      "g002_crossover_1782305120666_0019",
+      "g005_crossover_1782306554638_0052"
+    ],
+    "score": 0.7125,
+    "metrics": {
+      "R_global": 0.7125,
+      "R_worst": 0.0,
+      "mae": 0.3,
+      "num_users": 71,
+      "num_examples": 80,
+      "accuracy": 0.7125,
+      "score": 0.7125
+    }
+  },
+  {
+    "candidate_id": "g010_mutation_1782308499484_0097",
+    "source": "mutation",
+    "generation": 10,
+    "parent_ids": [
+      "g007_crossover_1782307548583_0072"
+    ],
+    "score": 0.7125,
+    "metrics": {
+      "R_global": 0.7125,
+      "R_worst": 0.0,
+      "mae": 0.3,
+      "num_users": 71,
+      "num_examples": 80,
+      "accuracy": 0.7125,
+      "score": 0.7125
+    }
+  },
+  {
+    "candidate_id": "g010_mutation_1782308534258_0098",
+    "source": "mutation",
+    "generation": 10,
+    "parent_ids": [
+      "g003_crossover_1782305860810_0032"
+    ],
+    "score": 0.7125,
+    "metrics": {
+      "R_global": 0.7125,
+      "R_worst": 0.0,
+      "mae": 0.3125,
+      "num_users": 71,
+      "num_examples": 80,
+      "accuracy": 0.7125,
+      "score": 0.7125
+    }
+  },
+  {
+    "candidate_id": "g011_crossover_1782308908465_0108",
+    "source": "crossover",
+    "generation": 11,
+    "parent_ids": [
+      "g010_mutation_1782308499484_0097",
+      "g003_crossover_1782305860810_0032"
+    ],
+    "score": 0.7125,
+    "metrics": {
+      "R_global": 0.7125,
+      "R_worst": 0.0,
+      "mae": 0.3,
+      "num_users": 71,
+      "num_examples": 80,
+      "accuracy": 0.7125,
+      "score": 0.7125
+    }
+  },
+  {
+    "candidate_id": "g001_mutation_1782304758405_0013",
+    "source": "mutation",
+    "generation": 1,
+    "parent_ids": [
+      "g000_init3_1782304296513_0003"
+    ],
+    "score": 0.7,
+    "metrics": {
+      "R_global": 0.7,
+      "R_worst": 0.0,
+      "mae": 0.3125,
+      "num_users": 71,
+      "num_examples": 80,
+      "accuracy": 0.7,
+      "score": 0.7
+    }
+  },
+  {
+    "candidate_id": "g002_crossover_1782305120666_0019",
+    "source": "crossover",
+    "generation": 2,
+    "parent_ids": [
+      "g001_mutation_1782304758405_0013",
+      "g000_init6_1782304327317_0006"
+    ],
+    "score": 0.7,
+    "metrics": {
+      "R_global": 0.7,
+      "R_worst": 0.0,
+      "mae": 0.3125,
+      "num_users": 71,
+      "num_examples": 80,
+      "accuracy": 0.7,
+      "score": 0.7
+    }
+  },
+  {
+    "candidate_id": "g003_crossover_1782305860810_0032",
+    "source": "crossover",
+    "generation": 3,
+    "parent_ids": [
+      "g001_mutation_1782304758405_0013",
+      "g002_crossover_1782305120666_0019"
+    ],
+    "score": 0.7,
+    "metrics": {
+      "R_global": 0.7,
+      "R_worst": 0.0,
+      "mae": 0.3125,
+      "num_users": 71,
+      "num_examples": 80,
+      "accuracy": 0.7,
+      "score": 0.7
+    }
+  },
+  {
+    "candidate_id": "g005_crossover_1782306527771_0051",
+    "source": "crossover",
+    "generation": 5,
+    "parent_ids": [
+      "g002_crossover_1782305120666_0019",
+      "g001_mutation_1782304758405_0013"
+    ],
+    "score": 0.7,
+    "metrics": {
+      "R_global": 0.7,
+      "R_worst": 0.0,
+      "mae": 0.3125,
+      "num_users": 71,
+      "num_examples": 80,
+      "accuracy": 0.7,
+      "score": 0.7
+    }
+  },
+  {
+    "candidate_id": "g005_crossover_1782306554638_0052",
+    "source": "crossover",
+    "generation": 5,
+    "parent_ids": [
+      "g003_crossover_1782305860810_0032",
+      "g003_crossover_1782305924494_0034"
+    ],
+    "score": 0.7,
+    "metrics": {
+      "R_global": 0.7,
+      "R_worst": 0.0,
+      "mae": 0.3125,
+      "num_users": 71,
+      "num_examples": 80,
+      "accuracy": 0.7,
+      "score": 0.7
+    }
+  },
+  {
+    "candidate_id": "g005_crossover_1782306610761_0054",
+    "source": "crossover",
+    "generation": 5,
+    "parent_ids": [
+      "g003_mutation_1782305952658_0035",
+      "g003_crossover_1782305860810_0032"
+    ],
+    "score": 0.7,
+    "metrics": {
+      "R_global": 0.7,
+      "R_worst": 0.0,
+      "mae": 0.3125,
+      "num_users": 71,
+      "num_examples": 80,
+      "accuracy": 0.7,
+      "score": 0.7
+    }
+  }
+]

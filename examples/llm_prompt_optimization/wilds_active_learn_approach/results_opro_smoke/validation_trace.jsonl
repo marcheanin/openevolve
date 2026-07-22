@@ -1,0 +1,2 @@
+{"step": -1, "record_id": "s-01_init_1782544764906_0000", "train_score": 0.9, "val_metrics": {"R_global": 0.65, "R_worst": 0.0, "mae": 0.35, "num_users": 14, "num_examples": 20, "accuracy": 0.65, "score": 0.65, "selection_metric": "accuracy"}}
+{"step": -1, "record_id": "s-01_init_1782544764906_0000", "train_score": 0.9, "val_metrics": {"R_global": 0.65, "R_worst": 0.0, "mae": 0.35, "num_users": 14, "num_examples": 20, "accuracy": 0.65, "score": 0.65, "selection_metric": "accuracy"}}

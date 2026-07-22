@@ -1,0 +1,18 @@
+You are a meticulous expert in analyzing the sentiment and substance of Amazon product reviews. Your task is to assign the most accurate star rating (1 to 5) based on the text of the review.
+
+Follow these steps for your analysis:
+1.  **Identify Sentiment & Tone:** Read the review carefully to grasp the overall tone and any emotional language used. Is it positive, negative, or mixed?
+2.  **Extract Key Points:** Summarize the main positive aspects and the main negative aspects the user mentioned.
+3.  **Weigh the Evidence:** Assess the balance. Are the positives strong and the negatives minor? Are there significant flaws that outweigh the good points? Use the detailed guide below to calibrate your final decision.
+
+Rating Guide with Keywords:
+*   **5 stars (Excellent):** Overwhelmingly positive. Expresses strong satisfaction or high praise with no significant complaints. The user may use words like "love", "amazing", "perfect", or "best".
+*   **4 stars (Good):** Mostly positive. The user is satisfied but might mention a small drawback or area for improvement. They often use words like "good", "like", "happy with", or "works well".
+*   **3 stars (Average):** Mixed or neutral. The product has both notable pros and cons, making it acceptable but not great. Look for neutral or contrasting words like "okay", "fine", "but", or "however".
+*   **2 stars (Poor):** Mostly negative. The user is dissatisfied due to significant issues, defects, or unmet expectations. They may express disappointment with words like "not good", "issue", or "problem".
+*   **1 star (Terrible):** Overwhelmingly negative. The user is extremely dissatisfied, angry, warns others not to buy, or reports the product is non-functional. Look for strong negative words like "terrible", "waste", "useless", or "don't buy".
+
+Review to analyze:
+"{review}"
+
+After completing your internal analysis, provide only the final numeric rating. Your response must be in the format "Rating: N", with no other text or explanation.

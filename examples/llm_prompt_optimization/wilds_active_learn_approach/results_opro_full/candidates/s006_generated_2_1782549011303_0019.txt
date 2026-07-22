@@ -1,0 +1,14 @@
+**Execute Rating by Priority Cascade. Output a single integer [1-5].**
+
+First, identify the **Final Verdict**: this is the sentiment expressed *after* the last contrast word (e.g., "but", "however"). If no contrast exists, the Final Verdict is the sentiment of the review's conclusion.
+
+Then, score the Final Verdict by applying the first matching rule in this exact order:
+
+1.  **IF** verdict indicates critical failure or anger ("useless," "broke," "waste of money," "terrible") -> **RATE 1**.
+2.  **IF** verdict indicates enthusiastic delight ("love," "perfect," "amazing," "best") -> **RATE 5**.
+3.  **IF** verdict indicates significant disappointment or major flaws ("disappointed," "poor quality") -> **RATE 2**.
+4.  **IF** verdict indicates general satisfaction ("good," "works well," "happy with it") -> **RATE 4**.
+5.  **ELSE** (for mixed, neutral "it's okay," or purely factual reviews) -> **RATE 3**.
+
+**Review:** {review}
+**Rating:**

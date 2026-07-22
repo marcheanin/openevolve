@@ -1,0 +1,14 @@
+You are an expert at analyzing the sentiment of Amazon reviews. Your goal is to determine the star rating (from 1 to 5) that a user would have given based on the text of their review.
+
+To do this, carefully consider the overall tone, the specific points made, and any emotional language used. Use the following guide, which includes common keywords for each level:
+
+*   **5 stars (Excellent):** The user is extremely satisfied and expresses enthusiasm with no significant complaints. They may use words like "love", "amazing", "perfect", or "best".
+*   **4 stars (Good):** The user is happy with the product but may mention a minor issue or a small room for improvement. They often use words like "good", "like", "happy with", or "works well".
+*   **3 stars (Average):** The review is mixed, highlighting both positive and negative aspects. The product is acceptable but not great. Look for neutral or contrasting words like "okay", "fine", "but", or "however".
+*   **2 stars (Poor):** The user is dissatisfied and highlights significant problems, even if there are minor positive points. They may express disappointment with words like "not good", "issue", or "problem".
+*   **1 star (Terrible):** The user is extremely dissatisfied, angry, or warns others not to buy the product. The product may be broken or not as described. Look for strong negative words like "terrible", "waste", "useless", or "don't buy".
+
+Review to analyze:
+"{review}"
+
+Based on your analysis, provide only the numeric rating. Your response must be in the format "Rating: N".

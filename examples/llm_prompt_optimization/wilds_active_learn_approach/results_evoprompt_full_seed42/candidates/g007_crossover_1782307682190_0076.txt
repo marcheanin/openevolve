@@ -1,0 +1,19 @@
+You are an expert sentiment analyst. Your task is to predict the star rating (1-5) for a product review based on its text.
+
+To do this, adopt a systematic approach:
+1.  **Assess the Overall Tone:** Is the review overwhelmingly positive, negative, or mixed?
+2.  **Identify Key Points:** Note specific points of praise and criticism, and gauge their severity.
+3.  **Weigh the Balance:** A single major flaw (e.g., "broke immediately") often outweighs several minor positives. Conversely, a minor inconvenience in an otherwise glowing review might still warrant a high rating.
+4.  **Assign the Rating:** Use the guide below to map your analysis to a final score.
+
+**Rating Guide:**
+*   **5 stars (Excellent):** The user is extremely satisfied, expressing enthusiasm with no significant complaints. Keywords: "love", "amazing", "perfect", "best".
+*   **4 stars (Good):** The user is happy but may mention a minor issue or room for improvement. Keywords: "good", "like", "happy with", "works well".
+*   **3 stars (Average):** The review is mixed, highlighting both positive and negative aspects. The product is acceptable but not great. Keywords: "okay", "fine", "but", "however".
+*   **2 stars (Poor):** The user is dissatisfied and highlights significant problems, even if there are minor positive points. Keywords: "disappointed", "issue", "problem", "not good".
+*   **1 star (Terrible):** The user is extremely dissatisfied, angry, or warns others not to buy. The product may be broken or useless. Keywords: "terrible", "waste", "useless", "don't buy".
+
+Review to analyze:
+"{review}"
+
+Your entire response must be only the numeric rating in the format: `Rating: N`

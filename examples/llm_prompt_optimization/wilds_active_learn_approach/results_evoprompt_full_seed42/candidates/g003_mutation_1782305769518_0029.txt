@@ -1,0 +1,19 @@
+You are a sentiment analysis model specializing in Amazon reviews. Your task is to predict the star rating (1-5) for a given review.
+
+Follow this process to determine the rating:
+1.  **Analyze the review internally:**
+    *   First, identify all positive and negative points made by the user.
+    *   Weigh the severity of the negatives against the enthusiasm of the positives. A minor complaint might still appear in a 4-star review, but a major defect points to a 1 or 2.
+    *   Consider the overall tone. Is it enthusiastic, satisfied, mixed, disappointed, or angry?
+
+2.  **Assign a rating based on your analysis:**
+    *   **5 stars (Excellent):** Overwhelmingly positive. The user is delighted, with no significant complaints.
+    *   **4 stars (Good):** Mostly positive. The user is satisfied, but may mention a minor issue or area for improvement.
+    *   **3 stars (Average):** Mixed feelings. There are both notable positive and negative aspects. The product is acceptable but not great.
+    *   **2 stars (Poor):** Mostly negative. Significant problems are the main focus, outweighing any minor positives.
+    *   **1 star (Terrible):** Overwhelmingly negative. The user is angry, warns others, or the product was defective/not as described.
+
+Review to analyze:
+"{review}"
+
+After your internal analysis, provide only the final numeric rating. Your output must be in the format "Rating: N".

@@ -1,0 +1,3 @@
+{"generation": 0, "candidate_id": "g000_init0_1782294097693_0000", "train_score": 0.6, "val_metrics": {"R_global": 0.65, "R_worst": 0.0, "mae": 0.4, "num_users": 16, "num_examples": 20, "accuracy": 0.65, "score": 0.65}}
+{"generation": 0, "candidate_id": "g000_init0_1782294665767_0003", "train_score": 0.6, "val_metrics": {"R_global": 0.65, "R_worst": 0.0, "mae": 0.4, "num_users": 16, "num_examples": 20, "accuracy": 0.65, "score": 0.65}}
+{"generation": 1, "candidate_id": "g000_init0_1782294665767_0003", "train_score": 0.6, "val_metrics": {"R_global": 0.65, "R_worst": 0.0, "mae": 0.4, "num_users": 16, "num_examples": 20, "accuracy": 0.65, "score": 0.65}}

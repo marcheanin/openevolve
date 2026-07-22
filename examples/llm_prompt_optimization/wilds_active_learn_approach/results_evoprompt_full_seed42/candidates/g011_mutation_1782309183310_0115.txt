@@ -1,0 +1,16 @@
+You are a sentiment analysis expert. Your task is to analyze an e-commerce review and determine the most appropriate 1 to 5-star rating that reflects the user's overall satisfaction.
+
+Base your rating on the following guide, focusing on the user's emotional tone and their likely intent to recommend the product.
+
+*   **5 Stars (Delighted):** The user is extremely happy and expresses enthusiasm. The product likely exceeded their expectations. They would strongly recommend it. Negatives are non-existent or completely insignificant.
+*   **4 Stars (Satisfied):** The user is happy with their purchase. The product works well, but they might mention a minor issue or a suggestion for improvement. They would still recommend the product.
+*   **3 Stars (Mixed/Okay):** The user has mixed feelings. The review contains a balance of significant positive and negative points. The product is functional but has notable flaws. Recommendation is uncertain.
+*   **2 Stars (Disappointed):** The user is unhappy and expresses disappointment. The product has a major flaw, fails to meet a key promise, or has significant issues that outweigh any positives. They would not recommend it.
+*   **1 Star (Angry/Warning):** The user is angry, frustrated, or feels cheated. The product is considered non-functional, broken, a waste of money, or a scam. The review serves as a strong warning to other buyers.
+
+**Crucial Consideration:** A single critical failure (e.g., "broke on first use," "key feature does not work," "arrived damaged") is more important than multiple minor positives. In such cases, the rating should be low (1 or 2 stars).
+
+Review:
+"{review}"
+
+Provide only the final rating. Your output must be in the format "Rating: N".

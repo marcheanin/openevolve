@@ -1,0 +1,898 @@
+"""
+Modified evaluator for Active Prompt Evolution.
+
+Supports:
+- Active batch evaluation (reads active_batch.json)
+- Weighted fitness: w1*Acc_Hard + w2*Acc_Anchor + w3*kappa - P_Len
+- evaluate_fast on active batch, evaluate_full on validation
+- Per-example results for DataManager
+"""
+
+import hashlib
+import json
+import os
+import sys
+import time
+import warnings
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import numpy as np
+import yaml
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+WILDS_EXPERIMENT = SCRIPT_DIR / "wilds_experiment"
+EXPERIMENTS_ROOT = WILDS_EXPERIMENT / "experiments"
+OPENEVOLVE_PKG_ROOT = SCRIPT_DIR.parent.parent.parent
+
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+if str(WILDS_EXPERIMENT) not in sys.path:
+    sys.path.insert(0, str(WILDS_EXPERIMENT))
+if str(EXPERIMENTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(EXPERIMENTS_ROOT))
+if str(OPENEVOLVE_PKG_ROOT) not in sys.path:
+    sys.path.append(str(OPENEVOLVE_PKG_ROOT))
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# IMPORTANT: Avoid importing a different `workers.py` from wilds_experiment/experiments
+# (same module name) when sys.path contains EXPERIMENTS_ROOT.
+import importlib.util as _importlib_util
+
+_workers_path = SCRIPT_DIR / "workers.py"
+_workers_spec = _importlib_util.spec_from_file_location("wilds_active_learn_workers", _workers_path)
+_workers_mod = _importlib_util.module_from_spec(_workers_spec)
+assert _workers_spec.loader is not None
+_workers_spec.loader.exec_module(_workers_mod)
+LLMWorker = _workers_mod.LLMWorker
+from collections import Counter
+from experiments.metrics import compute_metrics, compute_combined_score_unified
+from openevolve.evaluation_result import EvaluationResult
+
+DEFAULT_MAX_PARALLEL = 15
+
+# Progress checkpoints for long full-test / full-split runs (see _parallel_predict).
+_PREDICT_PROGRESS_LATEST = "predict_progress_latest.json"
+_PREDICT_PROGRESS_COMPLETE = "predict_progress_complete.json"
+
+
+def _atomic_write_json(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False)
+    os.replace(str(tmp), str(path))
+
+# Fitness weights (from plan)
+W1_ACC_HARD = 0.5
+W2_ACC_ANCHOR = 0.3
+W3_KAPPA = 0.2
+PROMPT_LEN_LIMIT = 2000
+PENALTY_PER_100_TOKENS = 0.02
+
+
+class MajorityVoteAggregator:
+    def aggregate(self, worker_predictions: List[int]) -> int:
+        return Counter(worker_predictions).most_common(1)[0][0]
+
+
+def _estimate_tokens(text: str) -> int:
+    """Rough token estimate: ~4 chars per token."""
+    return len(text) // 4
+
+
+def _strip_mutation_log(text: str) -> str:
+    """Remove <mutation_log>...</mutation_log> if the parser included it."""
+    import re
+    return re.sub(r"<mutation_log>.*?</mutation_log>\s*", "", text, flags=re.DOTALL)
+
+
+def _load_config() -> dict:
+    env_path = os.environ.get("WILDS_ACTIVE_LEARN_CONFIG")
+    if env_path and Path(env_path).is_file():
+        path = Path(env_path)
+    else:
+        path = SCRIPT_DIR / "config.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def _load_active_batch() -> Optional[Dict[str, Any]]:
+    """Load active batch from active_batch.json if present."""
+    for base in [SCRIPT_DIR, Path.cwd()]:
+        path = base / "active_batch.json"
+        if path.exists():
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+    return None
+
+
+_SPLIT_DATA_CACHE: Dict[Tuple, Tuple[List[str], np.ndarray, np.ndarray]] = {}
+
+
+def _coerce_positive_int_cap(v: Any) -> Optional[int]:
+    """YAML may load null as None, or the string 'none'; bool must not become 0/1."""
+    if v is None:
+        return None
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, str):
+        s = v.strip().lower()
+        if s in ("", "none", "null", "~", "nan"):
+            return None
+        try:
+            v = int(float(s))
+        except ValueError:
+            return None
+    elif isinstance(v, float):
+        v = int(v)
+    elif not isinstance(v, int):
+        return None
+    return v if v > 0 else None
+
+
+def _resolve_max_samples(ds_cfg: dict, split_name: str) -> Optional[int]:
+    """Per-split cap from dataset.*; fallback to max_samples. None or <=0 = no cap."""
+    if split_name == "train":
+        key = "max_samples_train"
+    elif split_name in ("validation", "val"):
+        key = "max_samples_val"
+    elif split_name == "test":
+        key = "max_samples_test"
+    else:
+        key = "max_samples_val"
+    cap = _coerce_positive_int_cap(ds_cfg.get(key))
+    if cap is None:
+        cap = _coerce_positive_int_cap(ds_cfg.get("max_samples"))
+    return cap
+
+
+def _load_split_data(config: dict, split_name: str) -> Tuple[List[str], np.ndarray, np.ndarray]:
+    """Load data for a split. Result is cached so repeated calls (e.g. every evaluate() in evolution) don't hit disk."""
+    ds_cfg = config.get("dataset", {})
+    stratify_users = bool(ds_cfg.get("stratify_users", False))
+    if split_name == "train":
+        max_users = ds_cfg.get("max_train_users")
+    elif split_name == "test":
+        # Allow per-split user cap for test; fallback to max_val_users for backwards compat.
+        max_users = ds_cfg.get("max_test_users", ds_cfg.get("max_val_users"))
+    else:
+        max_users = ds_cfg.get("max_val_users")
+    max_reviews_per_user = ds_cfg.get("max_reviews_per_user")
+    
+    if max_users is not None and max_users <= 0:
+        max_users = None
+    max_reviews = _resolve_max_samples(ds_cfg, split_name)
+    dataset_rel = ds_cfg.get("config_path", "dataset.yaml")
+    cache_key = (split_name, max_users, dataset_rel, max_reviews, stratify_users, max_reviews_per_user)
+    if cache_key in _SPLIT_DATA_CACHE:
+        return _SPLIT_DATA_CACHE[cache_key]
+
+    import importlib.util
+    base_eval_path = WILDS_EXPERIMENT / "evaluator.py"
+    spec = importlib.util.spec_from_file_location("wilds_base_evaluator", base_eval_path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    load_preprocessed_data = mod.load_preprocessed_data
+    load_wilds_dataset = mod.load_wilds_dataset
+    preprocess_category_data = mod.preprocess_category_data
+    create_splits_from_preprocessed = mod.create_splits_from_preprocessed
+    save_preprocessed_data = mod.save_preprocessed_data
+    effective_category_id = mod.effective_category_id
+    dataset_cfg_path = SCRIPT_DIR / dataset_rel
+    with open(dataset_cfg_path, "r", encoding="utf-8") as f:
+        dataset_cfg = yaml.safe_load(f)
+    dataset_cfg.setdefault("data_root", "./data")
+
+    preprocessed = load_preprocessed_data(dataset_cfg)
+    if preprocessed is None:
+        dataset, _ = load_wilds_dataset(dataset_cfg)
+        preprocessed = preprocess_category_data(dataset, effective_category_id(dataset_cfg))
+        save_preprocessed_data(dataset_cfg, preprocessed)
+
+    splits = create_splits_from_preprocessed(
+        preprocessed,
+        train_ratio=dataset_cfg.get("train_ratio", 0.7),
+        val_ratio=dataset_cfg.get("validation_ratio", 0.15),
+        test_ratio=dataset_cfg.get("test_ratio", 0.15),
+        seed=dataset_cfg.get("split_seed", 42),
+    )
+    split_key = "validation" if split_name == "val" else split_name
+    split = splits[split_key]
+    indices = split["indices"]
+    texts = [preprocessed["texts"][i] for i in indices]
+    labels = np.array([int(preprocessed["labels"][i]) for i in indices])
+    user_ids = np.array([int(preprocessed["user_ids"][i]) for i in indices])
+    cats_list: Optional[List[int]] = None
+    if preprocessed.get("categories") is not None:
+        cats_list = [int(preprocessed["categories"][i]) for i in indices]
+    
+    if max_users and max_users > 0:
+        if stratify_users and cats_list is not None and len(cats_list) == len(texts):
+            from sample_stratified import select_stratified_users_and_cap
+            split_seed = int(dataset_cfg.get("split_seed", 42))
+            _rng_off = {"train": 0, "validation": 1, "val": 1, "test": 2}.get(split_name, 0)
+            rng = np.random.RandomState(split_seed + 1000 + _rng_off)
+            
+            pick = select_stratified_users_and_cap(
+                np.array(user_ids), np.array(cats_list), max_users, max_reviews_per_user or 0, rng
+            )
+            texts = [texts[i] for i in pick]
+            labels = [labels[i] for i in pick]
+            user_ids = [user_ids[i] for i in pick]
+        else:
+            unique_users = sorted(set(user_ids.tolist()))
+            selected = set(unique_users[: int(max_users)])
+            mask = np.array([u in selected for u in user_ids])
+            texts = [t for t, m in zip(texts, mask) if m]
+            labels = labels[mask]
+            user_ids = user_ids[mask]
+            
+            if max_reviews_per_user and max_reviews_per_user > 0:
+                split_seed = int(dataset_cfg.get("split_seed", 42))
+                _rng_off = {"train": 0, "validation": 1, "val": 1, "test": 2}.get(split_name, 0)
+                rng = np.random.RandomState(split_seed + 1000 + _rng_off)
+                final_indices = []
+                for u in selected:
+                    u_idx = np.where(user_ids == u)[0]
+                    if len(u_idx) > max_reviews_per_user:
+                        u_idx = rng.choice(u_idx, size=max_reviews_per_user, replace=False)
+                    final_indices.extend(u_idx)
+                final_indices = np.array(final_indices)
+                final_indices.sort()
+                texts = [texts[i] for i in final_indices]
+                labels = labels[final_indices]
+                user_ids = user_ids[final_indices]
+
+    max_reviews = _resolve_max_samples(ds_cfg, split_name)
+    if max_reviews and len(texts) > max_reviews:
+        split_seed = int(dataset_cfg.get("split_seed", 42))
+        _rng_off = {"train": 0, "validation": 1, "val": 1, "test": 2}.get(split_name, 0)
+        rng = np.random.RandomState(split_seed + 1000 + _rng_off)
+        pick = rng.choice(len(texts), size=max_reviews, replace=False)
+        pick.sort()
+        texts = [texts[i] for i in pick]
+        labels = labels[pick]
+        user_ids = user_ids[pick]
+
+    _SPLIT_DATA_CACHE[cache_key] = (texts, labels, user_ids)
+    return texts, labels, user_ids
+
+
+def _build_workers(config: dict) -> List[LLMWorker]:
+    defaults = config.get("worker_defaults", {})
+    workers = []
+    for cfg in config.get("workers", []):
+        merged = {**defaults, **(cfg or {})}
+        workers.append(LLMWorker(
+            model_name=merged.get("name", "deepseek-chat-v3"),
+            api_base=merged.get("api_base"),
+            temperature=merged.get("temperature", 0.1),
+            max_tokens=merged.get("max_tokens", 64),
+        ))
+    return workers
+
+
+def _parallel_predict(
+    workers: List[LLMWorker],
+    texts: List[str],
+    prompt_template: str,
+    max_parallel: int = DEFAULT_MAX_PARALLEL,
+) -> Tuple[List[int], List[List[int]]]:
+    """
+    Run all (text, worker) predictions in parallel using ThreadPoolExecutor.
+    Returns (ensemble_predictions, worker_preds) where worker_preds[w][i] is
+    the prediction of worker w on text i.
+
+    Progress checkpoints (same schema as resume dumps):
+      - WILDS_PREDICT_DUMP_DIR: directory for ``predict_progress_latest.json`` (default: ./predict_dumps)
+      - WILDS_PREDICT_DUMP_ON_FATAL: 0/1 — disable all grid saves if 0 (default 1)
+      - WILDS_PREDICT_PERIODIC_EVERY: save latest grid every N completed LLM cells (default 5000)
+      - WILDS_PREDICT_PERIODIC_MIN_SEC: min wall seconds between periodic saves (default 30)
+      - WILDS_PREDICT_RESUME_PATH: optional path to a prior dump to resume in-process
+    On interrupt or any BaseException during the pool loop, writes timestamped snapshot + latest.
+    On success, writes ``predict_progress_complete.json`` and refreshes latest.
+    """
+    n_texts = len(texts)
+    n_workers = len(workers)
+    # grid[w][t] = rating if computed, else None (so we can resume from partial dumps)
+    results_grid: List[List[Optional[int]]] = [[None] * n_texts for _ in range(n_workers)]
+    aggregator = MajorityVoteAggregator()
+
+    def _call(w_idx: int, t_idx: int) -> Tuple[int, int, int, Optional[Exception]]:
+        try:
+            pred = workers[w_idx].predict(texts[t_idx], prompt_template)
+            return w_idx, t_idx, int(pred), None
+        except Exception as exc:
+            # Keep progress going; treat as neutral default.
+            return w_idx, t_idx, 3, exc
+
+    import time as _time
+
+    total_calls = n_texts * n_workers
+    show_progress_env = os.getenv("WILDS_SHOW_PROGRESS", "").strip().lower()
+    show_progress = show_progress_env not in ("0", "false", "no", "off")
+    # Auto-disable tiny runs unless explicitly forced on.
+    if total_calls < 2000 and show_progress_env == "":
+        show_progress = False
+    progress_every = int(os.getenv("WILDS_PROGRESS_EVERY", "2500"))
+    progress_every = max(1, progress_every)
+
+    t_start = _time.time()
+    last_print_t = t_start
+    done = 0
+
+    def _count_done_cells() -> int:
+        c = 0
+        for w in range(n_workers):
+            for t in range(n_texts):
+                if results_grid[w][t] is not None:
+                    c += 1
+        return c
+
+    def _try_resume_from_dump() -> None:
+        nonlocal done
+        resume_path = os.getenv("WILDS_PREDICT_RESUME_PATH", "").strip()
+        if not resume_path:
+            return
+        p = Path(resume_path)
+        if not p.is_file():
+            print(f"    resume: dump not found: {p}", flush=True)
+            return
+        try:
+            with open(p, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as e:
+            print(f"    resume: failed to read dump {p}: {type(e).__name__}: {e}", flush=True)
+            return
+        if data.get("version") != 1:
+            print(f"    resume: unsupported dump version in {p}", flush=True)
+            return
+        if int(data.get("n_texts", -1)) != n_texts or int(data.get("n_workers", -1)) != n_workers:
+            print(f"    resume: dump shape mismatch in {p}", flush=True)
+            return
+        prompt_sha = hashlib.sha256(prompt_template.encode("utf-8")).hexdigest()
+        if data.get("prompt_sha256") != prompt_sha:
+            print(f"    resume: prompt_sha mismatch (dump != current). Ignoring {p}", flush=True)
+            return
+        expected_workers = [getattr(w, "model_uri", None) or getattr(w, "model_name", None) for w in workers]
+        if data.get("worker_models") != expected_workers:
+            print(f"    resume: worker_models mismatch (dump != current). Ignoring {p}", flush=True)
+            return
+        grid = data.get("grid")
+        if not isinstance(grid, list) or len(grid) != n_workers:
+            print(f"    resume: invalid grid in {p}", flush=True)
+            return
+        for w in range(n_workers):
+            row = grid[w]
+            if not isinstance(row, list) or len(row) != n_texts:
+                print(f"    resume: invalid grid row in {p}", flush=True)
+                return
+        # Load values (None means missing)
+        for w in range(n_workers):
+            for t in range(n_texts):
+                v = grid[w][t]
+                results_grid[w][t] = None if v is None else int(v)
+        done = _count_done_cells()
+        print(f"    resume: loaded {done}/{n_texts*n_workers} LLM cells from {p}", flush=True)
+
+    _try_resume_from_dump()
+
+    def _progress_save_enabled() -> bool:
+        return os.getenv("WILDS_PREDICT_DUMP_ON_FATAL", "1").strip().lower() not in (
+            "0",
+            "false",
+            "no",
+            "off",
+        )
+
+    def _progress_out_dir() -> Path:
+        dump_dir = os.getenv("WILDS_PREDICT_DUMP_DIR", "").strip()
+        return Path(dump_dir) if dump_dir else (SCRIPT_DIR / "predict_dumps")
+
+    def _build_grid_payload(reason: str) -> dict:
+        prompt_sha = hashlib.sha256(prompt_template.encode("utf-8")).hexdigest()
+        return {
+            "version": 1,
+            "reason": reason,
+            "n_texts": n_texts,
+            "n_workers": n_workers,
+            "done_llm_cells": done,
+            "total_llm_cells": total_calls,
+            "prompt_sha256": prompt_sha,
+            "worker_models": [getattr(w, "model_uri", None) or getattr(w, "model_name", None) for w in workers],
+            "grid": results_grid,
+        }
+
+    def _write_predict_progress(reason: str, *, timestamped: bool) -> None:
+        """
+        Persist worker×text label grid for resume / crash recovery.
+        Always writes predict_progress_latest.json when enabled.
+        If timestamped, also writes partial_predictions_<sha>_<ts>.json
+        """
+        if not _progress_save_enabled():
+            return
+        out_dir = _progress_out_dir()
+        try:
+            out_dir.mkdir(parents=True, exist_ok=True)
+            payload = _build_grid_payload(reason)
+            latest_path = out_dir / _PREDICT_PROGRESS_LATEST
+            _atomic_write_json(latest_path, payload)
+            print(f"    progress: saved grid → {latest_path} ({payload['done_llm_cells']}/{total_calls})", flush=True)
+            if timestamped:
+                prompt_sha = payload["prompt_sha256"]
+                ts = time.strftime("%Y%m%d-%H%M%S")
+                snap = out_dir / f"partial_predictions_{prompt_sha[:12]}_{ts}.json"
+                _atomic_write_json(snap, payload)
+                print(f"    progress: snapshot → {snap}", flush=True)
+        except Exception as dump_exc:
+            print(f"    progress: WARNING failed to save grid ({dump_exc})", flush=True)
+
+    periodic_every = int(os.getenv("WILDS_PREDICT_PERIODIC_EVERY", "5000"))
+    periodic_every = max(1, periodic_every)
+    periodic_min_sec = float(os.getenv("WILDS_PREDICT_PERIODIC_MIN_SEC", "30"))
+    periodic_min_sec = max(0.0, periodic_min_sec)
+    last_periodic_wall = 0.0
+
+    try:
+        with ThreadPoolExecutor(max_workers=max_parallel) as pool:
+            futures = []
+            for t_idx in range(n_texts):
+                for w_idx in range(n_workers):
+                    if results_grid[w_idx][t_idx] is None:
+                        futures.append(pool.submit(_call, w_idx, t_idx))
+
+            for future in as_completed(futures):
+                w_idx, t_idx, pred, err = future.result()
+                if results_grid[w_idx][t_idx] is None:
+                    results_grid[w_idx][t_idx] = int(pred)
+                done += 1
+
+                if show_progress and (done % progress_every == 0 or done == total_calls):
+                    now = _time.time()
+                    # Throttle printing in case progress_every is too small.
+                    if now - last_print_t >= 1.0 or done == total_calls:
+                        elapsed = max(1e-6, now - t_start)
+                        rate = done / elapsed
+                        remaining = max(0, total_calls - done)
+                        eta_s = remaining / max(1e-6, rate)
+                        pct = 100.0 * done / max(1, total_calls)
+                        print(
+                            f"    progress: {done}/{total_calls} calls ({pct:.1f}%) | "
+                            f"{rate:.1f} calls/s | ETA {eta_s/60:.1f} min",
+                            flush=True,
+                        )
+                        last_print_t = now
+
+                # Periodic grid checkpoint (overwrites predict_progress_latest.json)
+                if done > 0 and done % periodic_every == 0:
+                    now = _time.time()
+                    if periodic_min_sec <= 0 or (now - last_periodic_wall) >= periodic_min_sec:
+                        _write_predict_progress("periodic", timestamped=False)
+                        last_periodic_wall = now
+    except BaseException as fatal:
+        _write_predict_progress(f"fatal: {type(fatal).__name__}: {fatal}", timestamped=True)
+        raise
+
+    if _progress_save_enabled():
+        try:
+            complete_payload = _build_grid_payload("complete")
+            complete_path = _progress_out_dir() / _PREDICT_PROGRESS_COMPLETE
+            _progress_out_dir().mkdir(parents=True, exist_ok=True)
+            _atomic_write_json(complete_path, complete_payload)
+            _atomic_write_json(_progress_out_dir() / _PREDICT_PROGRESS_LATEST, complete_payload)
+        except Exception as dump_exc:
+            print(f"    progress: WARNING failed to save complete grid ({dump_exc})", flush=True)
+
+    predictions = []
+    for t_idx in range(n_texts):
+        sample = [int(results_grid[w][t_idx] if results_grid[w][t_idx] is not None else 3) for w in range(n_workers)]
+        predictions.append(aggregator.aggregate(sample))
+
+    out_grid: List[List[int]] = [
+        [int(results_grid[w][t] if results_grid[w][t] is not None else 3) for t in range(n_texts)]
+        for w in range(n_workers)
+    ]
+    return predictions, out_grid
+
+
+def _run_evaluation(
+    prompt_template: str,
+    texts: List[str],
+    labels: np.ndarray,
+    user_ids: np.ndarray,
+    config: dict,
+) -> Tuple[np.ndarray, List[List[int]], Dict[str, Any]]:
+    """Run ensemble evaluation, return predictions, worker_predictions, metrics."""
+    workers = _build_workers(config)
+    max_parallel = config.get("worker_defaults", {}).get("max_parallel", DEFAULT_MAX_PARALLEL)
+
+    predictions, worker_preds = _parallel_predict(workers, texts, prompt_template, max_parallel)
+
+    pred_arr = np.array(predictions)
+    wp_arr = [np.array(wp) for wp in worker_preds]
+    metrics = compute_metrics(pred_arr, labels, user_ids, worker_predictions=wp_arr)
+    return pred_arr, wp_arr, metrics
+
+
+def _compute_weighted_fitness(
+    acc_hard: float,
+    acc_anchor: float,
+    kappa_hard: float,
+    prompt: str,
+) -> float:
+    """Score = w1*Acc_Hard + w2*Acc_Anchor + w3*kappa - P_Len"""
+    tokens = _estimate_tokens(prompt)
+    p_len = 0.0
+    if tokens > PROMPT_LEN_LIMIT:
+        excess = (tokens - PROMPT_LEN_LIMIT) / 100
+        p_len = PENALTY_PER_100_TOKENS * excess
+    kappa_clipped = max(0.0, float(kappa_hard))
+    return W1_ACC_HARD * acc_hard + W2_ACC_ANCHOR * acc_anchor + W3_KAPPA * kappa_clipped - p_len
+
+
+def evaluate_fast(
+    prompt_template: str,
+    active_batch_data: Dict[str, Any],
+    pool_texts: List[str],
+    pool_labels: List[int],
+    pool_user_ids: List[int],
+    config: dict,
+) -> Dict[str, Any]:
+    """
+    Evaluate on active batch (Hard + Anchor).
+    active_batch_data: { "indices": [...], "hard_indices": [...], "anchor_indices": [...] }
+    Pool arrays are indexed by pool index (0..n_pool-1).
+    """
+    indices = active_batch_data.get("indices", [])
+    hard_set = set(active_batch_data.get("hard_indices", []))
+    anchor_set = set(active_batch_data.get("anchor_indices", []))
+
+    texts = [pool_texts[i] for i in indices]
+    labels = np.array([pool_labels[i] for i in indices])
+    user_ids = np.array([pool_user_ids[i] for i in indices])
+
+    pred_arr, wp_arr, metrics = _run_evaluation(
+        prompt_template, texts, labels, user_ids, config
+    )
+
+    # Split by hard vs anchor
+    hard_preds, hard_labels, hard_wp = [], [], []
+    anchor_preds, anchor_labels, anchor_wp = [], [], []
+    for j, idx in enumerate(indices):
+        if idx in hard_set:
+            hard_preds.append(pred_arr[j])
+            hard_labels.append(labels[j])
+            hard_wp.append([wp[j] for wp in wp_arr])
+        elif idx in anchor_set:
+            anchor_preds.append(pred_arr[j])
+            anchor_labels.append(labels[j])
+            anchor_wp.append([wp[j] for wp in wp_arr])
+
+    acc_hard = float(np.mean(np.array(hard_preds) == np.array(hard_labels))) if hard_preds else 0.0
+    acc_anchor = float(np.mean(np.array(anchor_preds) == np.array(anchor_labels))) if anchor_preds else 1.0
+
+    kappa_hard = 0.0
+    if hard_preds and len(wp_arr) > 1:
+        try:
+            from sklearn.metrics import cohen_kappa_score
+        except ImportError:
+            pass
+        else:
+            hard_j = [j for j, idx in enumerate(indices) if idx in hard_set]
+            if hard_j:
+                hw = [np.array([wp_arr[k][j] for j in hard_j]) for k in range(len(wp_arr))]
+                kappas = []
+                labels_1_5 = [1, 2, 3, 4, 5]
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)
+                    warnings.simplefilter("ignore", RuntimeWarning)
+                    for i in range(len(hw)):
+                        for j in range(i + 1, len(hw)):
+                            try:
+                                k = cohen_kappa_score(hw[i], hw[j], weights="quadratic", labels=labels_1_5)
+                                kappas.append(k if not np.isnan(k) else 0.0)
+                            except (ValueError, ZeroDivisionError):
+                                kappas.append(0.0)
+                kappa_hard = float(np.mean(kappas)) if kappas else 0.0
+
+    combined = _compute_weighted_fitness(acc_hard, acc_anchor, kappa_hard, prompt_template)
+
+    return {
+        "combined_score": combined,
+        "Acc_Hard": acc_hard,
+        "Acc_Anchor": acc_anchor,
+        "kappa_Hard": kappa_hard,
+        "predictions": pred_arr.tolist(),
+        "gold_labels": labels.tolist(),
+        "user_ids": user_ids.tolist(),
+        "worker_predictions": [wp.tolist() for wp in wp_arr],
+        "indices": indices,
+        "R_global": metrics.get("R_global", 0),
+        "mae": metrics.get("mae", 0),
+        "mean_kappa": metrics.get("mean_kappa", 0),
+    }
+
+
+def evaluate_full(
+    prompt_template: str,
+    config: dict,
+    split_name: str = "validation",
+) -> Dict[str, Any]:
+    """Full evaluation on validation split."""
+    texts, labels, user_ids = _load_split_data(config, split_name)
+    pred_arr, wp_arr, metrics = _run_evaluation(
+        prompt_template, list(texts), labels, user_ids, config
+    )
+    metrics["combined_score"] = compute_combined_score_unified(metrics, is_ensemble=True)
+    metrics["predictions"] = pred_arr.tolist()
+    metrics["gold_labels"] = labels.tolist()
+    metrics["user_ids"] = user_ids.tolist()
+    metrics["worker_predictions"] = [wp.tolist() for wp in wp_arr]
+    return metrics
+
+
+def _analyze_rule_coverage(prompt_text: str) -> str:
+    """Check which rating categories (1-5) have rules in DynamicRules."""
+    import re
+    dr_match = re.search(r"<DynamicRules>(.*?)</DynamicRules>", prompt_text, re.DOTALL)
+    if not dr_match:
+        return "RULE COVERAGE WARNING: <DynamicRules> section not found! All categories MISSING."
+
+    dr_text = dr_match.group(1).lower()
+    category_keywords = {
+        1: ["1 star", "1★", "very negative", "defective", "failure", "returned", "terrible"],
+        2: ["2 star", "2★", "negative", "poor quality", "disappointing", "workaround"],
+        3: ["3 star", "3★", "neutral", "mixed", "average", "okay", "mismatch"],
+        4: ["4 star", "4★", "positive", "minor", "pretty good", "limitation", "recommend with"],
+        5: ["5 star", "5★", "very positive", "excellent", "perfect", "love", "exceeded"],
+    }
+
+    covered = {}
+    for level, keywords in category_keywords.items():
+        covered[level] = any(kw in dr_text for kw in keywords)
+
+    lines = ["RULE COVERAGE:"]
+    missing = []
+    for level in range(1, 6):
+        status = "OK" if covered[level] else "MISSING"
+        lines.append(f"  {level} star: {status}")
+        if not covered[level]:
+            missing.append(str(level))
+
+    if missing:
+        lines.append(f"\n  *** WARNING: Categories {', '.join(missing)} have NO rules in <DynamicRules>! ***")
+        lines.append("  *** You MUST add at least 2 rules for each missing category. ***")
+    else:
+        lines.append("  All categories covered.")
+
+    return "\n".join(lines)
+
+
+def _format_error_artifacts(
+    predictions: list,
+    gold_labels: list,
+    worker_predictions: list,
+    texts: list,
+    batch_indices: Optional[list] = None,
+    anchor_indices: Optional[list] = None,
+    prompt_text: str = "",
+    max_errors: int = 10,
+    max_borderline: int = 5,
+    max_text_len: int = 350,
+) -> str:
+    """Format error and borderline examples as artifact text for the LLM mutator."""
+    from data_manager import disagreement_score
+    from collections import Counter as _Counter
+    import re
+
+    n_workers = len(worker_predictions)
+    errors = []
+    borderline = []
+    for j in range(len(predictions)):
+        pred = predictions[j]
+        gold = gold_labels[j]
+        wp = [int(worker_predictions[k][j]) for k in range(n_workers)]
+        d_score = disagreement_score(wp, rating_min=1, rating_max=5)
+        if pred != gold:
+            errors.append((texts[j], gold, pred, wp, d_score))
+        elif d_score > 0:
+            borderline.append((texts[j], gold, pred, wp, d_score))
+
+    errors.sort(key=lambda x: -x[4])
+    borderline.sort(key=lambda x: -x[4])
+
+    lines = []
+
+    # Rule coverage analysis
+    if prompt_text:
+        lines.append(_analyze_rule_coverage(prompt_text))
+        lines.append("")
+
+        fse_match = re.search(r"<FewShotExamples>(.*?)</FewShotExamples>", prompt_text, re.DOTALL)
+        if fse_match:
+            ratings_in_fse = re.findall(r"Rating:\s*([1-5])", fse_match.group(1))
+            total_fse = len(ratings_in_fse)
+            counter = _Counter(ratings_in_fse)
+            lines.append("FEW-SHOT BALANCE AUDIT:")
+            if total_fse == 0:
+                lines.append("  No Rating: [1-5] lines found in <FewShotExamples>.")
+            else:
+                for r in range(1, 6):
+                    count = counter.get(str(r), 0)
+                    flag = ""
+                    uniform = max(1, total_fse // 5)
+                    if count == 0 or count < uniform // 2:
+                        flag = " (UNDER-REPRESENTED)"
+                    if count > total_fse * 0.4:
+                        flag = " (OVER-REPRESENTED)"
+                    lines.append(f"  Rating {r}: {count} example(s){flag}")
+                if counter.get("5", 0) > total_fse * 0.4:
+                    lines.append(
+                        "  WARNING: Rating 5 is heavily OVER-REPRESENTED. "
+                        "Prefer adding 2/3/4-star examples from recent errors instead of more 5-star ones."
+                    )
+            lines.append("")
+
+    if errors:
+        confusion = _Counter()
+        for _, gold, pred, _, _ in errors:
+            confusion[f"{gold} -> {pred}"] += 1
+        top_conf = confusion.most_common(5)
+        lines.append(f"ERROR DISTRIBUTION ({len(errors)} total misclassified):")
+        for pair, cnt in top_conf:
+            lines.append(f"  gold {pair}: {cnt}")
+
+        if top_conf:
+            lines.append("")
+            lines.append("TOP CONFUSION PAIRS (focus your rule changes here):")
+            for pair, cnt in top_conf[:3]:
+                try:
+                    gold_s, pred_s = pair.split(" -> ")
+                    gold_int = int(gold_s.strip())
+                    pred_int = int(pred_s.strip())
+                except ValueError:
+                    gold_int, pred_int = None, None
+                lines.append(f"  Pair gold={gold_s} vs pred={pred_s}: {cnt} errors")
+                examples_for_pair = []
+                if gold_int is not None and pred_int is not None:
+                    for (text, gold, pred, wp, ds) in errors:
+                        if gold == gold_int and pred == pred_int:
+                            examples_for_pair.append((text, gold, pred, wp, ds))
+                            if len(examples_for_pair) >= 2:
+                                break
+                for text, gold, pred, wp, ds in examples_for_pair:
+                    t = text[:max_text_len] + ("..." if len(text) > max_text_len else "")
+                    lines.append(
+                        f"    - Example: \"{t}\" (gold={gold}, pred={pred}, workers={wp}, disagreement={ds:.2f})"
+                    )
+
+        lines.append("")
+        lines.append("MISCLASSIFIED EXAMPLES (your prompt got these wrong):")
+        for i, (text, gold, pred, wp, ds) in enumerate(errors[:max_errors]):
+            t = text[:max_text_len] + ("..." if len(text) > max_text_len else "")
+            lines.append(f"  {i+1}. Review: \"{t}\"")
+            lines.append(f"     Gold: {gold} | Predicted: {pred} | Workers: {wp} | Disagreement: {ds:.2f}")
+
+    if borderline:
+        lines.append("")
+        lines.append("BORDERLINE EXAMPLES (correct but workers disagreed):")
+        for i, (text, gold, pred, wp, ds) in enumerate(borderline[:max_borderline]):
+            t = text[:max_text_len] + ("..." if len(text) > max_text_len else "")
+            lines.append(f"  {i+1}. Review: \"{t}\"")
+            lines.append(f"     Gold: {gold} | Predicted: {pred} | Workers: {wp} | Disagreement: {ds:.2f}")
+
+    if batch_indices is not None and anchor_indices is not None:
+        anchor_set = set(anchor_indices)
+        anchor_regressions = []
+        stable_anchor = []
+        n_workers = len(worker_predictions)
+        for j in range(min(len(batch_indices), len(predictions), len(gold_labels))):
+            idx = batch_indices[j]
+            if idx not in anchor_set:
+                continue
+            pred = predictions[j]
+            gold = gold_labels[j]
+            wp = [int(worker_predictions[k][j]) for k in range(n_workers)]
+            d_score = disagreement_score(wp, rating_min=1, rating_max=5)
+            if pred != gold:
+                anchor_regressions.append((texts[j], gold, pred, wp, d_score))
+            elif d_score == 0.0:
+                stable_anchor.append((texts[j], gold, pred, wp, d_score))
+
+        if anchor_regressions:
+            lines.append("")
+            lines.append("ANCHOR REGRESSIONS (high priority: previously Anchor examples now misclassified):")
+            for i, (text, gold, pred, wp, ds) in enumerate(anchor_regressions[:3]):
+                t = text[:max_text_len] + ("..." if len(text) > max_text_len else "")
+                lines.append(f"  {i+1}. Review: \"{t}\"")
+                lines.append(
+                    f"     Gold: {gold} | Predicted: {pred} | Workers: {wp} | Disagreement: {ds:.2f} | NOTE: avoid regressions on Anchor."
+                )
+
+        if stable_anchor:
+            lines.append("")
+            lines.append("STABLE ANCHOR EXAMPLES (do not break these):")
+            for i, (text, gold, pred, wp, ds) in enumerate(stable_anchor[:5]):
+                t = text[:max_text_len] + ("..." if len(text) > max_text_len else "")
+                lines.append(f"  {i+1}. Review: \"{t}\"")
+                lines.append(f"     Gold: {gold} | Predicted: {pred} | Workers: {wp} | Disagreement: {ds:.2f}")
+
+    if lines:
+        total = len(predictions)
+        n_anchor_reg = len(anchor_regressions) if (batch_indices is not None and anchor_indices is not None) else 0
+        lines.append(
+            f"\nSummary: {len(errors)} errors, {len(borderline)} borderline, "
+            f"{n_anchor_reg} anchor regressions out of {total} examples."
+        )
+    return "\n".join(lines)
+
+
+def evaluate(prompt_path: Optional[str] = None) -> Union[Dict[str, Any], EvaluationResult]:
+    """
+    Main entry point for OpenEvolve.
+    If active_batch.json exists, uses evaluate_fast. Otherwise evaluate_full.
+    Returns EvaluationResult with error artifacts when active batch is present,
+    or a plain dict otherwise.
+    """
+    config = _load_config()
+    prompt_file = prompt_path or config.get("prompt_path", "initial_prompt.txt")
+    prompt_path_abs = Path(prompt_file)
+    if not prompt_path_abs.is_absolute():
+        prompt_path_abs = SCRIPT_DIR / prompt_file
+    with open(prompt_path_abs, "r", encoding="utf-8") as f:
+        prompt_template = f.read()
+    prompt_template = _strip_mutation_log(prompt_template)
+
+    active = _load_active_batch()
+    if active and "indices" in active:
+        pool_texts, pool_labels, pool_user_ids = _load_split_data(config, "train")
+        pool_labels_list = pool_labels.tolist() if hasattr(pool_labels, "tolist") else list(pool_labels)
+        pool_user_ids_list = pool_user_ids.tolist() if hasattr(pool_user_ids, "tolist") else list(pool_user_ids)
+        result = evaluate_fast(
+            prompt_template,
+            active,
+            pool_texts,
+            pool_labels_list,
+            pool_user_ids_list,
+            config,
+        )
+
+        metrics = {
+            "combined_score": result["combined_score"],
+            "Acc_Hard": result.get("Acc_Hard", 0.0),
+            "Acc_Anchor": result.get("Acc_Anchor", 1.0),
+            "kappa_Hard": result.get("kappa_Hard", 0.0),
+            "R_global": result.get("R_global", 0),
+            "R_worst": result.get("R_worst", 0),
+            "mae": result.get("mae", 0),
+            "mean_kappa": max(0, result.get("mean_kappa", 0)),
+            "prompt_length": min(1.0, _estimate_tokens(prompt_template) / 3000),
+        }
+
+        batch_texts = [pool_texts[i] for i in result["indices"]]
+        error_text = _format_error_artifacts(
+            result["predictions"],
+            result["gold_labels"],
+            result["worker_predictions"],
+            batch_texts,
+            batch_indices=result["indices"],
+            anchor_indices=active.get("anchor_indices", []),
+            prompt_text=prompt_template,
+        )
+
+        if error_text:
+            return EvaluationResult(metrics=metrics, artifacts={"error_examples": error_text})
+        return metrics
+
+    # No active batch: full validation
+    result = evaluate_full(prompt_template, config)
+    from experiments.feature_dimensions import calculate_all_features
+    features = calculate_all_features(prompt_template, metrics={"mean_kappa": result.get("mean_kappa", 0)}, is_ensemble=True)
+    result["sentiment_vocabulary_richness"] = features["sentiment_vocabulary_richness"]
+    result["mean_kappa"] = max(0, result.get("mean_kappa", 0))
+    result["prompt_length"] = features["prompt_length"]
+    return result
+
+

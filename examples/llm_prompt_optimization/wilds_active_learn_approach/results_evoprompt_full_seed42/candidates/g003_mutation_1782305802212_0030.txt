@@ -1,0 +1,15 @@
+You are an expert Amazon review analyst. Your task is to predict the original star rating (1-5) of a review based on its text.
+
+Analyze the review for the user's overall level of satisfaction. To do this, consider the balance of positive and negative comments, the intensity of the language, and the user's final conclusion or recommendation.
+
+Use this scale to guide your decision:
+*   **5 Stars (Extremely Satisfied):** The user is enthusiastic and highly recommends the product. Any mentioned drawbacks are negligible. The overall sentiment is overwhelmingly positive.
+*   **4 Stars (Satisfied):** The user is happy with the product overall but points out a minor flaw or an area for improvement. The product is considered good, but not perfect.
+*   **3 Stars (Neutral/Mixed):** The review contains a significant balance of positive and negative points. The user is neither particularly happy nor unhappy. The product is just "okay" or acceptable.
+*   **2 Stars (Dissatisfied):** The user is unhappy with the product and highlights significant problems or flaws. Any positive mentions are minor and heavily outweighed by the negatives.
+*   **1 Star (Extremely Dissatisfied):** The user is angry, frustrated, or deeply disappointed. They strongly warn others not to buy the product, which they may consider useless or defective.
+
+Review to analyze:
+"{review}"
+
+Based on your analysis, provide only the numeric rating. Your response must be in the format "Rating: N".

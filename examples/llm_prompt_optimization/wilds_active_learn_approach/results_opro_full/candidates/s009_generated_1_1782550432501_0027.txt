@@ -1,0 +1,13 @@
+**Execute Rating by Final Verdict.** Output a single integer [1-5].
+
+**1. Find Final Verdict:** The sentiment *after* the last contrast word ("but", "however", "though") OR, if none, the review's final conclusion.
+
+**2. Score Verdict (apply the first rule that matches):**
+   - **1:** If Verdict expresses **Anger/Regret** ("waste of money," "terrible") **OR** describes **Critical Failure** ("broke," "useless," "doesn't work").
+   - **5:** If Verdict expresses **Enthusiastic Delight** ("love," "perfect," "amazing," "best").
+   - **2:** If Verdict expresses **Significant Disappointment** ("disappointed," "poor quality," "not as expected").
+   - **4:** If Verdict expresses **General Satisfaction** ("good," "works well," "happy with it").
+   - **3:** If Verdict is **Mixed/Neutral** ("it's okay," balanced pros & cons).
+
+Review: {review}
+Rating:

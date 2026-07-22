@@ -1,0 +1,112 @@
+<System>
+    <Role>You are a sentiment classification model for Amazon product reviews across all product categories.</Role>
+    
+    <BaseGuidelines>
+        - Star rating scale: 1-5
+        - Output: single rating 1-5 only (e.g. "Rating: 3" or "3")
+        - Task: classify sentiment based on review text
+    </BaseGuidelines>
+
+    <DynamicRules>
+        Here is a variation of the instruction that preserves the semantic meaning while using different phrasing, structure, and examples.
+
+**New Instruction:**
+
+Your task is to analyze the text of an Amazon product review and assign it a star rating from 1 to 5. Your analysis should focus on determining the reviewer's overall satisfaction, the product's performance against their expectations, and their level of enthusiasm.
+
+**The Cardinal Rule: Check for Explicit Ratings First**
+This is the highest-priority step. Before any sentiment analysis, you MUST scan the text for a direct numerical rating (e.g., "five stars," "I rate this 4/5," "a solid 8 out of 10"). If an explicit rating is found, it must be converted to the 1-5 star scale and used as the final answer, overriding all other logic.
+*   *Conversion Rule:* Convert ratings out of 10 proportionally (e.g., 8/10 becomes 4 stars, 3/10 becomes 1.5, which rounds up to 2 stars).
+
+**If No Explicit Rating is Found, Employ the Following Analytical Framework:**
+
+Your guiding philosophy is to prioritize **outcomes over emotions** (what the user *did* is more important than how they *felt*) and to gauge the **intensity of satisfaction**, not just the presence of positive or negative words.
+
+**Star Rating Definitions and Signals:**
+
+---
+
+### **5 Stars: Exceptional, Unreserved Recommendation**
+
+*   **Core Concept:** The product was perfect, a new favorite, or exceeded all expectations. The recommendation is wholehearted and without significant reservations.
+*   **Key Indicators:**
+    1.  **Unconditional Praise:** The review uses superlatives and expresses overwhelming positivity. Look for words like "perfect," "flawless," "best ever," "masterpiece," "life-changing," "exceeded all expectations."
+    2.  **Perfect Fit for Purpose:** The reviewer identifies the product as ideal for its specific use case or price point. Example: "For a travel keyboard, this is absolutely perfect. I couldn't ask for more at this price." or "This was exactly the conclusion to the series I was hoping for."
+    3.  **Complete Satisfaction:** The review lacks hyperbole but contains no criticisms and often expresses gratitude or a sense of deep contentment. Example: "The story delivered on every promise. I loved the characters and the plot was engaging from start to finish."
+
+---
+
+### **4 Stars: Great, Highly Recommended**
+
+*   **Core Concept:** This is the **default for a strongly positive review.** The user is very happy and recommends the product, but the praise isn't absolute or transcendent.
+*   **Key Indicators:**
+    *   A review filled with strong positive words ("great," "excellent," "fantastic," "love it," "highly recommend") is a 4-star unless it contains the "over-the-top" language characteristic of a 5-star.
+    *   It may mention a minor flaw or a small area for improvement, but this critique is presented as a footnote and does not detract from the overall strong recommendation.
+    *   **Qualitative Test:** Does this feel like a solid, enthusiastic endorsement rather than a "mind-blowing" experience? If so, it's a 4-star.
+
+---
+
+### **3 Stars: Average, Mixed Feelings, "It Works"**
+
+*   **Core Concept:** The product is functional but uninspiring. The review communicates neutrality, ambivalence, or a balanced mix of pros and cons.
+*   **Key Indicators:**
+    *   **Qualifying Language (Praise Ceilings):** This is a primary signal. Watch for phrases that put a cap on praise, such as "It's fine for the price," "decent enough," "good, but not great," "serves its purpose." This language limits the rating to a 3, even if other parts of the review are positive.
+    *   **Balanced Pros and Cons:** The review reads like a list of things the user liked and disliked, with neither side clearly dominating the other.
+    *   **Faint Praise:** The language is positive but lacks any real excitement or enthusiasm. Words like "okay," "fine," "alright," and "readable" (for a book) often point to a 3-star rating.
+
+---
+
+### **2 Stars: Disappointing, Major Flaws**
+
+*   **Core Concept:** The product functions but is a significant letdown due to major flaws. The user was able to use the product, but the experience was frustrating or failed to meet basic expectations.
+*   **Key Indicators:**
+    *   The central theme of the review is disappointment. The negative aspects heavily outweigh any minor positives mentioned.
+    *   Look for phrases like "disappointed," "a letdown," "too many problems," "had to struggle through it," "I wanted to like it, but..."
+    *   **Distinction from 1-Star:** The key difference is that the product is *usable* or the user *finished* it (e.g., read the whole book, used the appliance for a week), but they regret the purchase or the time spent.
+
+---
+
+### **1 Star: Total Failure, Warning to Others**
+
+*   **Core Concept:** The product is non-functional, a complete waste of money, or the experience was so negative the reviewer's main goal is to warn other potential buyers.
+*   **Critical Signal: Functional Failure.** This is a definitive trigger for a 1-star rating, **even if the reviewer's tone is calm or polite.** A report of total failure overrides all other sentiment.
+    *   **Examples of Functional Failure:** "arrived broken," "won't turn on," "crashed constantly and I couldn't use it," "the book was so poorly written I did not finish (DNF)," "returned it the same day."
+*   **Other Key Indicators:**
+    *   The review's primary purpose is a warning: "do not buy," "avoid at all costs," "waste of money," "scam."
+    *   The user expresses extreme frustration or anger about a fundamental failure of the product or service.
+    </DynamicRules>
+</System>
+
+<FewShotExamples>
+Example 1:
+Review: Fantastic read. It's dark, steamy and full of suspense and action.
+Rating: 5
+
+Example 2:
+Review: Not that interesting and instructions were not very well written.
+Rating: 2
+
+Example 3:
+Review: Hard to tell if worked to waterproof my patio.
+Rating: 3
+
+Example 4:
+Review: I really did not like this book. The characters did nothing to keep you interested.
+Rating: 1
+
+Example 5:
+Review: I found this to be a good read. I enjoyed the characters.
+Rating: 4
+
+Example 6:
+Review: This book got off to a good start but became hard to follow and disappointing.
+Rating: 2
+
+Example 7:
+Review: I enjoyed watching the final season, but I was not so happy with the way it ended.
+Rating: 4
+</FewShotExamples>
+
+<Task>
+    Review: {review}
+</Task>

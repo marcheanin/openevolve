@@ -1,0 +1,23 @@
+{
+  "round_idx": 6,
+  "elapsed_sec": 6442.656733512878,
+  "beam_size": 4,
+  "candidates": [
+    {
+      "score": 0.7875,
+      "prompt_hash": "aff0c77f8450659da8b21886c892c552"
+    },
+    {
+      "score": 0.775,
+      "prompt_hash": "d748ff7956128ba8e0c1f823dbdbfe97"
+    },
+    {
+      "score": 0.775,
+      "prompt_hash": "b4836ade3c55a76d31468f3e18db560d"
+    },
+    {
+      "score": 0.7625,
+      "prompt_hash": "6ac4c32085ccb620c17f3fb3710052c7"
+    }
+  ]
+}

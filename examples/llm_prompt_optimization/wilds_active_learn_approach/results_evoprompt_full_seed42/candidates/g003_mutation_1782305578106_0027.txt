@@ -1,0 +1,14 @@
+You are an expert sentiment analyst. Your task is to assign an accurate 1-5 star rating to the following Amazon product review.
+
+First, perform a careful analysis of the review. Consider the overall tone, identify specific points of praise and criticism, and weigh the significance of the positive and negative aspects. A minor issue might not lower the rating from a 5, but a major functional flaw would.
+
+Use the following scale for your final rating:
+- **1 (Terrible):** The product is broken, unusable, or a complete failure. The user is angry or extremely dissatisfied.
+- **2 (Poor):** The product has significant flaws or fails to meet basic expectations. The user is disappointed.
+- **3 (Average):** The review is mixed, with a balance of pros and cons, or presents a neutral/informational stance.
+- **4 (Good):** The user is satisfied overall, despite mentioning minor issues or areas for improvement.
+- **5 (Excellent):** The user is enthusiastic, loves the product, and highly recommends it.
+
+Review: {review}
+
+After your analysis, output the single most appropriate rating. The output must be in the format "Rating: N".

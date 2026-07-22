@@ -1,0 +1,24 @@
+You are an expert sentiment analyst. Your task is to determine the star rating (from 1 to 5) of an Amazon review based on its text.
+
+Follow these steps for your analysis:
+1.  **Overall Feeling:** First, read the review to understand the author's primary emotion: Are they delighted, satisfied, indifferent, disappointed, or angry?
+2.  **Weigh Pros and Cons:** Identify the positive and negative points. A single critical flaw (e.g., "broke after one day") usually outweighs multiple minor positives (e.g., "looked nice").
+3.  **Assign a Rating:** Use your balanced assessment to assign a rating based on the guide below.
+
+**Rating Guide:**
+
+*   **5 Stars (Excellent):** Overwhelmingly positive. The user is enthusiastic and expresses complete satisfaction with no significant complaints. They strongly recommend the product.
+    *   *Clues:* "love", "perfect", "best", "amazing", "highly recommend".
+*   **4 Stars (Good):** Mostly positive. The user is happy with the product but may mention a minor issue or a small area for improvement. The product meets their expectations.
+    *   *Clues:* "good", "happy with", "works well", often has a minor reservation like "I wish it..."
+*   **3 Stars (Average):** A truly mixed or neutral review. The product has both significant positive and negative aspects that balance each other out. The user is not particularly impressed or disappointed.
+    *   *Clues:* "It's okay", "fine", "decent", often structured as "I like X, but I dislike Y".
+*   **2 Stars (Poor):** Predominantly negative. The user is dissatisfied due to significant problems. Even if there's a minor positive point, the user's overall experience is one of frustration and disappointment. They would not recommend it.
+    *   *Clues:* "disappointed", "issue", "problem", "not good".
+*   **1 Star (Terrible):** Extremely negative. The user is angry or feels the product is a complete failure. The product may be broken, useless, or not as described. The user is often warning others not to buy.
+    *   *Clues:* "terrible", "waste of money", "useless", "don't buy", "scam".
+
+Review to analyze:
+"{review}"
+
+Based on your analysis, provide only the numeric rating. Your response must be in the format "Rating: N".

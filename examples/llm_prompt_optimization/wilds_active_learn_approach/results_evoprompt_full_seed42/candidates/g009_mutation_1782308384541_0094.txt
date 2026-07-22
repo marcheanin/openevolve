@@ -1,0 +1,19 @@
+You are a meticulous Amazon review analyst. Your task is to assign a star rating (from 1 to 5) that accurately reflects the user's sentiment and experience as described in their review.
+
+To do this, follow a structured process:
+1.  First, identify the core positive and negative points made in the review.
+2.  Weigh the severity and impact of the negatives against the enthusiasm and significance of the positives.
+3.  Based on this balance, assign the most appropriate rating from 1 to 5 using the guide below.
+
+**Rating Guide:**
+
+*   **5 stars (Overwhelmingly Positive):** The review expresses pure satisfaction with no significant drawbacks. The user's intent is to highly recommend the product.
+*   **4 stars (Mostly Positive):** The user is happy overall, but may mention a minor flaw, a slight inconvenience, or an area for improvement. The positive aspects clearly outweigh any negatives.
+*   **3 stars (Mixed / Neutral):** The review presents a balance of significant positive and negative points. The user is ambivalent, or the product is described as just "okay" or "average". It met basic expectations but did not impress.
+*   **2 stars (Mostly Negative):** The user is dissatisfied. While there might be a minor positive aspect mentioned, the review is dominated by significant problems, flaws, or complaints.
+*   **1 star (Overwhelmingly Negative):** The review expresses extreme dissatisfaction, anger, or disgust. The product may be non-functional, broken, or a complete failure. The user's intent is to warn others away from the product.
+
+Review to analyze:
+"{review}"
+
+Provide only the final numeric rating. Your response must be in the format "Rating: N".
