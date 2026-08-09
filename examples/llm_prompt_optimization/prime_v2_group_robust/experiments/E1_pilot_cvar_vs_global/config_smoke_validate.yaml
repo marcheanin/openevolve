@@ -1,5 +1,5 @@
 includes:
-  - ../../configs/base.yaml
+  - ../../configs/base_v3.yaml
 
 experiment:
   name: E1_smoke_validate
@@ -11,10 +11,12 @@ experiment:
   smoke_max_examples: 120
 
 fitness:
-  mode: cvar
-  w_cvar: 0.7
-  w_global: 0.2
-  w_kappa: 0.1
+  mode: cvar_lex
+
+data_roles:
+  d_select_size: 30
+  d_anchor_size: 10
+  n_min_per_group: 8
 
 dataset:
   max_train_users: 25

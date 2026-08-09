@@ -24,6 +24,18 @@ from openevolve.utils.metrics_utils import safe_numeric_average, get_fitness_sco
 logger = logging.getLogger(__name__)
 
 
+def _nt_long_path(path: str) -> str:
+    """Prefix absolute Windows paths so open/makedirs work beyond MAX_PATH (260)."""
+    if os.name != "nt":
+        return path
+    abs_path = os.path.abspath(path)
+    if abs_path.startswith("\\\\?\\"):
+        return abs_path
+    if abs_path.startswith("\\\\"):
+        return "\\\\?\\UNC\\" + abs_path.lstrip("\\")
+    return "\\\\?\\" + abs_path
+
+
 def _safe_sum_metrics(metrics: Dict[str, Any]) -> float:
     """Safely sum only numeric metric values, ignoring strings and other types"""
     numeric_values = [
@@ -603,8 +615,8 @@ class ProgramDatabase:
         # Perform artifact cleanup before saving
         self._cleanup_old_artifacts(save_path)
 
-        # create directory if it doesn't exist
-        os.makedirs(save_path, exist_ok=True)
+        # create directory if it doesn't exist (long-path safe on Windows)
+        os.makedirs(_nt_long_path(save_path), exist_ok=True)
 
         # Save each program
         for program in self.programs.values():
@@ -631,7 +643,7 @@ class ProgramDatabase:
             "feature_stats": self._serialize_feature_stats(),
         }
 
-        with open(os.path.join(save_path, "metadata.json"), "w") as f:
+        with open(_nt_long_path(os.path.join(save_path, "metadata.json")), "w") as f:
             json.dump(metadata, f)
 
         logger.info(f"Saved database with {len(self.programs)} programs to {save_path}")
@@ -818,9 +830,9 @@ class ProgramDatabase:
         if not save_path:
             return
 
-        # Create programs directory if it doesn't exist
+        # Create programs directory if it doesn't exist (Windows MAX_PATH safe)
         programs_dir = os.path.join(save_path, "programs")
-        os.makedirs(programs_dir, exist_ok=True)
+        os.makedirs(_nt_long_path(programs_dir), exist_ok=True)
 
         # Save program
         program_dict = program.to_dict()
@@ -828,7 +840,7 @@ class ProgramDatabase:
             program_dict["prompts"] = prompts
         program_path = os.path.join(programs_dir, f"{program.id}.json")
 
-        with open(program_path, "w", encoding="utf-8") as f:
+        with open(_nt_long_path(program_path), "w", encoding="utf-8") as f:
             json.dump(program_dict, f, ensure_ascii=False)
 
     def _calculate_feature_coords(self, program: Program) -> List[int]:

@@ -1,18 +1,24 @@
+# E1 arm 1 (smoke-scale): cvar_lex fitness (SPEC §7/E1, Р6).
+# Real capped E1 numbers (D_select=200, D_anchor=50) live in
+# config_wilds_live_3cycle.yaml; smoke here only validates the pipeline.
+
 includes:
-  - ../../configs/base.yaml
+  - ../../configs/base_v3.yaml
 
 experiment:
-  name: E1_cvar_fitness
+  name: E1_cvar_lex_fitness
   smoke: true
   smoke_n_cycles: 1
   smoke_max_examples: 150
 
 fitness:
-  mode: cvar
-  w_cvar: 0.7
-  w_global: 0.2
-  w_kappa: 0.1
+  mode: cvar_lex
   cvar_quantile: 0.33
+
+data_roles:
+  d_select_size: 40    # smoke-scale; capped E1 uses 200 (Р9)
+  d_anchor_size: 12
+  n_min_per_group: 10  # smoke-scale power rule -> K <= 4
 
 dataset:
   max_train_users: 40

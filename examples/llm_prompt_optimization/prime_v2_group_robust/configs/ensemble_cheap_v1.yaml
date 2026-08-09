@@ -1,0 +1,16 @@
+# Cheap 3-worker ensemble for E2 night runs (~$4–5 / 15×3 vs ~$7 Phase1).
+# Models chosen for headroom (weaker than kimi/qwen-235b) + cost.
+ensemble:
+  workers:
+    - name: openai/gpt-4o-mini
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+    - name: google/gemini-2.5-flash-lite
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+    - name: qwen/qwen3-32b
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none

@@ -1,0 +1,142 @@
+# E1 pred_profile — cvar_lex arm, low-variance objective (live WILDS + OpenRouter)
+#
+# This is a different experiment from config_cvar_live.yaml. That run answered
+# "cvar_lex vs global"; it could not, because the objective's own noise was larger
+# than anything the search produced (OBSERVATIONS M15: SD 0.0294 against a total
+# three-cycle gain of 0.058). This run answers the prerequisite question: with a
+# measurable objective, does the search produce progress above its own noise floor?
+#
+# The objective was chosen by measurement, not taste — scripts/exp_objective_noise_sweep.py
+# scored 12 candidate definitions on 4 independent re-evaluations of one fixed
+# prompt (noise) and on initial-vs-evolved (signal):
+#
+#   objective                     noise SD   signal   sig/noise
+#   cvar_lex q=0.40 w=0  raw       0.0221    0.0183      0.83   <- what we were running
+#   cvar_lex q=0.40 w=50 raw       0.0128    0.0214      1.68
+#   cvar_lex q=0.40 w=50 bal       0.0090    0.0243      2.70   <- this config
+#   R_global                       0.0108    0.0208      1.94
+#
+# Two independent effects: shrinking cluster accuracy toward the grand mean (M14)
+# and weighting examples so gold classes are equal (C11 — 83% of the between-cluster
+# spread was label mix, C10). Together they cut the noise 2.5x and raise the signal.
+
+includes:
+  - ../../configs/base_v3.yaml
+
+experiment:
+  name: E1_pred_profile_cvar_lowvar
+  results_dir: results
+  smoke: false
+  force_mock: false
+  verbose: true
+  smoke_validate: true
+
+openevolve_config_path: configs/openevolve_e1_live.yaml
+
+fitness:
+  mode: cvar_lex
+  # ceil(0.40 * 6) = 3 clusters averaged. Validation now refuses < 2 (M11).
+  cvar_quantile: 0.40
+  epsilon_global: 0.01
+  # ~= mean cluster size on D_select, i.e. shrink factor ~0.5 toward the grand mean.
+  shrink_prior_weight: 50.0
+  class_balanced: true
+
+data_roles:
+  enabled: true
+  stratify: true
+  # 240 -> 360: noise scales as 1/sqrt(n), and O20 showed the extra OpenEvolve
+  # iterations were not buying generalisation, so the budget moves from mutation
+  # count to evaluation precision (12 iters x 240 and 8 iters x 360 cost the same).
+  d_select_size: 360
+  d_anchor_size: 100
+  d_audit_size: 50
+  n_min_per_group: 40
+  # Monitor, not constraint: with 4 discordant anchor pairs the smallest achievable
+  # one-sided exact p is 0.0625 > alpha, so the gate cannot reject (M12).
+  anchor_gate_mode: monitor
+  anchor_gate_delta: 0.02
+  anchor_gate_alpha: 0.05
+  # Deliberately NOT pinned: the pinned artifact holds a 240-example D_select and
+  # this run needs 360. Comparability with the old runs is lost, which costs nothing
+  # — by M15 their D_select numbers were mostly noise.
+
+dataset:
+  data_root: ./data
+  # 300 users -> ~720 heldout examples, so D_select+D_anchor+D_audit (510) fits.
+  max_train_users: 300
+  max_val_users: 150
+  # 120 -> 240: at 120 users the minimum detectable effect on R_global is 0.056 and
+  # we are chasing 0.02-0.04; 240 buys ~0.03 (M13).
+  max_test_users: 240
+  # Kept at 8. It only limits per-user resolution, which mattered for R_worst /
+  # R_tail (M9) — and neither is in the selection key any more. The budget buys test
+  # users instead, which is what M13 says actually moves detectability.
+  max_reviews_per_user: 8
+  al_candidate_pool_size: 500
+  use_cache: true
+  # Still pinned: refitting is ~44 min and is not bit-reproducible across runs
+  # (OBSERVATIONS O14). New users are assigned to the existing centroids.
+  cluster_artifact: results/E1_pred_profile_cvar_lex/seed42_20260728_125748/clusters.json
+
+clusters:
+  geometry: pred_profile
+  n_clusters: 6
+  min_users_per_cluster: 8
+  seed: 42
+  control: none
+  descriptors_enabled: true
+  allow_synthetic_fallback: false
+
+acquisition:
+  policy: group_aware
+  batch_size: 30
+  expansion_trigger: 12
+  expansion_batch: 12
+
+evolution:
+  # 12 -> 8: O20 measured that going from 5 to 12 iterations bought identical
+  # D_select gain and *lost* validation CVaR. The freed calls pay for the larger
+  # D_select above.
+  n_evolve_iterations: 8
+  population_size: 20
+  mutator_model: z-ai/glm-5
+  mutator_temperature: 0.6
+  mutator_max_tokens: 8192
+
+consolidation:
+  model: google/gemini-3.1-pro-preview
+  pool_carryover_k: 2
+  # Every other cycle plus a guaranteed final pass. Consolidation is an unguided
+  # rewrite of an already-tuned prompt, so its expected delta is negative and it
+  # lost 6/6 times; it stays only because as a competitor it cannot reach the heir,
+  # and it now accumulates its own base across cycles (O21).
+  every_n_cycles: 2
+  run_on_last_cycle: true
+
+pareto:
+  enabled: true
+  champion_margin: 0.01
+  score_consolidated_on_select: true
+  seed_openevolve_from_front: true
+  gate_fallback_down_front: true
+
+active_learning:
+  n_cycles: 3
+  seed: 42
+  selection_mode: lexicographic
+  # R_tail was the worst discriminator of the twelve we measured (|effect|/SD 0.48
+  # against 1.49 for the shrunk cluster tail) and it was the default (M14).
+  proxy_tail_metric: CVaR_cluster_shrunk
+  selection_use_shrunk_cvar: true
+  tail_quantile: 0.2
+
+ensemble:
+  max_parallel: 8
+  timeout: 120
+
+budget:
+  # ~50k expected: OE 8x3x360x3 = 25.9k, val 3x150x8x3 = 10.8k,
+  # test 2x240x8x3 = 11.5k, consolidation + pools ~3k.
+  total_calls: 70000
+  on_exhausted: warn

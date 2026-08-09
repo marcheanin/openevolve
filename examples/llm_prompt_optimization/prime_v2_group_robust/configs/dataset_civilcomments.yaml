@@ -1,5 +1,13 @@
-# CivilComments placeholder for E4
+# CivilComments-WILDS (E4). Caps reuse max_*_users as max *examples*.
+# Labels: binary toxicity. Oracle groups: primary identity (none + 8 attrs).
 
 dataset:
   name: civilcomments
   data_root: ./data
+  label_space: binary
+  # Example caps (comments have no users). Raise for live E4.
+  max_train_users: 4000
+  max_val_users: 1500
+  max_test_users: 1500
+  al_candidate_pool_size: 5000
+  use_cache: true

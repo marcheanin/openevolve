@@ -1,0 +1,54 @@
+# Mock smoke for config_cvar_lowvar.yaml — no API calls, tiny caps.
+# Exercises every new code path end to end before the live run: class-balanced
+# shrunk objective, consolidation frequency + lossy guard + stateful base, archive
+# origin stamps through the seed checkpoint, monitor-mode anchor gate, and the
+# rewritten mutator error report.
+
+includes:
+  - config_cvar_lowvar.yaml
+
+experiment:
+  name: E1_cvar_lowvar_mocksmoke
+  results_dir: results_smoke
+  smoke: true
+  force_mock: true
+  verbose: true
+  smoke_validate: true
+  smoke_n_cycles: 3
+  smoke_n_evolve: 2
+  smoke_max_examples: 200
+
+dataset:
+  max_train_users: 40
+  max_val_users: 20
+  max_test_users: 20
+  max_reviews_per_user: 8
+  al_candidate_pool_size: 120
+  use_cache: true
+  cluster_artifact: null
+
+clusters:
+  n_clusters: 4
+  min_users_per_cluster: 3
+  allow_synthetic_fallback: true
+
+fitness:
+  # ceil(0.5 * 4) = 2 clusters — validation requires >= 2 (M11).
+  cvar_quantile: 0.5
+
+data_roles:
+  d_select_size: 60
+  d_anchor_size: 20
+  d_audit_size: 10
+  n_min_per_group: 10
+  eval_sets_artifact: null
+
+active_learning:
+  n_cycles: 3
+
+evolution:
+  n_evolve_iterations: 2
+
+budget:
+  total_calls: 5000
+  on_exhausted: warn

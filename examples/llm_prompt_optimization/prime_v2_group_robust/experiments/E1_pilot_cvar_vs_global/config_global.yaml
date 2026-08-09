@@ -1,5 +1,7 @@
+# E1 arm 2 (smoke-scale): global accuracy fitness — same budget/seed as arm 1.
+
 includes:
-  - ../../configs/base.yaml
+  - ../../configs/base_v3.yaml
 
 experiment:
   name: E1_global_fitness
@@ -9,9 +11,11 @@ experiment:
 
 fitness:
   mode: global
-  w_cvar: 0.0
-  w_global: 1.0
-  w_kappa: 0.0
+
+data_roles:
+  d_select_size: 40
+  d_anchor_size: 12
+  n_min_per_group: 10
 
 dataset:
   max_train_users: 40

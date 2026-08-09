@@ -1,0 +1,105 @@
+# Phase 1 — constraint + raw global fitness (mechanics check on Amazon WILDS)
+#
+# Phase 0 offline bounds (analysis/phase0) closed three doors on this shift:
+#   - portfolio LOO headroom negative
+#   - DRO/CVaR_bal pick demotion heirs worse on R_global than initial
+#   - demotion Pareto good zone empty
+# Remaining claim to validate live: with reject-gate + raw global, search does
+# not significantly regress vs initial. Headline robustness claims move elsewhere.
+
+includes:
+  - ../../configs/base_v3.yaml
+
+experiment:
+  name: E1_constraint_global
+  results_dir: results
+  smoke: false
+  force_mock: false
+  verbose: true
+  smoke_validate: true
+
+openevolve_config_path: configs/openevolve_e1_live.yaml
+
+fitness:
+  mode: global
+  epsilon_global: 0.0
+  shrink_prior_weight: 50.0
+  class_balanced: false
+  cvar_quantile: 0.40
+
+data_roles:
+  enabled: true
+  stratify: true
+  d_select_size: 360
+  d_anchor_size: 100
+  d_audit_size: 50
+  n_min_per_group: 40
+  # Phase 0 / lowvar: gate had an operating point at 100 anchors and caught the
+  # demotion catastrophe in C1 — make it a hard constraint again.
+  anchor_gate_mode: reject
+  anchor_gate_delta: 0.02
+  anchor_gate_alpha: 0.05
+
+dataset:
+  data_root: ./data
+  max_train_users: 300
+  max_val_users: 150
+  max_test_users: 240
+  max_reviews_per_user: 8
+  al_candidate_pool_size: 500
+  use_cache: true
+  # Same pinned geometry as lowvar for comparability of group diagnostics.
+  cluster_artifact: results/E1_pred_profile_cvar_lex/seed42_20260728_125748/clusters.json
+
+clusters:
+  geometry: pred_profile
+  n_clusters: 6
+  min_users_per_cluster: 8
+  seed: 42
+  control: none
+  descriptors_enabled: true
+  allow_synthetic_fallback: false
+
+acquisition:
+  policy: group_aware
+  batch_size: 30
+  expansion_trigger: 12
+  expansion_batch: 12
+
+evolution:
+  n_evolve_iterations: 8
+  population_size: 20
+  mutator_model: z-ai/glm-5
+  mutator_temperature: 0.6
+  mutator_max_tokens: 8192
+
+consolidation:
+  enabled: false
+  model: google/gemini-3.1-pro-preview
+  pool_carryover_k: 2
+  every_n_cycles: 2
+  run_on_last_cycle: false
+
+pareto:
+  enabled: true
+  champion_margin: 0.01
+  score_consolidated_on_select: true
+  seed_openevolve_from_front: true
+  gate_fallback_down_front: true
+
+active_learning:
+  n_cycles: 3
+  seed: 42
+  selection_mode: lexicographic
+  # Monitor-only tail metric; heir selection under fitness.mode=global is R_global.
+  proxy_tail_metric: CVaR_cluster_shrunk
+  selection_use_shrunk_cvar: true
+  tail_quantile: 0.2
+
+ensemble:
+  max_parallel: 8
+  timeout: 120
+
+budget:
+  total_calls: 70000
+  on_exhausted: warn

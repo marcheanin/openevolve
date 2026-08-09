@@ -1,0 +1,99 @@
+# E4 Phase 2c — Arm B: lex worst-group on oracle identities (roadmap §2c).
+# fitness = min_g Acc_g + eps * R_global - length; anchor reject gate.
+# Not soft-mix (M22). Selection key aligned to (R_worst_group, R_global).
+
+includes:
+  - ../../configs/base_v3.yaml
+  - ../../configs/dataset_civilcomments.yaml
+  - ../../configs/ensemble_phase2_small.yaml
+
+prompt_path: prompts/initial_prompt_civilcomments.txt
+openevolve_config_path: configs/openevolve_e4_civilcomments.yaml
+
+experiment:
+  name: E4_civilcomments_arm_b_min_group
+  results_dir: results
+  smoke: false
+  force_mock: false
+  verbose: true
+  smoke_validate: true
+
+fitness:
+  mode: min_group_lex
+  epsilon_global: 0.01
+  shrink_prior_weight: 40.0
+  class_balanced: true
+  cvar_quantile: 0.33
+
+data_roles:
+  enabled: true
+  stratify: true
+  d_select_size: 420
+  d_anchor_size: 100
+  d_audit_size: 80
+  n_min_per_group: 40
+  d_select_rotate: true
+  d_select_stratify_label: true
+  anchor_gate_mode: reject
+  anchor_gate_delta: 0.02
+  anchor_gate_alpha: 0.05
+
+dataset:
+  max_train_users: 5000
+  max_val_users: 1500
+  max_test_users: 800
+  al_candidate_pool_size: 4000
+  use_cache: true
+
+clusters:
+  geometry: oracle
+  n_clusters: 9
+  seed: 42
+  control: none
+  descriptors_enabled: true
+  allow_synthetic_fallback: false
+
+acquisition:
+  policy: group_aware
+  batch_size: 24
+  expansion_trigger: 12
+  expansion_batch: 12
+
+evolution:
+  n_evolve_iterations: 3
+  population_size: 16
+  mutator_model: deepseek/deepseek-v4-pro
+  mutator_temperature: 0.6
+  mutator_max_tokens: 4096
+  inject_verbatim_fewshot: true
+  enforce_text_triggers: true
+  contrastive_pairs: true
+
+consolidation:
+  enabled: false
+
+pareto:
+  enabled: true
+  champion_margin: 0.01
+  score_consolidated_on_select: true
+  seed_openevolve_from_front: true
+  gate_fallback_down_front: true
+
+active_learning:
+  n_cycles: 3
+  seed: 42
+  selection_mode: lexicographic
+  proxy_tail_metric: CVaR_cluster_shrunk
+  selection_use_shrunk_cvar: true
+  tail_quantile: 0.2
+
+ensemble:
+  max_parallel: 4
+  timeout: 120
+  max_retries: 8
+  aggregation: majority
+  tie_break: lowest_rating
+
+budget:
+  total_calls: 80000
+  on_exhausted: warn

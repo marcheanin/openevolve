@@ -1,0 +1,21 @@
+# Phase 2 cheap ensemble (revision 2 after smoke).
+# Rejected: gpt-oss-20b (mandatory reasoning + lag), ministral-8b (acc 0.53, spread 30pp).
+# Current: gemma-3-12b + qwen3.7-flash + gemma-4-26b — two Google gens + Qwen.
+# If pairwise agreement >90% later, swap gemma-3 for qwen3.5-9b / nemotron-nano.
+
+ensemble:
+  aggregation: majority
+  tie_break: lowest_rating
+  workers:
+    - name: google/gemma-3-12b-it
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+    - name: qwen/qwen3.7-flash
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+    - name: google/gemma-4-26b-a4b-it
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none

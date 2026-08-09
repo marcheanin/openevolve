@@ -1,0 +1,17 @@
+# Phase 3 / E5 single scorer (ROADMAP_PHASE3 §3).
+# gemma-3-12b: only informative worker from E4 ensemble (M31).
+
+ensemble:
+  mode: single
+  fail_closed: true
+  api_base: https://openrouter.ai/api/v1
+  max_parallel: 16
+  timeout: 60
+  max_retries: 5
+  aggregation: majority
+  tie_break: lowest_rating
+  workers:
+    - name: google/gemma-3-12b-it
+      temperature: 0.0
+      max_tokens: 16
+      reasoning_effort: none

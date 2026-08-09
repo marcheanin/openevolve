@@ -1,0 +1,94 @@
+# E1 pred_profile — global fitness arm (control twin of config_cvar_live.yaml)
+# Identical caps/geometry/budget/groups; only fitness.mode differs (SPEC E1 / Р11).
+# The pinned cluster_artifact is what makes "identical groups" true — see the
+# header of the cvar twin (OBSERVATIONS O14).
+
+includes:
+  - ../../configs/base_v3.yaml
+
+experiment:
+  name: E1_pred_profile_global
+  results_dir: results
+  smoke: false
+  force_mock: false
+  verbose: true
+  smoke_validate: true
+
+openevolve_config_path: configs/openevolve_e1_live.yaml
+
+fitness:
+  mode: global
+  cvar_quantile: 0.33
+  epsilon_global: 0.01
+
+data_roles:
+  enabled: true
+  stratify: true
+  d_select_size: 240
+  d_anchor_size: 100
+  d_audit_size: 50
+  n_min_per_group: 40
+  anchor_gate_delta: 0.02
+  anchor_gate_alpha: 0.05
+  # Same pinned split as the cvar twin — see its header (O14 analogue).
+  eval_sets_artifact: results/E1_pred_profile_cvar_lex/seed42_20260728_125748/eval_sets.json
+
+dataset:
+  data_root: ./data
+  max_train_users: 200
+  max_val_users: 120
+  max_test_users: 120
+  max_reviews_per_user: 8
+  al_candidate_pool_size: 500
+  use_cache: true
+  cluster_artifact: results/E1_pred_profile_cvar_lex/seed42_20260728_125748/clusters.json
+
+clusters:
+  geometry: pred_profile
+  n_clusters: 6
+  min_users_per_cluster: 8
+  seed: 42
+  control: none
+  descriptors_enabled: true
+  allow_synthetic_fallback: false
+
+acquisition:
+  policy: group_aware
+  batch_size: 30
+  expansion_trigger: 12
+  expansion_batch: 12
+
+evolution:
+  # Must mirror config_cvar_live.yaml (twin arms, equal budget).
+  n_evolve_iterations: 12
+  population_size: 20
+  mutator_model: z-ai/glm-5
+  mutator_temperature: 0.6
+  mutator_max_tokens: 8192
+
+consolidation:
+  model: google/gemini-3.1-pro-preview
+  pool_carryover_k: 2
+
+pareto:
+  # Must mirror config_cvar_live.yaml (P9 champion archive).
+  enabled: true
+  champion_margin: 0.01
+  score_consolidated_on_select: true
+  seed_openevolve_from_front: true
+  gate_fallback_down_front: true
+
+active_learning:
+  n_cycles: 3
+  seed: 42
+  selection_mode: lexicographic
+  proxy_tail_metric: R_tail
+  tail_quantile: 0.2
+
+ensemble:
+  max_parallel: 8
+  timeout: 120
+
+budget:
+  total_calls: 55000
+  on_exhausted: warn

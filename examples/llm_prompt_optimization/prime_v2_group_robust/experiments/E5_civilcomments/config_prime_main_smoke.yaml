@@ -1,0 +1,61 @@
+# E5 PRIME-main LIVE SMOKE — verify scorer, GBA, fail-closed, balanced cells.
+# Not mock: hits OpenRouter with gemma-3-12b-it.
+
+includes:
+  - ./config_prime_main.yaml
+
+experiment:
+  name: E5_civilcomments_prime_main_smoke
+  smoke: true
+  smoke_n_cycles: 1
+  smoke_n_evolve: 2
+  # Cap after load; must fit 8×2×per_cell + anchor/audit/dev on heldout (~30%).
+  # Must be >= max_train_users so smoke does not randomly thin rare toxic cells.
+  smoke_max_examples: 60000
+  force_mock: false
+  verbose: true
+  smoke_validate: true
+
+fitness:
+  gba_min_pos: 3
+  gba_min_neg: 3
+
+data_roles:
+  d_select_size: 64
+  d_anchor_size: 20
+  d_audit_size: 20
+  d_dev_size: 48
+  balanced_cells: true
+  balanced_per_cell: 4
+  balanced_include_none: false
+  n_min_per_group: 4
+  d_select_rotate: false
+  dev_gate_mode: monitor
+  anchor_gate_mode: monitor
+
+acquisition:
+  batch_size: 8
+  expansion_trigger: 4
+  expansion_batch: 4
+  pool_score_subsample: 200
+
+evolution:
+  n_evolve_iterations: 2
+  population_size: 4
+
+active_learning:
+  n_cycles: 1
+  seed: 42
+
+budget:
+  total_calls: 12000
+  scorer_calls: 12000
+  optimizer_calls: 40
+  on_exhausted: warn
+
+dataset:
+  # ~50k train → heldout ~15k; other_religions tox ≈ 25+ so per_cell=4 fits.
+  max_train_users: 50000
+  max_val_users: 5000
+  max_test_users: 2000
+  al_candidate_pool_size: 800

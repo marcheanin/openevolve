@@ -1,0 +1,66 @@
+{
+  "status": "ok",
+  "n": 900,
+  "d_dev_fingerprint": "1c10514d553c",
+  "results": {
+    "seed": {
+      "R_worst_gba": 0.5700000000000001,
+      "R_gba_mean": 0.6925,
+      "toxic_recall": 0.7311111111111112,
+      "specificity": 0.6666666666666666,
+      "R_global": 0.6988888888888889,
+      "pred_pos_rate": 0.5322222222222223,
+      "invalid_rate": 0.0
+    },
+    "strict_identity": {
+      "R_worst_gba": 0.5900000000000001,
+      "R_gba_mean": 0.6799999999999999,
+      "toxic_recall": 0.82,
+      "specificity": 0.5533333333333333,
+      "R_global": 0.6866666666666666,
+      "pred_pos_rate": 0.6333333333333333,
+      "invalid_rate": 0.0
+    },
+    "conservative": {
+      "R_worst_gba": 0.54,
+      "R_gba_mean": 0.56,
+      "toxic_recall": 0.18888888888888888,
+      "specificity": 0.9422222222222222,
+      "R_global": 0.5655555555555556,
+      "pred_pos_rate": 0.12347052280311457,
+      "invalid_rate": 0.0011111111111111111
+    },
+    "one_liner": {
+      "R_worst_gba": 0.16999999999999998,
+      "R_gba_mean": 0.2675,
+      "toxic_recall": 0.2911111111111111,
+      "specificity": 0.27555555555555555,
+      "R_global": 0.2833333333333333,
+      "pred_pos_rate": 0.5502392344497608,
+      "invalid_rate": 0.5355555555555556
+    },
+    "identity_aware": {
+      "R_worst_gba": 0.28,
+      "R_gba_mean": 0.38875000000000004,
+      "toxic_recall": 0.12444444444444444,
+      "specificity": 0.6755555555555556,
+      "R_global": 0.4,
+      "pred_pos_rate": 0.12237762237762238,
+      "invalid_rate": 0.36444444444444446
+    },
+    "fewshot": {
+      "R_worst_gba": 0.54,
+      "R_gba_mean": 0.6475,
+      "toxic_recall": 0.6488888888888888,
+      "specificity": 0.6444444444444445,
+      "R_global": 0.6466666666666666,
+      "pred_pos_rate": 0.5022222222222222,
+      "invalid_rate": 0.0
+    }
+  },
+  "spread_worst_gba": 0.4200000000000001,
+  "spread_toxic_recall": 0.6955555555555555,
+  "gate_worst_gba_spread": 0.05,
+  "gate_recall_spread": 0.1,
+  "gate_passed": true
+}

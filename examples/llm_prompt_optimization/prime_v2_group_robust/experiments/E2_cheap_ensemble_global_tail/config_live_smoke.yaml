@@ -1,0 +1,103 @@
+# Mini live smoke: cheap ensemble + global_tail_mix + new mutator coaching.
+# 1 AL cycle × 2 OE iters — enough for the mutator to see parent artifacts.
+# Not a result; only validates wiring / artifacts / ensemble.
+
+includes:
+  - ../../configs/base_v3.yaml
+  - ../../configs/ensemble_cheap_v1.yaml
+
+experiment:
+  name: E2_cheap_mutator_live_smoke
+  results_dir: results_smoke
+  smoke: true
+  smoke_n_cycles: 1
+  smoke_max_examples: 10000
+  force_mock: false
+  verbose: true
+  smoke_validate: true
+
+openevolve_config_path: configs/openevolve_e2_cheap.yaml
+
+fitness:
+  mode: global_tail_mix
+  w_global_mix: 0.5
+  w_tail: 0.5
+  tail_quantile: 0.2
+  epsilon_global: 0.0
+  shrink_prior_weight: 50.0
+  class_balanced: false
+  cvar_quantile: 0.40
+  len_penalty_start: 2000
+  len_penalty_per_100: 0.01
+
+data_roles:
+  enabled: true
+  stratify: true
+  d_select_size: 24
+  d_anchor_size: 12
+  d_audit_size: 6
+  n_min_per_group: 4
+  anchor_gate_mode: reject
+  anchor_gate_delta: 0.02
+  anchor_gate_alpha: 0.05
+
+dataset:
+  data_root: ./data
+  max_train_users: 12
+  max_val_users: 6
+  max_test_users: 6
+  max_reviews_per_user: 4
+  al_candidate_pool_size: 40
+  use_cache: true
+
+clusters:
+  geometry: pred_profile
+  n_clusters: 3
+  min_users_per_cluster: 2
+  seed: 42
+  control: none
+  descriptors_enabled: true
+  allow_synthetic_fallback: false
+
+acquisition:
+  policy: group_aware
+  batch_size: 8
+  expansion_trigger: 4
+  expansion_batch: 4
+
+evolution:
+  n_evolve_iterations: 2
+  population_size: 4
+  mutator_model: deepseek/deepseek-v4-pro
+  mutator_temperature: 0.6
+  mutator_max_tokens: 8192
+
+consolidation:
+  enabled: false
+  model: google/gemini-3.1-pro-preview
+  pool_carryover_k: 2
+  every_n_cycles: 2
+  run_on_last_cycle: false
+
+pareto:
+  enabled: true
+  champion_margin: 0.01
+  score_consolidated_on_select: true
+  seed_openevolve_from_front: true
+  gate_fallback_down_front: true
+
+active_learning:
+  n_cycles: 1
+  seed: 42
+  selection_mode: lexicographic
+  proxy_tail_metric: R_tail
+  selection_use_shrunk_cvar: true
+  tail_quantile: 0.2
+
+ensemble:
+  max_parallel: 8
+  timeout: 120
+
+budget:
+  total_calls: 4000
+  on_exhausted: warn

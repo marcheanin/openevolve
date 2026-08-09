@@ -1,0 +1,79 @@
+# E4 Phase 2b diagnostics: seed per-group profile + noise floor + power.
+# Not a live evolution run.
+
+includes:
+  - ../../configs/base_v3.yaml
+  - ../../configs/dataset_civilcomments.yaml
+  - ../../configs/ensemble_phase2_small.yaml
+
+prompt_path: prompts/initial_prompt_civilcomments.txt
+
+experiment:
+  name: E4_civilcomments_phase2b_diag
+  results_dir: results_diag
+  smoke: true
+  force_mock: false
+  verbose: true
+
+openevolve_config_path: configs/openevolve_e2_cheap.yaml
+
+fitness:
+  mode: global
+  class_balanced: true
+  cvar_quantile: 0.33
+  shrink_prior_weight: 40.0
+
+data_roles:
+  enabled: true
+  stratify: true
+  d_select_size: 180
+  d_anchor_size: 60
+  d_audit_size: 40
+  n_min_per_group: 15
+  anchor_gate_mode: reject
+
+dataset:
+  max_train_users: 2000
+  max_val_users: 4000
+  max_test_users: 1500
+  al_candidate_pool_size: 3000
+  use_cache: true
+
+clusters:
+  geometry: oracle
+  n_clusters: 9
+  seed: 42
+  control: none
+  descriptors_enabled: true
+  allow_synthetic_fallback: false
+
+acquisition:
+  policy: group_aware
+  batch_size: 8
+
+evolution:
+  n_evolve_iterations: 1
+  population_size: 2
+  mutator_model: deepseek/deepseek-v4-pro
+  mutator_temperature: 0.6
+  mutator_max_tokens: 4096
+
+consolidation:
+  enabled: false
+
+pareto:
+  enabled: false
+
+active_learning:
+  n_cycles: 1
+  seed: 42
+
+ensemble:
+  max_parallel: 12
+  timeout: 120
+  aggregation: majority
+  tie_break: lowest_rating
+
+budget:
+  total_calls: 5000
+  on_exhausted: warn

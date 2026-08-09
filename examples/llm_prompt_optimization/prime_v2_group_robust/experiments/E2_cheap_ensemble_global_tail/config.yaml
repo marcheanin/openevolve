@@ -1,0 +1,106 @@
+# E2 — cheap ensemble + global_tail_mix on Amazon user-OOD
+#
+# Skeleton from Phase 1 (reject gate, consolidation off) with:
+#   fitness = 0.5 R_global + 0.5 R_tail(D_select) - length
+#   workers = gpt-4o-mini / gemini-2.5-flash-lite / qwen3-32b
+#   mutator = deepseek-v4-pro
+#   OE budget 15×3; refit pred_profile (no legacy cluster pin)
+
+includes:
+  - ../../configs/base_v3.yaml
+  - ../../configs/ensemble_cheap_v1.yaml
+
+experiment:
+  name: E2_cheap_ensemble_global_tail
+  results_dir: results
+  smoke: false
+  force_mock: false
+  verbose: true
+  smoke_validate: true
+
+openevolve_config_path: configs/openevolve_e2_cheap.yaml
+
+fitness:
+  mode: global_tail_mix
+  w_global_mix: 0.5
+  w_tail: 0.5
+  tail_quantile: 0.2
+  epsilon_global: 0.0
+  shrink_prior_weight: 50.0
+  class_balanced: false
+  cvar_quantile: 0.40
+  len_penalty_start: 2000
+  len_penalty_per_100: 0.01
+
+data_roles:
+  enabled: true
+  stratify: true
+  d_select_size: 360
+  d_anchor_size: 100
+  d_audit_size: 50
+  n_min_per_group: 40
+  anchor_gate_mode: reject
+  anchor_gate_delta: 0.02
+  anchor_gate_alpha: 0.05
+
+dataset:
+  data_root: ./data
+  max_train_users: 300
+  max_val_users: 150
+  max_test_users: 240
+  max_reviews_per_user: 8
+  al_candidate_pool_size: 500
+  use_cache: true
+  # Refit clusters on this ensemble's seed preds (do NOT pin Phase1 artifact).
+
+clusters:
+  geometry: pred_profile
+  n_clusters: 6
+  min_users_per_cluster: 8
+  seed: 42
+  control: none
+  descriptors_enabled: true
+  allow_synthetic_fallback: false
+
+acquisition:
+  policy: group_aware
+  batch_size: 30
+  expansion_trigger: 12
+  expansion_batch: 12
+
+evolution:
+  n_evolve_iterations: 15
+  population_size: 20
+  mutator_model: deepseek/deepseek-v4-pro
+  mutator_temperature: 0.6
+  mutator_max_tokens: 8192
+
+consolidation:
+  enabled: false
+  model: google/gemini-3.1-pro-preview
+  pool_carryover_k: 2
+  every_n_cycles: 2
+  run_on_last_cycle: false
+
+pareto:
+  enabled: true
+  champion_margin: 0.01
+  score_consolidated_on_select: true
+  seed_openevolve_from_front: true
+  gate_fallback_down_front: true
+
+active_learning:
+  n_cycles: 3
+  seed: 42
+  selection_mode: lexicographic
+  proxy_tail_metric: R_tail
+  selection_use_shrunk_cvar: true
+  tail_quantile: 0.2
+
+ensemble:
+  max_parallel: 8
+  timeout: 120
+
+budget:
+  total_calls: 90000
+  on_exhausted: warn

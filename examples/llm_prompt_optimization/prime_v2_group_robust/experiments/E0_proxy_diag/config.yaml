@@ -1,0 +1,62 @@
+# E0 proxy diagnostics — live run with new ensemble (SPEC §7, Р12).
+# One ensemble inference on official WILDS val; cluster grid reuses predictions.
+# Models: deepseek-v4-pro, kimi-k2.5, qwen3-235b (mutator glm-5 unused in E0).
+
+includes:
+  - ../../configs/base_v3.yaml
+
+experiment:
+  name: E0_proxy_diag
+  results_dir: results
+  smoke: false
+  smoke_max_examples: 600
+  verbose: true
+  force_mock: false
+
+dataset:
+  max_train_users: 80
+  max_val_users: 40
+  max_test_users: 10
+  max_reviews_per_user: 8
+
+data_roles:
+  enabled: true
+  stratify: true
+  d_select_size: 200
+  d_anchor_size: 50
+  d_audit_size: 50
+  n_min_per_group: 40
+
+clusters:
+  n_clusters: 4   # fixed after LOO recompute (see recompute_loo/e0_report.md)
+  control: none
+  descriptors_enabled: true
+  seed: 42
+
+ensemble:
+  timeout: 120
+  max_parallel: 6
+  workers:
+    - name: deepseek/deepseek-v4-pro
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+    - name: moonshotai/kimi-k2.5
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+    - name: qwen/qwen3-235b-a22b-2507
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+
+budget:
+  total_calls: 10000
+  on_exhausted: warn
+
+e0:
+  # Power rule: 40 val users × 8 reviews ≈ 320 examples; n_min≈40 → K ≤ 8.
+  # Drop 10/12: they produced singleton fit clusters on this cap.
+  k_grid: [3, 4, 6, 8]
+  variants: [full_T, emb_only, shuffle]
+  cluster_seeds: [42, 43, 44]

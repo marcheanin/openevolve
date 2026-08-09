@@ -1,0 +1,62 @@
+# E0 large-cap confirmation — denser clusters, LOO Spearman (SPEC §7 / Р12).
+# Target: ~150 val users × 8 reviews ≈ 1200 examples → ~3600 ensemble calls.
+# Train fit: ~300 users so K=3..8 clusters are well populated.
+
+includes:
+  - ../../configs/base_v3.yaml
+
+experiment:
+  name: E0_proxy_diag_large
+  results_dir: results
+  smoke: false
+  # Must be ≥ val reviews (150×8=1200); also used as soft train ceiling.
+  smoke_max_examples: 2500
+  verbose: true
+  force_mock: false
+
+dataset:
+  max_train_users: 300
+  max_val_users: 150
+  max_test_users: 20
+  max_reviews_per_user: 8
+
+data_roles:
+  enabled: true
+  stratify: true
+  d_select_size: 400
+  d_anchor_size: 100
+  d_audit_size: 100
+  n_min_per_group: 40
+
+clusters:
+  n_clusters: 4
+  control: none
+  descriptors_enabled: true
+  seed: 42
+
+ensemble:
+  timeout: 120
+  max_parallel: 8
+  workers:
+    - name: deepseek/deepseek-v4-pro
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+    - name: moonshotai/kimi-k2.5
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+    - name: qwen/qwen3-235b-a22b-2507
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+
+budget:
+  total_calls: 15000
+  on_exhausted: warn
+
+e0:
+  # With 150 val users × 8 ≈ 1200 examples, K≤8 keeps ≥~150 examples/group.
+  k_grid: [3, 4, 6, 8]
+  variants: [full_T, emb_only, shuffle]
+  cluster_seeds: [42, 43, 44]

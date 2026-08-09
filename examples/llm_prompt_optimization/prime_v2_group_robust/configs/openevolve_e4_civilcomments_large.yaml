@@ -1,0 +1,134 @@
+# OpenEvolve config for E4 CivilComments (binary toxicity).
+# Mutator model overridden at runtime from evolution.mutator_model
+# (deepseek/deepseek-v4-pro). Workers below are documentary — rating uses Prime ensemble.
+
+max_iterations: 20
+checkpoint_interval: 1
+log_level: "INFO"
+diff_based_evolution: false
+max_code_length: 8000
+language: "text"
+early_stopping_patience: 12
+early_stopping_metric: "combined_score"
+
+llm:
+  api_base: "https://openrouter.ai/api/v1"
+  models:
+    - name: "deepseek/deepseek-v4-pro"
+      weight: 1.0
+  temperature: 0.6
+  max_tokens: 4096
+  timeout: 300
+  retries: 3
+
+prompt:
+  num_top_programs: 3
+  num_diverse_programs: 2
+  include_artifacts: true
+  system_message: |
+    You are evolving a binary toxicity classifier prompt for CivilComments.
+    Three workers (gemma-3-12b-it, qwen3.7-flash, gemma-4-26b) each output
+    Label: 0 (non-toxic) or Label: 1 (toxic); the ensemble takes majority vote.
+    Raise accuracy on a fixed held-out selection set (D_select) without breaking
+    easy/solved examples (anchor gate).
+
+    ## Prompt structure
+
+    <System> → <Role>, <BaseGuidelines>, <DynamicRules>
+    <FewShotExamples> → Comment / Label: 0|1 pairs
+    <Task> → must keep {review} unchanged (the comment text placeholder)
+
+    Prefer editing <DynamicRules> or <FewShotExamples>. Light edits to
+    <BaseGuidelines> are OK if they clarify boundaries. Preserve XML tags.
+    Prefer one coherent change per mutation.
+
+    Workers output ONLY a binary label ("Label: 0" / "Label: 1" or "0" / "1").
+    Few-shot examples must end with a single "Label: N" line.
+
+    ## What fitness optimizes
+
+    Fitness is scored on D_select (NOT on the error-batch alone). Depending on
+    the experiment arm it is either:
+      - global: R_global - length_penalty
+      - min_group_lex: min_g Acc_g + eps * R_global - length_penalty
+        (worst oracle/inferred identity group primary; global is only a tie-break)
+
+    Length penalty grows above ~2000 tokens — stay concise.
+    An anchor gate rejects prompts that regress on easy/solved examples.
+
+    Identity groups (male/female/LGBTQ/religion/race/none) are analysis axes.
+    Find a TEXTUAL trigger shared by failing comments (identity mention without
+    hostility, sarcasm, veiled insults, etc.). NEVER write "Group A", "cluster",
+    or "black group" into the prompt — workers only see the comment text.
+
+    ## How to read the artifacts
+
+    - ERROR / confusion: gold→pred (0↔1). Highest leverage is systematic false
+      positives on benign identity mentions or false negatives on veiled hate.
+    - SYSTEMATIC errors (all workers wrong): best place for a new rule.
+    - CONTESTED errors (workers split): weaker; prefer a boundary that repeats.
+    - CONTRASTIVE PAIRS: FAIL vs OK in the same group — isolate the difference.
+    - CANDIDATE FEW-SHOT LINES: copy VERBATIM with correct gold; do not invent text.
+    - ANCHOR / DAMAGE REPORT: if a correct case broke, narrow the last rule.
+
+    ## How to change the prompt
+
+    On <DynamicRules>:
+    - Crisp toxicity vs civil-disagreement / identity-mention boundaries.
+    - One rule tied to a real pattern > ten vague tips.
+    - Prefer observable triggers: slurs, threats, dehumanization, sarcasm aimed
+      at people, vs neutral identity terms, policy critique, quoting hate to condemn.
+    - Do not add one-way "always toxic if identity word appears" — that is the
+      spurious correlation we are trying to break.
+
+    On <FewShotExamples>:
+    - Prefer verbatim candidate lines from artifacts.
+    - Cover failing boundaries; keep ~3–6 examples; balance 0/1.
+
+    ## Output format
+
+    First a brief <mutation_log> (3–5 lines): which errors you targeted, your
+    hypothesis, what you changed. Then the COMPLETE prompt in a ```text fence.
+
+    <mutation_log>
+    - Top confusion: gold=0→pred=1 on neutral identity mentions.
+      Hypothesis: workers treat identity terms as toxicity cues.
+      Added rule: mention of race/religion/gender alone is not toxic without
+      insult, threat, or demeaning language.
+    - Added one verbatim non-toxic few-shot from artifacts.
+    </mutation_log>
+    ```text
+    <System>
+    ...complete prompt...
+    </Task>
+    ```
+
+database:
+  log_prompts: true
+  population_size: 16
+  archive_size: 80
+  num_islands: 1
+  feature_dimensions:
+    - cluster_acc_0
+    - prompt_length
+  feature_bins: 3
+
+evaluator:
+  timeout: 1800
+  max_retries: 2
+  parallel_evaluations: 1
+  cascade_evaluation: false
+
+worker_defaults:
+  api_base: "https://openrouter.ai/api/v1"
+  temperature: 0.0
+  max_tokens: 128
+  timeout: 120
+  reasoning_effort: none
+  max_retries: 4
+  max_parallel: 8
+
+workers:
+  - name: "google/gemma-3-12b-it"
+  - name: "qwen/qwen3.7-flash"
+  - name: "google/gemma-4-26b-a4b-it"

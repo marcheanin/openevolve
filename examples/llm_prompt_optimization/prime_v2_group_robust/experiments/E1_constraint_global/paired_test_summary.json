@@ -1,0 +1,21 @@
+{
+  "run_dir": "results\\E1_constraint_global\\seed42_20260801_002853",
+  "initial_source": "pred_cache/cluster_assign_test_ens.npy",
+  "R_global_initial": 0.721875,
+  "R_global_final": 0.7260416666666667,
+  "delta": 0.004166666666666652,
+  "bootstrap_ci95": [
+    -0.008333333333333333,
+    0.016666666666666666
+  ],
+  "bootstrap_p_le0": 0.2674,
+  "mcnemar_fixed_broke": [
+    63,
+    55
+  ],
+  "pred_down_up": [
+    22,
+    115
+  ],
+  "mechanics_pass": true
+}

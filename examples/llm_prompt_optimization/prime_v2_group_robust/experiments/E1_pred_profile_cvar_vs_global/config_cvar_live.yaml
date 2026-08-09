@@ -1,0 +1,120 @@
+# E1 pred_profile — CVaR_lex arm (live WILDS + OpenRouter)
+#
+# Groups: pred_profile K<=6 with min_users_per_cluster=8 (OBSERVATIONS C7).
+# Power rule: d_select=240 / n_min=40 -> max K=6.
+# Compare against twin config_global_live.yaml under equal budget/caps.
+#
+# cluster_artifact IS pinned now (OBSERVATIONS O14): refitting per arm gave
+# {0:23,1:38,2:30,3:16,4:33} for cvar_lex and {0:24,1:30,2:22,3:44,4:20} for
+# global at the same seed, because the seed-prompt ensemble is not bit-identical.
+# CVaR across two different partitions is not a comparison. Pinning also makes
+# this run directly comparable to the completed seed42_20260728_125748 baseline
+# and skips ~44 min of clustering.
+
+includes:
+  - ../../configs/base_v3.yaml
+
+experiment:
+  name: E1_pred_profile_cvar_lex
+  results_dir: results
+  smoke: false
+  force_mock: false
+  verbose: true
+  smoke_validate: true
+
+openevolve_config_path: configs/openevolve_e1_live.yaml
+
+fitness:
+  mode: cvar_lex
+  cvar_quantile: 0.33
+  epsilon_global: 0.01
+
+data_roles:
+  enabled: true
+  stratify: true
+  d_select_size: 240
+  # 100 (SPEC Р9 full-run value): at 50 the gate has no usable operating point —
+  # one example = the whole tolerance, and significance needs -0.10 (OBSERVATIONS M7).
+  d_anchor_size: 100
+  d_audit_size: 50
+  n_min_per_group: 40
+  anchor_gate_delta: 0.02
+  anchor_gate_alpha: 0.05
+  # Pinned for the same reason as cluster_artifact: D_anchor is built from a live
+  # ensemble pass over heldout candidates, so two runs at seed=42 land on different
+  # splits (observed: c77c5b09 vs the baseline's 7ec9db8e). Pinning the baseline's
+  # split also makes D_select fitness directly comparable to seed42_20260728_125748,
+  # where consolidation was measured to cost -0.015 and -0.066.
+  eval_sets_artifact: results/E1_pred_profile_cvar_lex/seed42_20260728_125748/eval_sets.json
+
+dataset:
+  data_root: ./data
+  # 200 users -> ~480 heldout examples, so D_select+D_anchor+D_audit (390) fits.
+  max_train_users: 200
+  max_val_users: 120
+  max_test_users: 120
+  max_reviews_per_user: 8
+  al_candidate_pool_size: 500
+  use_cache: true
+  cluster_artifact: results/E1_pred_profile_cvar_lex/seed42_20260728_125748/clusters.json
+
+clusters:
+  geometry: pred_profile
+  n_clusters: 6
+  min_users_per_cluster: 8
+  seed: 42
+  control: none
+  descriptors_enabled: true
+  allow_synthetic_fallback: false
+
+acquisition:
+  # group_aware: hard slots ∝ (1-Acc_k) so mutator sees weak pred_profile types
+  # (lexicographic left quotas empty → unrepresentative hard set; stalls OE).
+  policy: group_aware
+  batch_size: 30
+  expansion_trigger: 12
+  expansion_batch: 12
+
+evolution:
+  # 12 iterations / population 20: the April system did ~15 mutations per cycle
+  # at population 30 and kept finding improvements; at 5/8 best_evo froze at
+  # 0.5824 for three straight cycles (OBSERVATIONS O17).
+  n_evolve_iterations: 12
+  population_size: 20
+  mutator_model: z-ai/glm-5
+  mutator_temperature: 0.6
+  mutator_max_tokens: 8192
+
+consolidation:
+  # Strong model for the rare consolidation call: glm-5 returned empty replies
+  # every cycle and silently degraded to the stub (-0.028 on D_select each time).
+  model: google/gemini-3.1-pro-preview
+  pool_carryover_k: 2
+
+pareto:
+  # P9: champion archive with fixed slots — 1 scalar-best (never evicted, O18)
+  # + one champion per cluster on shrunk D_select accuracy. Replaces the
+  # dominance front, which filled with noise-lucky prompts at 5-6 axes.
+  enabled: true
+  champion_margin: 0.01
+  score_consolidated_on_select: true
+  seed_openevolve_from_front: true
+  gate_fallback_down_front: true
+
+active_learning:
+  n_cycles: 3
+  seed: 42
+  selection_mode: lexicographic
+  # R_worst sat at exactly 0.500 for three cycles (8 reviews/user quantizes the
+  # 10th percentile) and made Spearman undefined; R_tail averages the worst
+  # decile instead (OBSERVATIONS M9).
+  proxy_tail_metric: R_tail
+  tail_quantile: 0.2
+
+ensemble:
+  max_parallel: 8
+  timeout: 120
+
+budget:
+  total_calls: 55000
+  on_exhausted: warn

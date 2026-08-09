@@ -61,9 +61,9 @@ class StageTracer:
         mark = {"ok": "OK", "warn": "WARN", "fail": "FAIL"}.get(status, status.upper())
         line = f"[STAGE {idx:02d}/{total}] {stage_id} {title}: {mark}"
         if self.verbose:
-            print(line, flush=True)
+            self._safe_print(line)
             for k, v in details.items():
-                print(f"         {k}: {v}", flush=True)
+                self._safe_print(f"         {k}: {v}")
         if self._jsonl is not None:
             payload = {
                 "ts": datetime.now(timezone.utc).isoformat(),
@@ -73,7 +73,14 @@ class StageTracer:
                 "details": details,
             }
             with open(self._jsonl, "a", encoding="utf-8") as f:
-                f.write(json.dumps(payload, default=str) + "\n")
+                f.write(json.dumps(payload, default=str, ensure_ascii=False) + "\n")
+
+    @staticmethod
+    def _safe_print(msg: str) -> None:
+        try:
+            print(msg, flush=True)
+        except UnicodeEncodeError:
+            print(msg.encode("ascii", errors="replace").decode("ascii"), flush=True)
 
     def write_checklist(self) -> Path:
         path = self.run_dir / "smoke_checklist.json"

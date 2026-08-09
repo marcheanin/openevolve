@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import yaml
+
 from prime.config import PrimeConfig
 
 
@@ -39,7 +41,7 @@ class RunContext:
         self.run_dir.mkdir(parents=True, exist_ok=True)
 
     def snapshot(self) -> Path:
-        """Copy config, write metadata (seed, git hash)."""
+        """Copy config, write metadata (seed, git hash), attach protocol notes."""
         snap = self.run_dir / "config_used.yaml"
         shutil.copy2(self.config_path, snap)
         meta = {
@@ -48,12 +50,27 @@ class RunContext:
             "experiment": self.cfg.experiment.name,
             "config_source": str(self.config_path),
             "smoke": self.cfg.experiment.smoke,
+            "cluster_geometry": getattr(self.cfg.clusters, "geometry", "style"),
+            "fitness_mode": self.cfg.fitness.mode,
+            "started_at_utc": datetime.now(timezone.utc).isoformat(),
         }
         (self.run_dir / "run_metadata.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+        resolved = asdict(self.cfg)
         (self.run_dir / "config_snapshot.json").write_text(
-            json.dumps(asdict(self.cfg), indent=2, default=str),
+            json.dumps(resolved, indent=2, default=str),
             encoding="utf-8",
         )
+        # Fully-resolved YAML for OE evaluator subprocesses. The raw copy above
+        # keeps `includes:` with paths relative to experiments/, which break when
+        # reloaded from run_dir → empty workers → expensive base_v3 defaults
+        # (OBSERVATIONS O28). OpenEvolve reads PRIME_CONFIG_PATH from this file.
+        resolved_path = self.run_dir / "config_resolved.yaml"
+        with open(resolved_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(resolved, f, sort_keys=False, allow_unicode=True)
+        # Keep lessons next to the run so post-mortems don't depend on repo edits.
+        obs = self.project_root / "experiments" / "OBSERVATIONS.md"
+        if obs.is_file():
+            shutil.copy2(obs, self.run_dir / "OBSERVATIONS.md")
         return snap
 
     def cycle_dir(self, cycle: int) -> Path:

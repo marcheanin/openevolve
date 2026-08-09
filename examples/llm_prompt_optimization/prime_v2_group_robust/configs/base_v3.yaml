@@ -1,0 +1,125 @@
+# GRAPE / PRIME v3 base configuration (SPEC.md §4, decisions Р6-Р10).
+# Defaults implement: fit/heldout source split 70/30 (Р7), D_select/D_anchor
+# roles (§4.3), cvar_lex fitness (§4.4), median vote aggregation (Р8),
+# label-free cluster fit (Р8) with power rule K <= |D_select|/n_min (Р9).
+
+prompt_path: prompts/initial_prompt.txt
+
+dataset:
+  name: amazon
+  data_root: ./data
+  category_id: null
+  min_user_reviews: 1
+  max_train_users: 200
+  max_val_users: 50
+  max_test_users: 50
+  max_reviews_per_user: 10
+  al_candidate_pool_size: 2000
+  cache_dir: null
+  use_cache: true
+
+clusters:
+  n_clusters: 8           # upper bound; actual K also capped by power rule (Р9)
+  geometry: style         # style | pred_profile (E1 default for pilot: pred_profile)
+  embedding_model: all-MiniLM-L6-v2
+  seed: 42
+  pca_components: 32
+  allow_synthetic_fallback: false
+  control: none           # none | shuffle (Р13)
+  descriptors_enabled: true
+  descriptors_top_n: 5
+  descriptors_llm_editor: false
+
+data_roles:
+  enabled: true
+  fit_fraction: 0.7            # Р7: 70% fit / 30% heldout by user_id
+  stratify: true               # Р15
+  d_select_size: 400           # Р9 full run
+  d_anchor_size: 100
+  d_audit_size: 100            # Р15
+  n_min_per_group: 40          # K <= |D_select| / 40
+  min_reviews_for_fit: 3       # users below do not shape cluster geometry
+  anchor_max_disagreement: 0.2
+  anchor_gate_delta: 0.02
+
+budget:
+  total_calls: 60000
+  on_exhausted: stop
+
+ensemble:
+  api_base: https://openrouter.ai/api/v1
+  max_parallel: 8
+  timeout: 120
+  max_retries: 4
+  aggregation: median     # Р8; majority + tie_break kept as ablation arm
+  tie_break: lowest_rating
+  workers:
+    - name: deepseek/deepseek-v4-pro
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+    - name: moonshotai/kimi-k2.5
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+    - name: qwen/qwen3-235b-a22b-2507
+      temperature: 0.0
+      max_tokens: 128
+      reasoning_effort: none
+
+fitness:
+  mode: cvar_lex          # SPEC §4.4: CVaR_shrunk + eps*global - len penalty
+  epsilon_global: 0.01
+  beta_a: 1.0             # Beta(1,1) smoothing of per-cluster accuracy
+  beta_b: 1.0
+  cvar_quantile: 0.33
+  prompt_len_limit: 8000
+  len_penalty_per_100: 0.01
+  len_penalty_start: 2000
+
+acquisition:
+  # D_mut role only (Р6): feeds mutator artifacts, never selection.
+  policy: group_aware
+  batch_size: 35          # |D_mut| per SPEC Р9 (full run)
+  hard_ratio: 0.7
+  oversample_factor: 3.0
+  n_diversity_clusters: 8
+  expansion_trigger: 25
+  expansion_batch: 40
+  expansion_policy: disagreement
+  group_quota_enabled: true
+
+evolution:
+  n_evolve_iterations: 15
+  population_size: 30
+  archive_size: 500
+  mutator_model: z-ai/glm-5
+  mutator_temperature: 0.6
+  mutator_max_tokens: 8192
+  structured_prompt: true
+  synthetic_fewshot: false
+
+consolidation:
+  enabled: true
+  top_k_archive: 3
+  pool_carryover_k: 3
+  cluster_pareto: false
+  gate_delta: 0.01
+  every_n_cycles: 1
+  scope: base_guidelines
+
+active_learning:
+  n_cycles: 6
+  seed: 42
+  selection_mode: lexicographic
+  selection_w_cvar: 0.7
+  selection_w_global: 0.3
+  proxy_validation_min_cycles: 2   # Р10: log-only in E1; gate threshold set in Phase 4
+
+experiment:
+  name: run
+  results_dir: results
+  smoke: false
+  smoke_n_cycles: 1
+  smoke_n_evolve: 2
+  smoke_max_examples: 200

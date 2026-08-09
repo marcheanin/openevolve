@@ -1,11 +1,13 @@
 includes:
-  - ../../configs/base.yaml
+  - ../../configs/base_v3.yaml
 
-# E1 live pilot: real WILDS OOD splits + OpenRouter ensemble + 3 AL cycles.
+# E1 capped live run: real WILDS OOD splits + OpenRouter ensemble + 3 AL cycles.
+# Capped sizes per SPEC Р9: D_select=200, D_anchor=50, D_mut(batch)=30;
+# power rule gives K <= 200/40 = 5 groups automatically.
 # Requires: OPENROUTER_API_KEY in env (or .env in package root).
 
 experiment:
-  name: E1_cvar_live_wilds
+  name: E1_cvar_lex_live_wilds
   smoke: false
   force_mock: false
   verbose: true
@@ -14,26 +16,31 @@ experiment:
 openevolve_config_path: configs/openevolve_e1_live.yaml
 
 fitness:
-  mode: cvar
-  w_cvar: 0.7
-  w_global: 0.2
-  w_kappa: 0.1
+  mode: cvar_lex
+  cvar_quantile: 0.33
+
+data_roles:
+  d_select_size: 200
+  d_anchor_size: 50
+  n_min_per_group: 40
 
 dataset:
   data_root: ./data
-  max_train_users: 30
+  # 120 users x <=8 reviews: heldout 30% ~ 36 users ~ 280 examples,
+  # enough for D_select=200 + anchor candidates (Р9).
+  max_train_users: 120
   max_val_users: 15
   max_test_users: 15
   max_reviews_per_user: 8
-  al_candidate_pool_size: 240
+  al_candidate_pool_size: 400
   use_cache: true
 
 clusters:
-  n_clusters: 6
+  n_clusters: 6   # upper bound; power rule caps at 5
 
 acquisition:
   policy: lexicographic
-  batch_size: 36
+  batch_size: 30
   expansion_trigger: 12
   expansion_batch: 12
 
@@ -47,8 +54,6 @@ consolidation:
 active_learning:
   n_cycles: 3
   seed: 42
-  selection_w_cvar: 0.7
-  selection_w_global: 0.3
 
 ensemble:
   max_parallel: 6

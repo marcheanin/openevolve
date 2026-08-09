@@ -1,0 +1,42 @@
+# E0 smoke — mock ensemble, synthetic/small data, no API key required.
+
+includes:
+  - ../../configs/base_v3.yaml
+
+experiment:
+  name: E0_proxy_diag_smoke
+  results_dir: results
+  smoke: true
+  smoke_max_examples: 120
+  verbose: true
+  force_mock: true
+
+dataset:
+  max_train_users: 30
+  max_val_users: 15
+  max_test_users: 5
+  max_reviews_per_user: 5
+
+data_roles:
+  enabled: true
+  stratify: true
+  d_select_size: 60
+  d_anchor_size: 20
+  d_audit_size: 20
+  n_min_per_group: 20
+
+clusters:
+  n_clusters: 8
+  control: none
+  descriptors_enabled: true
+  allow_synthetic_fallback: true
+  seed: 42
+
+budget:
+  total_calls: 1000
+  on_exhausted: warn
+
+e0:
+  k_grid: [4, 6, 8]
+  variants: [full_T, shuffle]
+  cluster_seeds: [42, 43]

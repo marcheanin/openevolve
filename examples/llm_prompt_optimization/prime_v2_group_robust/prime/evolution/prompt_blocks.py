@@ -3,7 +3,21 @@
 from __future__ import annotations
 
 import re
-from typing import List, Optional, Tuple
+from typing import List, Optional, Sequence, Tuple
+
+
+_EVOLVE_MARKER_RE = re.compile(r"^[ \t]*#[ \t]*EVOLVE-BLOCK-(?:START|END)[ \t]*\r?\n?", re.MULTILINE)
+
+
+def strip_evolve_markers(prompt: str) -> str:
+    """
+    Remove OpenEvolve's ``# EVOLVE-BLOCK-START/END`` sentinels.
+
+    OpenEvolve wraps a marker-less initial program in those comments and returns
+    them as part of ``best_code``. Without this, every post-cycle-1 prompt ships
+    the sentinels to the rating workers and into the final selected prompt.
+    """
+    return _EVOLVE_MARKER_RE.sub("", prompt).strip("\n")
 
 
 def list_blocks(prompt: str) -> List[str]:
@@ -61,3 +75,29 @@ def replace_block(prompt: str, tag: str, new_inner: str) -> str:
 
 def has_block(prompt: str, tag: str) -> bool:
     return extract_block(prompt, tag) is not None
+
+
+def inject_verbatim_fewshot(
+    prompt: str,
+    examples: Sequence[tuple],
+    *,
+    label_space: str = "ordinal5",
+    max_len: int = 320,
+) -> str:
+    """
+    Mechanically replace <FewShotExamples> with verbatim (text, label) pairs (O22).
+
+    ``examples`` is a sequence of ``(text, label)``. If empty, the prompt is unchanged.
+    """
+    if not examples:
+        return prompt
+    from prime.evolution.artifacts import build_fewshot_inner
+
+    pairs = [(str(t), int(y)) for t, y in examples]
+    inner = build_fewshot_inner(
+        [t for t, _ in pairs],
+        [y for _, y in pairs],
+        label_space=label_space,
+        max_len=max_len,
+    )
+    return replace_block(prompt, "FewShotExamples", inner)

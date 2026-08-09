@@ -1,0 +1,12 @@
+# CivilComments for E5 — larger caps so balanced cells fit.
+# Actual fixed sets (test_fixed / D_dev / D_select) built by balanced sampler.
+
+dataset:
+  name: civilcomments
+  data_root: ./data
+  label_space: binary
+  max_train_users: 50000
+  max_val_users: 20000
+  max_test_users: 30000
+  al_candidate_pool_size: 4000
+  use_cache: true

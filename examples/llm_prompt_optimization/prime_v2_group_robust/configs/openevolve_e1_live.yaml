@@ -1,19 +1,24 @@
-# Minimal OpenEvolve config for E1 live pilot (3 inner iterations per AL cycle).
+# OpenEvolve config for E1 live pilot (12 inner iterations per AL cycle).
 # Mutator + evaluator both use OpenRouter.
+# OE output is staged under results/_oe/<token>/ (Windows MAX_PATH; OBSERVATIONS O4).
+#
+# Budget raised from 5/8 to 12/20 (OBSERVATIONS O17): the April system did ~15
+# mutations per cycle at population 30 and kept improving val for 8 cycles; at
+# 5 iterations with patience 3 best_evo froze at the same value for 3 cycles.
 
-max_iterations: 3
+max_iterations: 12
 checkpoint_interval: 1
 log_level: "INFO"
 diff_based_evolution: false
 max_code_length: 8000
 language: "text"
-early_stopping_patience: 2
+early_stopping_patience: 5
 early_stopping_metric: "combined_score"
 
 llm:
   api_base: "https://openrouter.ai/api/v1"
   models:
-    - name: "google/gemini-2.5-flash"
+    - name: "z-ai/glm-5"
       weight: 1.0
   temperature: 0.5
   max_tokens: 8192
@@ -25,31 +30,104 @@ prompt:
   num_diverse_programs: 2
   include_artifacts: true
   system_message: |
-    You evolve a group-robust Amazon review rating prompt (1-5 stars).
-    Three workers (GPT-4o-mini, Gemini Flash, Claude Haiku) classify via majority vote.
-    Fitness emphasizes CVaR over style clusters (worst third) + global accuracy + kappa.
+    You are evolving a classification prompt for Amazon product reviews (1-5 stars).
+    Three workers (DeepSeek V4 Pro, Kimi K2.5, Qwen3-235B) each output a single
+    rating; the ensemble takes the median. Your job is to raise accuracy on a fixed
+    held-out selection set — especially on the weakest reviewer groups — without
+    breaking examples that already work.
 
-    SCOPED MUTATION (one block per mutation):
-    - Prefer editing <DynamicRules> (fast timescale): put type-/cluster-conditional
-      rules there based on the error artifacts TARGET BLOCK section.
-    - Do NOT rewrite <BaseGuidelines> inside the AL cycle (slow timescale; consolidated
-      separately into a group-invariant core).
-    - You may lightly refresh <FewShotExamples> only if DynamicRules already look stable.
-    - Keep XML tags intact. Keep <Task> with {review} unchanged.
+    ## Prompt structure
 
-    Output: short <mutation_log> naming the single block you changed, then the full
-    prompt in a ```text fence.
+    <System> → <Role>, <BaseGuidelines>, <DynamicRules>
+    <FewShotExamples> → review / Rating: N pairs
+    <Task> → must keep {review} unchanged
+
+    Prefer editing <DynamicRules> or <FewShotExamples>. You may lightly clarify
+    <BaseGuidelines> wording if it clearly helps boundaries, but keep scale and
+    output format. Preserve XML tags. Prefer one coherent change per mutation
+    (small targeted edits beat full rewrites).
+
+    Workers output ONLY a rating (e.g. "Rating: 4" or "4"). Few-shot examples must
+    end with a single "Rating: N" line.
+
+    ## What fitness optimizes
+
+    Fitness = smoothed CVaR over pred_profile clusters (worst third), with global
+    accuracy as a lexicographic tie-break — measured on a FIXED held-out selection
+    set (D_select), NOT on the error-batch examples in the artifacts.
+
+    The error report is a DIAGNOSTIC sample. Use it to form a hypothesis about
+    failure patterns, then write rules that should also help on D_select / weak
+    groups. Do not overfit quirks of a single batch example.
+
+    ## How to read the artifacts
+
+    - ERROR / confusion counts: which gold→pred pairs dominate (often adjacent
+      stars: 2↔3, 3↔4, 4↔5). That boundary is usually the highest-leverage edit.
+    - SYSTEMATIC errors (all workers agreed wrong): best place for a new rule.
+    - CONTESTED errors (workers split): weaker signal; prefer patterns that appear
+      in several examples, not one idiosyncratic review.
+    - MISCLASSIFIED review text: read why it failed (mixed tone, contrast, hedging,
+      sarcasm, brief praise + fatal flaw).
+    - BORDERLINE / ANCHOR damage: protect fragile wins; if something broke, narrow
+      the last rule instead of stacking another.
+    - Reviewer groups / clusters are analysis-only. Find a text trigger shared by
+      the failing group; NEVER write "Cluster N" / "Group A" into the prompt —
+      workers only see the review text.
+
+    Prompts shown as top / diverse inspiration may each be strong on a different
+    group — recombining their text triggers is encouraged.
+
+    ## How to change the prompt
+
+    On <DynamicRules>:
+    - Crisp adjacent-star boundaries beat generic sentiment platitudes.
+    - One rule tied to a real pattern in the errors > ten vague tips.
+    - Prefer observable triggers: contrast clauses, disappointment, deal-breakers,
+      hedging, ending polarity, negations.
+    - If a confusion occurs in BOTH directions, do not add a one-way cap —
+      calibrate both sides.
+    - Merge near-duplicate rules; keep distinct phenomena separate.
+
+    On <FewShotExamples>:
+    - Prefer copying CANDIDATE FEW-SHOT LINES from artifacts VERBATIM. Do not
+      invent review text.
+    - Cover failing boundaries; keep the set small (about 4–8).
+    - A well-chosen tricky example can outperform a long new rule.
+
+    Strategy: small targeted change — name the confusion and hypothesis. Do not
+    rewrite the whole prompt every time.
+
+    ## Output format
+
+    First a brief <mutation_log> (3–5 lines): which errors you targeted, your
+    hypothesis, what you changed. Then the COMPLETE prompt in a ```text fence.
+
+    <mutation_log>
+    - Top confusion gold=4→pred=5; reviews mix praise with a serious complaint.
+      Hypothesis: workers over-weight early positives. Added contrast rule: after
+      "but/however", if the complaint is a deal-breaker → ≤2; if minor → 4 not 5.
+    - Replaced one few-shot with a verbatim failing 4★ review from artifacts.
+    </mutation_log>
+    ```text
+    <System>
+    ...complete prompt...
+    </Task>
+    ```
 
 database:
-  population_size: 8
-  archive_size: 40
+  population_size: 20
+  archive_size: 100
   num_islands: 1
   # feature_dimensions are patched at runtime to cluster_acc_0..K-1 + prompt_length
   # for the fitted K (see prime.evolution.openevolve_config_patch).
   feature_dimensions:
     - cluster_acc_0
     - prompt_length
-  feature_bins: 5
+  # SPEC v3 §4.6: coarse bins — descriptors come from D_select (~200), finer
+  # bins would bin noise. Keep MAP-Elites as a light diversity archive (not a
+  # full Pareto front) until E1 go/no-go on the scalar objective is settled.
+  feature_bins: 3
 
 evaluator:
   timeout: 1800
@@ -60,12 +138,13 @@ evaluator:
 worker_defaults:
   api_base: "https://openrouter.ai/api/v1"
   temperature: 0.0
-  max_tokens: 64
-  timeout: 75
+  max_tokens: 128
+  timeout: 120
+  reasoning_effort: none
   max_retries: 4
   max_parallel: 6
 
 workers:
-  - name: "openai/gpt-4o-mini"
-  - name: "google/gemini-2.5-flash"
-  - name: "anthropic/claude-3.5-haiku"
+  - name: "deepseek/deepseek-v4-pro"
+  - name: "moonshotai/kimi-k2.5"
+  - name: "qwen/qwen3-235b-a22b-2507"

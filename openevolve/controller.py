@@ -314,6 +314,12 @@ class OpenEvolve:
 
             self.database.add(initial_program)
 
+            # Persist evaluator artifacts on the seed so the first mutation prompt
+            # can include them (children already get this in process_parallel).
+            initial_artifacts = self.evaluator.get_pending_artifacts(initial_program_id)
+            if initial_artifacts:
+                self.database.store_artifacts(initial_program_id, initial_artifacts)
+
             # Check if combined_score is present in the metrics
             if "combined_score" not in initial_metrics:
                 # Calculate average of numeric metrics
@@ -476,12 +482,14 @@ class OpenEvolve:
         if best_program:
             # Save the best program at this checkpoint
             best_program_path = os.path.join(checkpoint_path, f"best_program{self.file_extension}")
-            with open(best_program_path, "w", encoding="utf-8") as f:
+            from openevolve.database import _nt_long_path
+
+            with open(_nt_long_path(best_program_path), "w", encoding="utf-8") as f:
                 f.write(best_program.code)
 
             # Save metrics
             best_program_info_path = os.path.join(checkpoint_path, "best_program_info.json")
-            with open(best_program_info_path, "w", encoding="utf-8") as f:
+            with open(_nt_long_path(best_program_info_path), "w", encoding="utf-8") as f:
                 import json
 
                 json.dump(
@@ -540,7 +548,14 @@ class OpenEvolve:
         # max_iterations is the number of evolution iterations to run
         final_iteration = start_iteration + max_iterations - 1
         if final_iteration > 0 and final_iteration % self.config.checkpoint_interval == 0:
-            self._save_checkpoint(final_iteration)
+            try:
+                self._save_checkpoint(final_iteration)
+            except OSError as exc:
+                # Don't lose a finished evolution because checkpoint I/O failed
+                # (common on Windows when nested output paths exceed MAX_PATH).
+                logger.error(
+                    "Final checkpoint save failed (evolution result still valid): %s", exc
+                )
 
     def _save_best_program(self, program: Optional[Program] = None) -> None:
         """

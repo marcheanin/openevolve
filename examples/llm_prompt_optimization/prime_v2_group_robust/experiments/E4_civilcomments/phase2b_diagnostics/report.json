@@ -1,0 +1,249 @@
+{
+  "n": 180,
+  "repeats": 3,
+  "seed": 42,
+  "workers": [
+    "google/gemma-3-12b-it",
+    "qwen/qwen3.7-flash",
+    "google/gemma-4-26b-a4b-it"
+  ],
+  "profile": [
+    {
+      "group_id": 0,
+      "name": "none",
+      "n": 20,
+      "acc": 0.7,
+      "gold_tox_rate": 0.5,
+      "pred_tox_rate": 0.2,
+      "is_identity": false
+    },
+    {
+      "group_id": 1,
+      "name": "male",
+      "n": 20,
+      "acc": 0.9,
+      "gold_tox_rate": 0.5,
+      "pred_tox_rate": 0.5,
+      "is_identity": true
+    },
+    {
+      "group_id": 2,
+      "name": "female",
+      "n": 20,
+      "acc": 0.8,
+      "gold_tox_rate": 0.5,
+      "pred_tox_rate": 0.3,
+      "is_identity": true
+    },
+    {
+      "group_id": 3,
+      "name": "LGBTQ",
+      "n": 20,
+      "acc": 0.6,
+      "gold_tox_rate": 0.5,
+      "pred_tox_rate": 0.2,
+      "is_identity": true
+    },
+    {
+      "group_id": 4,
+      "name": "christian",
+      "n": 20,
+      "acc": 0.75,
+      "gold_tox_rate": 0.5,
+      "pred_tox_rate": 0.25,
+      "is_identity": true
+    },
+    {
+      "group_id": 5,
+      "name": "muslim",
+      "n": 20,
+      "acc": 0.6,
+      "gold_tox_rate": 0.5,
+      "pred_tox_rate": 0.3,
+      "is_identity": true
+    },
+    {
+      "group_id": 6,
+      "name": "other_religions",
+      "n": 20,
+      "acc": 0.75,
+      "gold_tox_rate": 0.2,
+      "pred_tox_rate": 0.05,
+      "is_identity": true
+    },
+    {
+      "group_id": 7,
+      "name": "black",
+      "n": 20,
+      "acc": 0.55,
+      "gold_tox_rate": 0.5,
+      "pred_tox_rate": 0.35,
+      "is_identity": true
+    },
+    {
+      "group_id": 8,
+      "name": "white",
+      "n": 20,
+      "acc": 0.65,
+      "gold_tox_rate": 0.5,
+      "pred_tox_rate": 0.15,
+      "is_identity": true
+    }
+  ],
+  "noise": {
+    "repeats": [
+      {
+        "R_global": 0.7,
+        "R_worst": 0.0,
+        "CVaR_cluster": 0.5833333333333334,
+        "CVaR_cluster_shrunk": 0.6611111111111111,
+        "mean_kappa": 0.1610526865419352,
+        "R_worst_group": 0.55,
+        "R_global_ex": 0.7
+      },
+      {
+        "R_global": 0.6888888888888889,
+        "R_worst": 0.0,
+        "CVaR_cluster": 0.55,
+        "CVaR_cluster_shrunk": 0.6425925925925926,
+        "mean_kappa": 0.1682947199787088,
+        "R_worst_group": 0.55,
+        "R_global_ex": 0.6888888888888889
+      },
+      {
+        "R_global": 0.6944444444444444,
+        "R_worst": 0.0,
+        "CVaR_cluster": 0.5666666666666668,
+        "CVaR_cluster_shrunk": 0.6518518518518518,
+        "mean_kappa": 0.1684176235849825,
+        "R_worst_group": 0.55,
+        "R_global_ex": 0.6944444444444444
+      }
+    ],
+    "summary": {
+      "CVaR_cluster": {
+        "mean": 0.5666666666666668,
+        "sd": 0.016666666666666663,
+        "min": 0.55,
+        "max": 0.5833333333333334,
+        "range": 0.033333333333333326
+      },
+      "CVaR_cluster_shrunk": {
+        "mean": 0.6518518518518519,
+        "sd": 0.009259259259259245,
+        "min": 0.6425925925925926,
+        "max": 0.6611111111111111,
+        "range": 0.01851851851851849
+      },
+      "R_global": {
+        "mean": 0.6944444444444443,
+        "sd": 0.005555555555555536,
+        "min": 0.6888888888888889,
+        "max": 0.7,
+        "range": 0.011111111111111072
+      },
+      "R_global_ex": {
+        "mean": 0.6944444444444443,
+        "sd": 0.005555555555555536,
+        "min": 0.6888888888888889,
+        "max": 0.7,
+        "range": 0.011111111111111072
+      },
+      "R_worst": {
+        "mean": 0.0,
+        "sd": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "range": 0.0
+      },
+      "R_worst_group": {
+        "mean": 0.55,
+        "sd": 0.0,
+        "min": 0.55,
+        "max": 0.55,
+        "range": 0.0
+      },
+      "mean_kappa": {
+        "mean": 0.1659216767018755,
+        "sd": 0.004217116930712898,
+        "min": 0.1610526865419352,
+        "max": 0.1684176235849825,
+        "range": 0.007364937043047304
+      }
+    },
+    "flips": [
+      6,
+      5
+    ]
+  },
+  "aggregation": {
+    "ensemble_acc": 0.7,
+    "per_worker_acc": [
+      0.7333333333333333,
+      0.5388888888888889,
+      0.6944444444444444
+    ],
+    "best_single": 0.7333333333333333,
+    "oracle_over_workers": 0.8888888888888888,
+    "agg_only_headroom": 0.18888888888888888,
+    "errors": 54,
+    "errors_some_worker_right": 34,
+    "errors_all_wrong": 20
+  },
+  "class_mix": {
+    "r2": -0.0331632653061229,
+    "obs_spread": 0.35,
+    "explained_spread": 0.13928571428571435,
+    "resid_spread": 0.3500000000000001,
+    "resid_min": -0.1345238095238095,
+    "resid_max": 0.2154761904761906
+  },
+  "power": {
+    "bootstrap": {
+      "R_global_sd": 0.03453769623787541,
+      "R_worst_sd": 0.07991738542659399,
+      "R_global_mde_80": 0.09670554946605113,
+      "R_worst_mde_80": 0.22376867919446317
+    },
+    "assumed_delta_sd": 0.46337181944476896,
+    "target_mde": 0.05,
+    "n_for_effect": {
+      "0.03": 1870,
+      "0.05": 673,
+      "0.08": 263
+    },
+    "recommend_d_select": 404,
+    "recommend_test": 673
+  },
+  "go_nogo": {
+    "decision": "go",
+    "global_acc": 0.7,
+    "worst": {
+      "group_id": 7,
+      "name": "black",
+      "n": 20,
+      "acc": 0.55,
+      "gold_tox_rate": 0.5,
+      "pred_tox_rate": 0.35,
+      "is_identity": true
+    },
+    "best": {
+      "group_id": 1,
+      "name": "male",
+      "n": 20,
+      "acc": 0.9,
+      "gold_tox_rate": 0.5,
+      "pred_tox_rate": 0.5,
+      "is_identity": true
+    },
+    "gap": 0.35,
+    "identity_error_fraction": 0.8888888888888888,
+    "reasons": [
+      "worst-group gap 0.350 >= 0.05",
+      "residual group effect resid_spread=0.350 (R\u00b2=-0.03)",
+      "identity worst 'black' (0.550) << none (0.700)",
+      "identity share of error mass ~ 89%",
+      "prompt-only headroom (1 - oracle_workers)~0.111; agg-only~+0.189"
+    ]
+  }
+}

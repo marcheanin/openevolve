@@ -1,0 +1,195 @@
+{
+  "finished_utc": "2026-08-08T00:00:21.704858+00:00",
+  "ref_run": "C:\\Users\\march\\things\\mipt\\AlphaEvolveProject\\openevolve\\examples\\llm_prompt_optimization\\prime_v2_group_robust\\results\\E4_civilcomments_arm_b_min_group_2x20\\seed42_20260807_115056",
+  "test_fp": "875e9f6b1e03",
+  "n_examples": 800,
+  "repeats": 1,
+  "rows": [
+    {
+      "id": "seed",
+      "label": "Seed baseline",
+      "prompt_note": "results\\E4_civilcomments_arm_b_min_group_2x20\\seed42_20260807_115056\\initial_prompt.txt",
+      "prompt_len": 1488,
+      "prompt_hash": "99066a101f5a",
+      "metrics": {
+        "R_global": 0.86875,
+        "R_macro": 0.6657676732032733,
+        "R_worst_group": 0.6363636363636364,
+        "CVaR_cluster": 0.7025518341307815,
+        "mean_kappa": null,
+        "accuracy_per_class": {
+          "0": 0.9218967921896792,
+          "1": 0.40963855421686746
+        },
+        "cluster_accuracies": {
+          "0": 0.8827160493827161,
+          "1": 0.8837209302325582,
+          "2": 0.8125,
+          "3": 0.8421052631578947,
+          "4": 0.9538461538461539,
+          "5": 0.8214285714285714,
+          "6": 0.6363636363636364,
+          "7": 0.7894736842105263,
+          "8": 0.6818181818181818
+        },
+        "worst_group": "other_religions",
+        "worst_group_acc": 0.6363636363636364
+      },
+      "repeats": null,
+      "Acc_tox": 0.40963855421686746,
+      "paired_vs_seed": null
+    },
+    {
+      "id": "A_3x3",
+      "label": "A 3x3 lean",
+      "prompt_note": "results\\E4_civilcomments_arm_a_global\\seed42_20260805_104411\\al_iter_2\\best_prompt.txt (sel_cycle=2, len=1487)",
+      "prompt_len": 1487,
+      "prompt_hash": "8b424e2d9f5c",
+      "metrics": {
+        "R_global": 0.875,
+        "R_macro": 0.6692544235519484,
+        "R_worst_group": 0.6363636363636364,
+        "CVaR_cluster": 0.7164502164502164,
+        "mean_kappa": null,
+        "accuracy_per_class": {
+          "0": 0.9288702928870293,
+          "1": 0.40963855421686746
+        },
+        "cluster_accuracies": {
+          "0": 0.8930041152263375,
+          "1": 0.8837209302325582,
+          "2": 0.828125,
+          "3": 0.8421052631578947,
+          "4": 0.9538461538461539,
+          "5": 0.7857142857142857,
+          "6": 0.7272727272727273,
+          "7": 0.7894736842105263,
+          "8": 0.6363636363636364
+        },
+        "worst_group": "white",
+        "worst_group_acc": 0.6363636363636364
+      },
+      "repeats": null,
+      "Acc_tox": 0.40963855421686746,
+      "paired_vs_seed": {
+        "seed_ok_final_wrong": 3,
+        "seed_wrong_final_ok": 8,
+        "net_final_minus_seed": 5
+      }
+    },
+    {
+      "id": "B_3x3",
+      "label": "B 3x3 lean",
+      "prompt_note": "results\\E4_civilcomments_arm_b_min_group\\seed42_20260805_135157\\al_iter_2\\best_prompt.txt (sel_cycle=2, len=1487)",
+      "prompt_len": 1487,
+      "prompt_hash": "8b424e2d9f5c",
+      "metrics": {
+        "R_global": 0.87,
+        "R_macro": 0.6664650232730083,
+        "R_worst_group": 0.5909090909090909,
+        "CVaR_cluster": 0.7012987012987013,
+        "mean_kappa": null,
+        "accuracy_per_class": {
+          "0": 0.9232914923291492,
+          "1": 0.40963855421686746
+        },
+        "cluster_accuracies": {
+          "0": 0.8847736625514403,
+          "1": 0.8837209302325582,
+          "2": 0.828125,
+          "3": 0.8421052631578947,
+          "4": 0.9538461538461539,
+          "5": 0.7857142857142857,
+          "6": 0.7272727272727273,
+          "7": 0.8421052631578947,
+          "8": 0.5909090909090909
+        },
+        "worst_group": "white",
+        "worst_group_acc": 0.5909090909090909
+      },
+      "repeats": null,
+      "Acc_tox": 0.40963855421686746,
+      "paired_vs_seed": {
+        "seed_ok_final_wrong": 5,
+        "seed_wrong_final_ok": 6,
+        "net_final_minus_seed": 1
+      }
+    },
+    {
+      "id": "B_4x20",
+      "label": "B 4x20",
+      "prompt_note": "results\\E4_civilcomments_arm_b_min_group_4x20\\seed42_20260805_214134\\al_iter_1\\best_prompt.txt (sel_cycle=1, len=2072)",
+      "prompt_len": 2072,
+      "prompt_hash": "8783f1da5abe",
+      "metrics": {
+        "R_global": 0.87125,
+        "R_macro": 0.6405286417637075,
+        "R_worst_group": 0.6363636363636364,
+        "CVaR_cluster": 0.7025518341307815,
+        "mean_kappa": null,
+        "accuracy_per_class": {
+          "0": 0.9316596931659693,
+          "1": 0.3493975903614458
+        },
+        "cluster_accuracies": {
+          "0": 0.8888888888888888,
+          "1": 0.872093023255814,
+          "2": 0.828125,
+          "3": 0.8421052631578947,
+          "4": 0.9384615384615385,
+          "5": 0.8214285714285714,
+          "6": 0.6363636363636364,
+          "7": 0.7894736842105263,
+          "8": 0.6818181818181818
+        },
+        "worst_group": "other_religions",
+        "worst_group_acc": 0.6363636363636364
+      },
+      "repeats": null,
+      "Acc_tox": 0.3493975903614458,
+      "paired_vs_seed": {
+        "seed_ok_final_wrong": 10,
+        "seed_wrong_final_ok": 12,
+        "net_final_minus_seed": 2
+      }
+    },
+    {
+      "id": "B_2x20",
+      "label": "B 2x20",
+      "prompt_note": "results\\E4_civilcomments_arm_b_min_group_2x20\\seed42_20260807_115056\\al_iter_1\\best_prompt.txt (sel_cycle=1, len=2548)",
+      "prompt_len": 2548,
+      "prompt_hash": "ec51a09fed99",
+      "metrics": {
+        "R_global": 0.84875,
+        "R_macro": 0.6386298331400917,
+        "R_worst_group": 0.5454545454545454,
+        "CVaR_cluster": 0.6439393939393939,
+        "mean_kappa": null,
+        "accuracy_per_class": {
+          "0": 0.9037656903765691,
+          "1": 0.37349397590361444
+        },
+        "cluster_accuracies": {
+          "0": 0.8703703703703703,
+          "1": 0.8488372093023255,
+          "2": 0.8125,
+          "3": 0.8421052631578947,
+          "4": 0.9230769230769231,
+          "5": 0.75,
+          "6": 0.6363636363636364,
+          "7": 0.7894736842105263,
+          "8": 0.5454545454545454
+        },
+        "worst_group": "white",
+        "worst_group_acc": 0.5454545454545454
+      },
+      "repeats": null,
+      "Acc_tox": 0.37349397590361444,
+      "paired_vs_seed": {
+        "seed_ok_final_wrong": 24,
+        "seed_wrong_final_ok": 8,
+        "net_final_minus_seed": -16
+      }
+    }
+  ]
+}
