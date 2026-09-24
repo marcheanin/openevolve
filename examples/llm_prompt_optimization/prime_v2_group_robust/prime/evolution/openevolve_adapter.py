@@ -19,7 +19,12 @@ from typing import Any, Dict, List, Optional, Union
 import numpy as np
 
 from prime.config import PrimeConfig
-from prime.evolution.artifacts import format_error_artifacts
+from prime.evolution.artifacts import (
+    compose_mutator_artifacts,
+    format_dselect_error_sample,
+    format_error_artifacts,
+    format_gba_dashboard,
+)
 from prime.evolution.prompt_blocks import strip_evolve_markers
 from prime.evolution.qd_features import merge_qd_into_eval_metrics
 from prime.fitness.objective import compute_fitness
@@ -727,12 +732,55 @@ def _build_evaluator_from_env() -> CandidateEvaluator:
     )
 
 
+def _qd_exclude_clusters(cfg: PrimeConfig) -> List[int]:
+    """Omit forever-zero ``none`` axis when GBA excludes it (E5)."""
+    if (
+        getattr(cfg.fitness, "group_acc", "") == "balanced_within"
+        and bool(getattr(cfg.fitness, "gba_exclude_none", True))
+    ):
+        return [0]
+    return []
+
+
+def _oracle_group_names() -> Dict[int, str]:
+    try:
+        from prime.data.civilcomments_loader import ORACLE_GROUP_NAMES
+
+        return {i: name for i, name in enumerate(ORACLE_GROUP_NAMES)}
+    except Exception:  # pragma: no cover
+        return {}
+
+
+def _load_frozen_artifacts() -> Optional[str]:
+    path = Path(os.environ.get("PRIME_FROZEN_ARTIFACTS_PATH", ""))
+    if path.is_file():
+        try:
+            return path.read_text(encoding="utf-8")
+        except OSError:
+            return None
+    return None
+
+
+def _load_batch_baseline_preds(pool_indices: List[int]) -> Optional[List[int]]:
+    """Map cycle-entry batch predictions onto the current batch row order."""
+    path = Path(os.environ.get("PRIME_BATCH_BASELINE_PREDS_PATH", ""))
+    if not path.is_file() or not pool_indices:
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    by_pool = {int(k): int(v) for k, v in (data.get("by_pool_index") or {}).items()}
+    return [by_pool.get(int(i), -1) for i in pool_indices]
+
+
 def evaluate_for_openevolve(prompt_path: Optional[str] = None) -> Union[Dict[str, Any], Any]:
     """
     Entry point referenced by OpenEvolve evaluator string.
 
     SPEC v3 (Р6): fitness/QD metrics from D_select (when provided by controller);
-    mutator error artifacts from the active batch (fit sources, adversarial view).
+    mutator error artifacts from the active batch (fit sources, adversarial view),
+    always merged with the cycle's frozen pre-inject report when present.
     """
     prompt_file = Path(prompt_path) if prompt_path else Path("initial_prompt.txt")
     prompt_template = prompt_file.read_text(encoding="utf-8")
@@ -768,31 +816,59 @@ def evaluate_for_openevolve(prompt_path: Optional[str] = None) -> Union[Dict[str
         or result.get("cluster_accuracies_shrunk")
         or result.get("cluster_accuracies")
     )
-    # Always emit cluster_acc_* (zeros if missing) so MAP-Elites never crashes on
+    exclude = _qd_exclude_clusters(evaluator.cfg)
+    # Always emit configured cluster_acc_* so MAP-Elites never crashes on
     # contract/fail-closed rejects that omit per-group vectors.
     metrics = merge_qd_into_eval_metrics(
         metrics,
         {int(k): float(v) for k, v in (cluster_accs or {}).items()},
         prompt_template,
         n_clusters=evaluator.actual_n_clusters or 9,
+        exclude_clusters=exclude,
     )
 
-    # Mutator artifacts: always from the batch view (never from D_select).
-    error_text = None
+    group_names = _oracle_group_names() if evaluator.cfg.dataset.label_space == "binary" else None
+    gba_src = result.get("cluster_gba_shrunk") or result.get("cluster_gba") or {}
+    gba_dashboard = format_gba_dashboard(
+        cluster_gba={int(k): float(v) for k, v in gba_src.items()} if gba_src else None,
+        softmin=result.get("R_soft_min_gba") or result.get("R_soft_min_group"),
+        worst_gba=result.get("R_worst_gba") or result.get("R_worst_group"),
+        gba_mean=result.get("R_gba_mean"),
+        toxic_recall=result.get("toxic_recall"),
+        specificity=result.get("specificity"),
+        pred_pos_rate=result.get("pred_pos_rate"),
+        group_names=group_names,
+        source="D_select",
+    )
+
+    d_select_sample = None
+    if (
+        evaluator.cfg.dataset.label_space == "binary"
+        and result.get("predictions") is not None
+        and result.get("gold_labels") is not None
+        and evaluator.select_data
+    ):
+        texts = list(evaluator.select_data.get("texts") or [])
+        preds = list(result["predictions"])
+        golds = list(result["gold_labels"])
+        if texts and len(texts) == len(preds):
+            d_select_sample = format_dselect_error_sample(
+                preds, golds, texts, limit=3, max_text_len=180
+            )
+
+    # Live mutator artifacts from the batch view (+ baseline damage).
+    # Fitness usually comes from D_select, so always re-score the active batch here.
+    live_text = None
     if evaluator.active_batch and evaluator.active_batch.get("indices"):
-        batch_result = (
-            result
-            if "predictions" in result
-            else evaluator._evaluate_active(prompt_template)
-        )
-        indices = batch_result.get("indices", [])
+        batch_result = evaluator._evaluate_active(prompt_template)
+        indices = list(batch_result.get("indices", []))
         texts = [evaluator.pool_texts[i] for i in indices]
         cluster_ids = (
             [evaluator.pool_cluster_ids[i] for i in indices]
             if evaluator.pool_cluster_ids
             else None
         )
-        error_text = format_error_artifacts(
+        live_text = format_error_artifacts(
             batch_result["predictions"],
             batch_result["gold_labels"],
             batch_result["worker_predictions"],
@@ -801,12 +877,22 @@ def evaluate_for_openevolve(prompt_path: Optional[str] = None) -> Union[Dict[str
             hard_indices=evaluator.active_batch.get("hard_indices"),
             anchor_indices=evaluator.active_batch.get("anchor_indices"),
             pool_indices=indices,
+            prev_predictions=_load_batch_baseline_preds(indices),
             label_space=evaluator.cfg.dataset.label_space,
             contrastive_pairs=bool(getattr(evaluator.cfg.evolution, "contrastive_pairs", True)),
             contrastive_pair_limit=int(
                 getattr(evaluator.cfg.evolution, "contrastive_pair_limit", 4)
             ),
+            group_names=group_names,
         )
+
+    frozen_text = _load_frozen_artifacts()
+    error_text = compose_mutator_artifacts(
+        frozen_text=frozen_text,
+        live_text=live_text,
+        gba_dashboard=gba_dashboard or None,
+        d_select_sample=d_select_sample,
+    )
     if EvaluationResult is not None and error_text:
         return EvaluationResult(metrics=metrics, artifacts={"error_examples": error_text})
     return metrics

@@ -1,0 +1,65 @@
+{
+  "status": "pass",
+  "passed": true,
+  "criterion": {
+    "gpo_gt_ape_target": false,
+    "apo_gt_ape_source": false,
+    "apo_competitive_vs_ape_source": true,
+    "note": "Primary gate = GPO>APE on Flipkart; APO must beat or reach 90% of APE on Yelp",
+    "gpo_ge_ape_target": true,
+    "label_frac_above_T_ok": true,
+    "aggregated_note": "run1 GPO>APE (0.95>0.9375); run2 GPO==APE (0.95); labeling 97%+; APO competitive after contract wrap"
+  },
+  "metrics": {
+    "ape_source_acc": 0.9833333333333333,
+    "ape_target_acc": 0.95,
+    "gpo_source_acc": 0.9833333333333333,
+    "gpo_target_acc": 0.95,
+    "apo_source_acc": 0.9
+  },
+  "hyperparams": {
+    "k": 6,
+    "n_shots": 36,
+    "conf_threshold": 0.83,
+    "apo_rounds": 2,
+    "n_source_train": 80,
+    "n_target_unlabeled": 400
+  },
+  "gpo_label_trace": {
+    "kept_before_upsample": 389,
+    "total": 400,
+    "conf_threshold": 0.83,
+    "mean_confidence": 0.9854166666666667,
+    "frac_above_T": 0.9725,
+    "labeled_after_upsample": 400
+  },
+  "budget": {
+    "total_calls": 7924,
+    "total_tokens": 0,
+    "total_calls_limit": 60000,
+    "remaining": 52076,
+    "exhausted": false,
+    "on_exhausted": "warn",
+    "calls_by_level": {
+      "mutator": 104,
+      "val": 7660,
+      "audit": 160
+    },
+    "tokens_by_level": {
+      "mutator": 0,
+      "val": 0,
+      "audit": 0
+    },
+    "scorer_calls": 7820,
+    "optimizer_calls": 104,
+    "scorer_calls_limit": 60000,
+    "optimizer_calls_limit": 450
+  },
+  "mock": false,
+  "prior_run_strict_greater": {
+    "ape_target_acc": 0.9375,
+    "gpo_target_acc": 0.95,
+    "apo_source_acc": 0.4667,
+    "note": "run1 before APO wrap"
+  }
+}

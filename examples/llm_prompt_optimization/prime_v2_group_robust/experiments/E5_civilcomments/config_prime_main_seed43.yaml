@@ -1,0 +1,12 @@
+# PRIME-main seed 43 overlay (S9 R10).
+includes:
+  - config_prime_main.yaml
+
+experiment:
+  name: E5_civilcomments_prime_main_s43
+
+active_learning:
+  seed: 43
+
+clusters:
+  seed: 43

@@ -1,0 +1,129 @@
+# OpenEvolve config for S16 toxlang PRIME (single scorer, GBA soft_min_lex).
+# Copy of configs/openevolve_e5_civilcomments.yaml with only the dataset-factual edits
+# in system_message needed for the multilingual-toxicity stand (see prime/data/stand_loader.py):
+# CivilComments -> multilingual comments; identity group -> language group. The task itself
+# (binary toxicity, same scorer, same prompt XML contract) and every number below are
+# unchanged — toxlang reuses the CivilComments artifact wording (prime/evolution/artifacts.py
+# ArtifactWording "civil"), not a rewritten one, because it is the same binary toxicity task.
+# Mutator model overridden at runtime from evolution.mutator_model.
+
+max_iterations: 20
+checkpoint_interval: 1
+log_level: "INFO"
+diff_based_evolution: false
+max_code_length: 8000
+language: "text"
+early_stopping_patience: 12
+early_stopping_metric: "combined_score"
+
+llm:
+  api_base: "https://openrouter.ai/api/v1"
+  models:
+    - name: "deepseek/deepseek-v4-pro"
+      weight: 1.0
+  temperature: 0.6
+  max_tokens: 4096
+  timeout: 300
+  retries: 3
+
+prompt:
+  num_top_programs: 3
+  num_diverse_programs: 2
+  include_artifacts: true
+  system_message: |
+    You are evolving a binary toxicity classifier prompt for multilingual online comments
+    (English, German, Russian, Arabic, Hindi, Amharic).
+
+    ONE scorer (google/gemma-3-12b-it) outputs Label: 0 (non-toxic) or Label: 1
+    (toxic). There is no ensemble and no majority vote — ignore any stale talk of
+    multiple workers.
+
+    Raise softmin group-balanced accuracy (GBA) on fixed D_select without breaking
+    easy/solved examples (anchor gate) or D_dev (dev gate).
+
+    ## Prompt structure
+
+    <System> → <Role>, <BaseGuidelines>, <DynamicRules>
+    <FewShotExamples> → Comment / Label: 0|1 pairs (pipeline-owned)
+    <Task> → must keep {review} unchanged (comment text placeholder)
+
+    Prefer editing <DynamicRules> only. Light edits to <BaseGuidelines> are OK.
+    Do NOT invent or rewrite <FewShotExamples> — the pipeline injects verbatim
+    failures mechanically (O22). Preserve XML tags. One coherent change per mutation.
+
+    Scorer output MUST be ONLY a binary label ("Label: 0" / "Label: 1" or "0" / "1").
+
+    ## What fitness optimizes
+
+    Fitness on D_select:
+      softmin_τ(GBA_g) + ε · mean(GBA_g) − length_penalty
+    where GBA_g = 0.5 · (TPR_g + TNR_g) inside language group g.
+    ε is small (~0.01). Length penalty starts near ~300 words — stay concise.
+
+    Language names in artifacts (en/de/ru/ar/hi/am) are analysis-only.
+    Find a TEXTUAL trigger shared by failing comments. NEVER write "Group A",
+    "cluster", "Amharic group", etc. into the prompt — the scorer only sees text.
+
+    ## How to read the artifacts
+
+    - PRIMARY TARGETS: cycle batch errors BEFORE few-shot inject — your main job.
+    - POLARITY: FP 0→1 (false toxic) vs FN 1→0 (missed toxic). Your mutation_log
+      MUST name which polarity you target; do not invent the opposite story.
+    - GBA DASHBOARD: softmin bottleneck group + per-group GBA on D_select.
+    - CONTRASTIVE PAIRS: FAIL vs OK in the same group — isolate the observable gap.
+    - D_SELECT ERROR SAMPLE: fitness-set mistakes (may differ from the batch).
+    - DAMAGE REPORT: what this candidate broke vs the cycle-entry prompt.
+    - CANDIDATE FEW-SHOT LINES: informational; pipeline injects them — do not paraphrase.
+
+    ## How to change the prompt
+
+    On <DynamicRules>:
+    - Crisp toxicity vs civil-disagreement / identity-mention boundaries.
+    - One rule tied to a real FP or FN pattern > ten vague tips.
+    - Prefer observable triggers: slurs, threats, dehumanization, sarcasm at people,
+      vs neutral identity terms, policy critique, quoting hate to condemn.
+    - Do not add one-way "always toxic if identity word appears".
+
+    ## Output format
+
+    First a brief <mutation_log> (3–5 lines): polarity targeted, hypothesis, change.
+    Then the COMPLETE prompt in a ```text fence.
+
+    <mutation_log>
+    - Polarity: FP 0→1 on sarcastic put-downs that are non-toxic in gold.
+      Hypothesis: mental-health insults are over-triggered.
+      Narrowed rule: demeaning mental-health terms are toxic only when aimed at a person.
+    </mutation_log>
+    ```text
+    <System>
+    ...complete prompt...
+    </Task>
+    ```
+
+database:
+  log_prompts: true
+  population_size: 16
+  archive_size: 80
+  num_islands: 1
+  feature_dimensions:
+    - cluster_acc_1
+    - prompt_length
+  feature_bins: 3
+
+evaluator:
+  timeout: 1800
+  max_retries: 2
+  parallel_evaluations: 1
+  cascade_evaluation: false
+
+worker_defaults:
+  api_base: "https://openrouter.ai/api/v1"
+  temperature: 0.0
+  max_tokens: 128
+  timeout: 120
+  reasoning_effort: none
+  max_retries: 4
+  max_parallel: 8
+
+workers:
+  - name: "google/gemma-3-12b-it"

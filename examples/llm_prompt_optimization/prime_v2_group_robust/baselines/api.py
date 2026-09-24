@@ -57,8 +57,14 @@ def score_prompt_on_set(
     scorer: Scorer,
     prompt: str,
     labeled: LabeledSet,
+    *,
+    fitness_mode: str | None = None,
 ) -> Dict[str, Any]:
-    """Convenience: score prompt, return fitness-ready pred arrays."""
+    """Convenience: score prompt, return fitness-ready pred arrays.
+
+    Defaults: binary CivilComments soft_min_lex + balanced_within.
+    For Amazon ordinal5, pass fitness_mode=\"global\" (or set scorer.label_space).
+    """
     from prime.fitness.objective import compute_fitness
     from prime.config import FitnessCfg
     import numpy as np
@@ -66,15 +72,26 @@ def score_prompt_on_set(
     result = scorer.predict_batch(labeled.texts, prompt, labels_for_mock=labeled.labels)
     user_ids = np.arange(len(labeled.labels))
     cluster_ids = np.asarray(labeled.group_ids) if labeled.group_ids else None
-    cfg = FitnessCfg(
-        mode="soft_min_lex",
-        group_acc="balanced_within",
-        fail_closed=True,
-        class_balanced=True,
-        shrink_prior_weight=40.0,
-        soft_min_tau=0.10,
-        len_penalty_start=10_000,
-    )
+    ls = getattr(scorer, "label_space", "binary") or "binary"
+    mode = fitness_mode or ("global" if ls == "ordinal5" else "soft_min_lex")
+    if mode == "global":
+        cfg = FitnessCfg(
+            mode="global",
+            fail_closed=True,
+            class_balanced=False,
+            shrink_prior_weight=50.0,
+            len_penalty_start=10_000,
+        )
+    else:
+        cfg = FitnessCfg(
+            mode="soft_min_lex",
+            group_acc="balanced_within",
+            fail_closed=True,
+            class_balanced=True,
+            shrink_prior_weight=40.0,
+            soft_min_tau=0.10,
+            len_penalty_start=10_000,
+        )
     return compute_fitness(
         result.preds,
         np.asarray(labeled.labels),

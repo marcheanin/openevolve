@@ -1,0 +1,11 @@
+# Регрессионная проверка: тот же дым, что experiments/E5_civilcomments/config_prime_main_smoke.yaml,
+# но force_mock: true (без обращений к OpenRouter) — проверяет, что порт PRIME на mnli/toxlang
+# (prime/controller.py, prime/evolution/artifacts.py, prime/data/civilcomments_loader.py)
+# не изменил поведение CivilComments. Временный файл для этой проверки; не часть основных стендов.
+
+includes:
+  - ../E5_civilcomments/config_prime_main_smoke.yaml
+
+experiment:
+  name: E5_civilcomments_prime_main_v3_smoke_mock_regression
+  force_mock: true

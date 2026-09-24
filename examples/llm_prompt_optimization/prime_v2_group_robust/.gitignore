@@ -1,7 +1,19 @@
 .env
 /data/
-/results/
-/results_smoke/
 __pycache__/
 *.pyc
 .pytest_cache/
+baselines/_upstream/
+
+# Сырые матрицы предсказаний и логи прогонов в гит не идут: это данные, а не разбор.
+/results/*
+/results_smoke/
+
+# Но выводы анализа, сводки и рисунки — идут: именно на них ссылается текст статьи,
+# и они пересчитываются одной командой из матриц.
+!/results/*/
+/results/*/*
+!/results/*/final/
+!/results/*/figures/
+!/results/*/analysis/
+!/results/*/*.json

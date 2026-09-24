@@ -290,15 +290,23 @@ class PrimeController:
             oe_src = Path(self.cfg.openevolve_config_path)
             if not oe_src.is_absolute():
                 oe_src = self.project_root / oe_src
+        qd_exclude: list = []
+        if (
+            getattr(self.cfg.fitness, "group_acc", "") == "balanced_within"
+            and bool(getattr(self.cfg.fitness, "gba_exclude_none", True))
+        ):
+            qd_exclude = [0]
         self._openevolve_config_used = patch_openevolve_feature_dimensions(
             oe_src if oe_src and oe_src.is_file() else None,
             self.ctx.run_dir / "openevolve_config_used.yaml",
             self._actual_n_clusters,
+            exclude_clusters=qd_exclude,
         )
         self.trace.stage(
             "04b_qd_dims",
             "OpenEvolve QD feature_dimensions patched",
             actual_n_clusters=self._actual_n_clusters,
+            exclude_clusters=qd_exclude,
             openevolve_config=str(self._openevolve_config_used),
         )
 
@@ -816,6 +824,7 @@ class PrimeController:
             )
 
         final_prompt = self._selected_prompt or prompt
+        (self.ctx.run_dir / "final_prompt.txt").write_text(final_prompt, encoding="utf-8")
         if self._test_fixed_split is not None:
             final_test = self._eval_split(final_prompt, self._test_fixed_split)
             final_tag = "test_fixed"
@@ -837,9 +846,65 @@ class PrimeController:
             num_users=final_test.get("num_users"),
         )
 
+        stable_report = None
+        n_stable = int(getattr(self.cfg.experiment, "stable_final_repeats", 0) or 0)
+        if (
+            n_stable > 0
+            and not self.use_mock
+            and final_tag == "test_fixed"
+            and not bool(self.cfg.experiment.smoke)
+        ):
+            try:
+                from scripts.e5_stable_eval import run_stable_eval
+
+                fixed_dir = Path(
+                    getattr(self.cfg.data_roles, "fixed_sets_dir", None)
+                    or (self.project_root / "experiments/E5_civilcomments/fixed_sets")
+                )
+                if not fixed_dir.is_absolute():
+                    fixed_dir = self.project_root / fixed_dir
+                stable_out = self.ctx.run_dir / "evals" / "stable_test_fixed"
+                print(
+                    f"[GRAPE] stable final eval: {n_stable}× seed + {n_stable}× final "
+                    f"on test_fixed → {stable_out}",
+                    flush=True,
+                )
+                stable_report = run_stable_eval(
+                    cfg=self.cfg,
+                    seed_prompt=self.ctx.run_dir / "initial_prompt.txt",
+                    final_prompt=self.ctx.run_dir / "final_prompt.txt",
+                    fixed_dir=fixed_dir,
+                    out_dir=stable_out,
+                    repeats=n_stable,
+                    force=True,
+                )
+                self.trace.stage(
+                    "14b_stable_final",
+                    "Stable test_fixed re-score (seed + final)",
+                    repeats=n_stable,
+                    delta_worst_gba=stable_report.get("delta_mean_final_minus_seed", {}).get(
+                        "R_worst_gba_raw"
+                    ),
+                    seed_sd=stable_report.get("seed_summary", {})
+                    .get("R_worst_gba_raw", {})
+                    .get("sd"),
+                    final_sd=stable_report.get("final_summary", {})
+                    .get("R_worst_gba_raw", {})
+                    .get("sd"),
+                    stable=stable_report.get("stable"),
+                )
+            except Exception as exc:
+                print(f"[GRAPE WARNING] stable_final_eval failed: {exc}", flush=True)
+                self.trace.stage(
+                    "14b_stable_final",
+                    "Stable test_fixed re-score FAILED",
+                    error=str(exc),
+                )
+
         summary = {
             "final_test": final_test,
             "final_test_split": final_tag,
+            "stable_final": stable_report,
             "run_dir": str(self.ctx.run_dir),
             "use_mock": self.use_mock,
             "inference_backend": "mock" if self.use_mock else "openrouter",
@@ -1936,6 +2001,36 @@ class PrimeController:
                 else None
             )
             batch_pool_idx = [i for i in batch["indices"] if i in pos_of]
+            group_names = None
+            gba_dash = None
+            if self.cfg.dataset.label_space == "binary":
+                try:
+                    from prime.data.civilcomments_loader import ORACLE_GROUP_NAMES
+                    from prime.evolution.artifacts import format_gba_dashboard
+
+                    group_names = {i: n for i, n in enumerate(ORACLE_GROUP_NAMES)}
+                    gba_src = (
+                        result.get("cluster_gba_shrunk")
+                        or result.get("cluster_gba")
+                        or {}
+                    )
+                    if gba_src:
+                        gba_dash = format_gba_dashboard(
+                            cluster_gba={int(k): float(v) for k, v in gba_src.items()},
+                            softmin=result.get("R_soft_min_gba")
+                            or result.get("R_soft_min_group"),
+                            worst_gba=result.get("R_worst_gba")
+                            or result.get("R_worst_group"),
+                            gba_mean=result.get("R_gba_mean"),
+                            toxic_recall=result.get("toxic_recall"),
+                            specificity=result.get("specificity"),
+                            pred_pos_rate=result.get("pred_pos_rate"),
+                            group_names=group_names,
+                            source="D_select",
+                        )
+                except Exception:
+                    group_names = None
+                    gba_dash = None
             err_text = format_error_artifacts(
                 [ensemble[p] for p in b_pos],
                 [labels[p] for p in b_pos],
@@ -1955,7 +2050,24 @@ class PrimeController:
                 contrastive_pair_limit=int(
                     getattr(self.cfg.evolution, "contrastive_pair_limit", 4)
                 ),
+                group_names=group_names,
+                gba_dashboard=gba_dash,
             )
+            # Cycle-entry batch preds = damage baseline for OE candidates this cycle.
+            baseline_path = cycle_dir / "batch_baseline_preds.json"
+            baseline_path.write_text(
+                json.dumps(
+                    {
+                        "by_pool_index": {
+                            str(int(i)): int(ensemble[pos_of[i]])
+                            for i in batch_pool_idx
+                        }
+                    },
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+            os.environ["PRIME_BATCH_BASELINE_PREDS_PATH"] = str(baseline_path.resolve())
             # Remember this cycle's verdict per example so the next cycle can tell the
             # mutator what its last change broke (OBSERVATIONS C9: without attribution
             # it keeps stacking rules on top of a regression it cannot see).
@@ -1964,11 +2076,17 @@ class PrimeController:
             if err_text:
                 artifacts_path = cycle_dir / "error_artifacts.txt"
                 artifacts_path.write_text(err_text, encoding="utf-8")
+                # Freeze BEFORE few-shot inject so OE gen1 still sees real FP/FN
+                # even when inject clears the batch (E5 mutator feedback fix).
+                frozen_path = cycle_dir / "mutator_artifacts_frozen.txt"
+                frozen_path.write_text(err_text, encoding="utf-8")
+                os.environ["PRIME_FROZEN_ARTIFACTS_PATH"] = str(frozen_path.resolve())
                 self.trace.stage(
                     "09_error_artifacts",
                     f"Mutator error report (cycle {cycle})",
                     cycle=cycle,
                     path=str(artifacts_path),
+                    frozen_path=str(frozen_path),
                     chars=len(err_text),
                     preview=err_text[:200].replace("\n", " | "),
                 )

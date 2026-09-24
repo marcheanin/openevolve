@@ -1,0 +1,79 @@
+{
+  "pool": "harshness_sweep",
+  "purpose": "E6 Amazon R15 analogue (operating-point / harshness)",
+  "base_prompt": "prompts\\initial_prompt.txt",
+  "candidates": [
+    {
+      "name": "lenient_max",
+      "rank": 0,
+      "file": "00_lenient_max.txt",
+      "is_seed": false
+    },
+    {
+      "name": "prefer_5",
+      "rank": 1,
+      "file": "01_prefer_5.txt",
+      "is_seed": false
+    },
+    {
+      "name": "seed_anchor",
+      "rank": 2,
+      "file": "02_seed_anchor.txt",
+      "is_seed": true
+    },
+    {
+      "name": "prefer_4_over_5",
+      "rank": 3,
+      "file": "03_prefer_4_over_5.txt",
+      "is_seed": false
+    },
+    {
+      "name": "harsh_mid",
+      "rank": 4,
+      "file": "04_harsh_mid.txt",
+      "is_seed": false
+    },
+    {
+      "name": "harsh_strong",
+      "rank": 5,
+      "file": "05_harsh_strong.txt",
+      "is_seed": false
+    },
+    {
+      "name": "strict_5",
+      "rank": 6,
+      "file": "06_strict_5.txt",
+      "is_seed": false
+    },
+    {
+      "name": "inflate_positive",
+      "rank": 7,
+      "file": "07_inflate_positive.txt",
+      "is_seed": false
+    },
+    {
+      "name": "deflate_positive",
+      "rank": 8,
+      "file": "08_deflate_positive.txt",
+      "is_seed": false
+    },
+    {
+      "name": "ending_priority",
+      "rank": 9,
+      "file": "09_ending_priority.txt",
+      "is_seed": false
+    },
+    {
+      "name": "intensity_strict",
+      "rank": 10,
+      "file": "10_intensity_strict.txt",
+      "is_seed": false
+    },
+    {
+      "name": "neutral_bias",
+      "rank": 11,
+      "file": "11_neutral_bias.txt",
+      "is_seed": false
+    }
+  ]
+}

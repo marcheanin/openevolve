@@ -52,5 +52,11 @@ def check_prompt_contract(
         # Soft check: mention toxic / label / output.
         if not re.search(r"(label|toxic|output|class)", text, re.IGNORECASE):
             return ContractResult(False, "missing_task_language")
+    elif label_space == "ordinal5":
+        has_stars = all(re.search(rf"\b{n}\b", text) for n in (1, 5))
+        if not has_stars:
+            return ContractResult(False, "missing_ordinal_labels")
+        if not re.search(r"(rating|star|output|1-5|1–5)", text, re.IGNORECASE):
+            return ContractResult(False, "missing_task_language")
 
     return ContractResult(True, None)

@@ -7,16 +7,18 @@ includes:
   - ../../configs/scorer_gemma3.yaml
 
 prompt_path: prompts/initial_prompt_civilcomments.txt
-openevolve_config_path: configs/openevolve_e4_civilcomments_large.yaml
+openevolve_config_path: configs/openevolve_e5_civilcomments.yaml
 
 experiment:
-  # v2: D_dev selection + F8 gate + test_fixed final (post C2-heir finding).
-  name: E5_civilcomments_prime_main_v2
+  # v3: mutator feedback freeze (M37/O31) + D_dev selection + F8 + test_fixed final.
+  name: E5_civilcomments_prime_main_v3
   results_dir: results
   smoke: false
   force_mock: false
   verbose: true
   smoke_validate: true
+  # Post-run: 3× seed + 3× final on test_fixed (single scorer); see scripts/e5_stable_eval.py
+  stable_final_repeats: 3
 
 fitness:
   mode: soft_min_lex

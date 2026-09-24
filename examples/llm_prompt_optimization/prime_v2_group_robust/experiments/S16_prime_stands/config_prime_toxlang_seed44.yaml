@@ -1,0 +1,12 @@
+# S16 PRIME toxlang, сид 44 (см. E5 config_prime_main_seed44.yaml).
+includes:
+  - config_prime_toxlang.yaml
+
+experiment:
+  name: S16_prime_toxlang_s44
+
+active_learning:
+  seed: 44
+
+clusters:
+  seed: 44

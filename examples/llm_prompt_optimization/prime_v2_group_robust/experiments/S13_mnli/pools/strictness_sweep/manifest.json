@@ -1,0 +1,64 @@
+{
+  "pool": "strictness_sweep",
+  "dataset": "mnli",
+  "edit": "single-line substitution of the tie-break rule",
+  "base_prompt": "experiments/S13_mnli/prompts/seed.txt",
+  "anchor_line": "        4. When unsure, prefer 0 (not a contradiction) unless the incompatibility is clear",
+  "candidates": [
+    {
+      "rank": 0,
+      "name": "thr_p20",
+      "file": "00_thr_p20.txt"
+    },
+    {
+      "rank": 1,
+      "name": "thr_p30",
+      "file": "01_thr_p30.txt"
+    },
+    {
+      "rank": 2,
+      "name": "thr_p40",
+      "file": "02_thr_p40.txt"
+    },
+    {
+      "rank": 3,
+      "name": "thr_p50",
+      "file": "03_thr_p50.txt"
+    },
+    {
+      "rank": 4,
+      "name": "thr_p60",
+      "file": "04_thr_p60.txt"
+    },
+    {
+      "rank": 5,
+      "name": "thr_p70",
+      "file": "05_thr_p70.txt"
+    },
+    {
+      "rank": 6,
+      "name": "thr_p80",
+      "file": "06_thr_p80.txt"
+    },
+    {
+      "rank": 7,
+      "name": "thr_p90",
+      "file": "07_thr_p90.txt"
+    },
+    {
+      "rank": 8,
+      "name": "nl_lenient_max",
+      "file": "08_nl_lenient_max.txt"
+    },
+    {
+      "rank": 9,
+      "name": "nl_strict",
+      "file": "09_nl_strict.txt"
+    },
+    {
+      "rank": 10,
+      "name": "nl_strict_max",
+      "file": "10_nl_strict_max.txt"
+    }
+  ]
+}

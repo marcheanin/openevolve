@@ -115,11 +115,16 @@ def compute_fitness(
         inv = float(metrics.get("invalid_rate", 0.0))
         if inv > float(getattr(cfg, "max_invalid_rate", 0.02)):
             return _reject(metrics, "invalid_rate")
-        pos = float(metrics.get("pred_pos_rate", 0.5))
-        lo = float(getattr(cfg, "min_pred_pos_rate", 0.02))
-        hi = 1.0 - lo
-        if pos < lo or pos > hi:
-            return _reject(metrics, "degenerate")
+        # pred_pos_rate = P(pred==1) is meaningful only for binary labels.
+        # On ordinal5 it falsely rejects almost every real rating prompt (E6).
+        gold_vals = {int(x) for x in np.unique(gold.tolist())}
+        is_binary = gold_vals.issubset({0, 1})
+        if is_binary:
+            pos = float(metrics.get("pred_pos_rate", 0.5))
+            lo = float(getattr(cfg, "min_pred_pos_rate", 0.02))
+            hi = 1.0 - lo
+            if pos < lo or pos > hi:
+                return _reject(metrics, "degenerate")
 
     cvar = float(metrics.get("CVaR_cluster", metrics["R_global"]))
     cvar_shrunk = float(metrics.get("CVaR_cluster_shrunk", cvar))
@@ -152,9 +157,11 @@ def compute_fitness(
             # Never silently fall back to global — that reopens the M31 silence exploit.
             return _reject(metrics, "gba_empty")
         r_min = float(min(accs.values())) if accs else global_acc
-        metrics["R_worst_group"] = r_min
         if group_acc_mode == "balanced_within":
+            # Keep Acc-based R_worst_group from compute_metrics; GBA is separate.
             metrics["R_worst_gba"] = r_min
+        else:
+            metrics["R_worst_group"] = r_min
         base = r_min + cfg.epsilon_global * tie_break_acc
     elif cfg.mode == "soft_min_lex":
         # Softmin over Acc_g / GBA_g (Phase3 F4).
@@ -163,11 +170,13 @@ def compute_fitness(
             return _reject(metrics, "gba_empty")
         r_min = float(min(accs.values())) if accs else global_acc
         r_soft = soft_min_accuracies(accs, cfg.soft_min_tau) if accs else global_acc
-        metrics["R_worst_group"] = r_min
-        metrics["R_soft_min_group"] = float(r_soft)
         if group_acc_mode == "balanced_within":
+            # Keep Acc-based R_worst_group from compute_metrics; do not alias to GBA.
             metrics["R_worst_gba"] = r_min
             metrics["R_soft_min_gba"] = float(r_soft)
+        else:
+            metrics["R_worst_group"] = r_min
+            metrics["R_soft_min_group"] = float(r_soft)
         base = float(r_soft) + cfg.epsilon_global * tie_break_acc
     elif cfg.mode == "global":
         base = global_acc

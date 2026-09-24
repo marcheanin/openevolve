@@ -23,5 +23,7 @@ def test_e5_prime_main_config():
     assert cfg.data_roles.d_dev_size == 900
     assert cfg.data_roles.balanced_cells is True
     assert cfg.acquisition.expansion_policy == "uncertainty"
-    assert cfg.active_learning.n_cycles == 3
+    assert cfg.active_learning.n_cycles == 4
     assert cfg.budget.scorer_calls == 60000
+    assert cfg.openevolve_config_path.endswith("openevolve_e5_civilcomments.yaml")
+    assert cfg.active_learning.selection_split == "d_dev"

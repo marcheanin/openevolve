@@ -1,0 +1,105 @@
+{
+  "pool": "strictness_sweep",
+  "purpose": "R15 calibration control (POWER_AUDIT F3)",
+  "base_prompt": "prompts\\initial_prompt_civilcomments.txt",
+  "edit": "single-line substitution of the tie-break rule",
+  "anchor_line": "        4. When unsure, prefer 0 (non-toxic) unless clear abusive intent",
+  "candidates": [
+    {
+      "name": "nl_lenient_max",
+      "rank": 0,
+      "file": "00_nl_lenient_max.txt",
+      "line": "4. When unsure, label 0. Reserve label 1 for comments that are unambiguously abusive",
+      "is_seed": false,
+      "chars": 1508
+    },
+    {
+      "name": "thr_p90",
+      "rank": 1,
+      "file": "01_thr_p90.txt",
+      "line": "4. Label 1 only if the probability that the comment is toxic is at least 90%; otherwise label 0",
+      "is_seed": false,
+      "chars": 1519
+    },
+    {
+      "name": "thr_p80",
+      "rank": 2,
+      "file": "02_thr_p80.txt",
+      "line": "4. Label 1 only if the probability that the comment is toxic is at least 80%; otherwise label 0",
+      "is_seed": false,
+      "chars": 1519
+    },
+    {
+      "name": "thr_p70",
+      "rank": 3,
+      "file": "03_thr_p70.txt",
+      "line": "4. Label 1 only if the probability that the comment is toxic is at least 70%; otherwise label 0",
+      "is_seed": false,
+      "chars": 1519
+    },
+    {
+      "name": "seed_anchor",
+      "rank": 4,
+      "file": "04_seed_anchor.txt",
+      "line": "4. When unsure, prefer 0 (non-toxic) unless clear abusive intent",
+      "is_seed": true,
+      "chars": 1488
+    },
+    {
+      "name": "thr_p60",
+      "rank": 5,
+      "file": "05_thr_p60.txt",
+      "line": "4. Label 1 only if the probability that the comment is toxic is at least 60%; otherwise label 0",
+      "is_seed": false,
+      "chars": 1519
+    },
+    {
+      "name": "thr_p50",
+      "rank": 6,
+      "file": "06_thr_p50.txt",
+      "line": "4. Label 1 only if the probability that the comment is toxic is at least 50%; otherwise label 0",
+      "is_seed": false,
+      "chars": 1519
+    },
+    {
+      "name": "thr_p40",
+      "rank": 7,
+      "file": "07_thr_p40.txt",
+      "line": "4. Label 1 only if the probability that the comment is toxic is at least 40%; otherwise label 0",
+      "is_seed": false,
+      "chars": 1519
+    },
+    {
+      "name": "thr_p30",
+      "rank": 8,
+      "file": "08_thr_p30.txt",
+      "line": "4. Label 1 only if the probability that the comment is toxic is at least 30%; otherwise label 0",
+      "is_seed": false,
+      "chars": 1519
+    },
+    {
+      "name": "thr_p20",
+      "rank": 9,
+      "file": "09_thr_p20.txt",
+      "line": "4. Label 1 only if the probability that the comment is toxic is at least 20%; otherwise label 0",
+      "is_seed": false,
+      "chars": 1519
+    },
+    {
+      "name": "nl_strict",
+      "rank": 10,
+      "file": "10_nl_strict.txt",
+      "line": "4. When unsure, prefer 1 (toxic); err on the side of flagging",
+      "is_seed": false,
+      "chars": 1485
+    },
+    {
+      "name": "nl_strict_max",
+      "rank": 11,
+      "file": "11_nl_strict_max.txt",
+      "line": "4. When unsure, label 1. Flag any comment that a member of the targeted group could reasonably find demeaning",
+      "is_seed": false,
+      "chars": 1533
+    }
+  ]
+}

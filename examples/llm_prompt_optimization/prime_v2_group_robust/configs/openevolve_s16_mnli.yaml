@@ -1,0 +1,133 @@
+# OpenEvolve config for S16 MultiNLI PRIME (single scorer, GBA soft_min_lex).
+# Same structure and numbers as configs/openevolve_e5_civilcomments.yaml; system_message
+# rewritten for the NLI task (contradiction detection instead of toxicity). Every heuristic
+# in "How to change the prompt" is taken verbatim from experiments/S13_mnli/prompts/seed.txt
+# and from the MNLI wording profile in prime/evolution/artifacts.py — nothing new is invented
+# here. Mutator model overridden at runtime from evolution.mutator_model.
+
+max_iterations: 20
+checkpoint_interval: 1
+log_level: "INFO"
+diff_based_evolution: false
+max_code_length: 8000
+language: "text"
+early_stopping_patience: 12
+early_stopping_metric: "combined_score"
+
+llm:
+  api_base: "https://openrouter.ai/api/v1"
+  models:
+    - name: "deepseek/deepseek-v4-pro"
+      weight: 1.0
+  temperature: 0.6
+  max_tokens: 4096
+  timeout: 300
+  retries: 3
+
+prompt:
+  num_top_programs: 3
+  num_diverse_programs: 2
+  include_artifacts: true
+  system_message: |
+    You are evolving a binary natural-language-inference classifier prompt: does the
+    hypothesis contradict the premise?
+
+    ONE scorer (google/gemma-3-12b-it) outputs Label: 0 (does not contradict) or Label: 1
+    (contradicts). There is no ensemble and no majority vote — ignore any stale talk of
+    multiple workers.
+
+    Raise softmin group-balanced accuracy (GBA) on fixed D_select without breaking
+    easy/solved examples (anchor gate) or D_dev (dev gate).
+
+    ## Prompt structure
+
+    <System> → <Role>, <BaseGuidelines>, <DynamicRules>
+    <FewShotExamples> → Premise / Hypothesis / Label: 0|1 triples (pipeline-owned)
+    <Task> → must keep {review} unchanged (holds "Premise: ...\nHypothesis: ..." verbatim)
+
+    Prefer editing <DynamicRules> only. Light edits to <BaseGuidelines> are OK.
+    Do NOT invent or rewrite <FewShotExamples> — the pipeline injects verbatim
+    failures mechanically (O22). Preserve XML tags. One coherent change per mutation.
+
+    Scorer output MUST be ONLY a binary label ("Label: 0" / "Label: 1" or "0" / "1").
+
+    ## What fitness optimizes
+
+    Fitness on D_select:
+      softmin_τ(GBA_g) + ε · mean(GBA_g) − length_penalty
+    where GBA_g = 0.5 · (TPR_g + TNR_g) inside genre group g.
+    ε is small (~0.01). Length penalty starts near ~300 words — stay concise.
+
+    Genre names in artifacts (fiction/government/slate/telephone/travel/…) are
+    analysis-only. Find a TEXTUAL trigger shared by failing premise/hypothesis pairs.
+    NEVER write "Group A", "cluster", "fiction genre", etc. into the prompt — the
+    scorer only sees the premise/hypothesis text.
+
+    ## How to read the artifacts
+
+    - PRIMARY TARGETS: cycle batch errors BEFORE few-shot inject — your main job.
+    - POLARITY: FP 0→1 (false contradiction) vs FN 1→0 (missed contradiction). Your
+      mutation_log MUST name which polarity you target; do not invent the opposite story.
+    - GBA DASHBOARD: softmin bottleneck group + per-group GBA on D_select.
+    - CONTRASTIVE PAIRS: FAIL vs OK in the same genre — isolate the observable gap.
+    - D_SELECT ERROR SAMPLE: fitness-set mistakes (may differ from the batch).
+    - DAMAGE REPORT: what this candidate broke vs the cycle-entry prompt.
+    - CANDIDATE FEW-SHOT LINES: informational; pipeline injects them — do not paraphrase.
+
+    ## How to change the prompt
+
+    On <DynamicRules>, only these rules are licensed (all from the seed prompt — do not
+    invent new NLI heuristics):
+    - A negation word alone does not imply contradiction.
+    - A different level of detail is not a contradiction.
+    - A hypothesis about something the premise does not mention is neutral, not a
+      contradiction.
+    - Judge only from the premise; do not invent outside assumptions to create a conflict.
+    - One rule tied to a real FP or FN pattern > ten vague tips.
+    - Do not add one-way "always contradiction if a negation word appears".
+
+    ## Output format
+
+    First a brief <mutation_log> (3–5 lines): polarity targeted, hypothesis, change.
+    Then the COMPLETE prompt in a ```text fence.
+
+    <mutation_log>
+    - Polarity: FP 0→1 on hypotheses that merely add unmentioned detail, scored as
+      contradictions.
+      Hypothesis: the model treats "not stated" as "false".
+      Narrowed rule: a hypothesis the premise neither supports nor rules out is neutral,
+      not a contradiction.
+    </mutation_log>
+    ```text
+    <System>
+    ...complete prompt...
+    </Task>
+    ```
+
+database:
+  log_prompts: true
+  population_size: 16
+  archive_size: 80
+  num_islands: 1
+  feature_dimensions:
+    - cluster_acc_1
+    - prompt_length
+  feature_bins: 3
+
+evaluator:
+  timeout: 1800
+  max_retries: 2
+  parallel_evaluations: 1
+  cascade_evaluation: false
+
+worker_defaults:
+  api_base: "https://openrouter.ai/api/v1"
+  temperature: 0.0
+  max_tokens: 128
+  timeout: 120
+  reasoning_effort: none
+  max_retries: 4
+  max_parallel: 8
+
+workers:
+  - name: "google/gemma-3-12b-it"

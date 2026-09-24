@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 import yaml
 
@@ -14,10 +14,12 @@ def patch_openevolve_feature_dimensions(
     source_path: Optional[Path],
     dest_path: Path,
     n_clusters: int,
+    exclude_clusters: Optional[Iterable[int]] = None,
 ) -> Path:
     """
     Copy OpenEvolve YAML (if present) and set database.feature_dimensions to
-    cluster_acc_0..K-1 + prompt_length for the fitted K.
+    cluster_acc_* (+ prompt_length) for the fitted K, optionally omitting groups
+    (e.g. none=0 under gba_exclude_none).
     """
     raw: Dict[str, Any] = {}
     if source_path is not None and Path(source_path).is_file():
@@ -25,7 +27,9 @@ def patch_openevolve_feature_dimensions(
             raw = yaml.safe_load(f) or {}
 
     db = dict(raw.get("database") or {})
-    db["feature_dimensions"] = qd_feature_dimension_names(n_clusters)
+    db["feature_dimensions"] = qd_feature_dimension_names(
+        n_clusters, exclude_clusters=exclude_clusters
+    )
     raw["database"] = db
 
     dest_path.parent.mkdir(parents=True, exist_ok=True)

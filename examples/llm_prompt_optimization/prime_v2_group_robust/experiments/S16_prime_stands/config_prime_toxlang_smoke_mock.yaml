@@ -1,0 +1,32 @@
+# S16 toxlang PRIME — МОК-дым (см. E5 config_prime_main_smoke.yaml). force_mock: true —
+# ни одного реального обращения к OpenRouter; проверяет только, что конвейер целиком
+# проходит все стадии на этом стенде (загрузчик, D_dev/test_fixed из фиксированных файлов,
+# сбалансированные ячейки на 6 языках, формулировки артефактов).
+
+includes:
+  - ./config_prime_toxlang.yaml
+
+experiment:
+  name: S16_prime_toxlang_smoke_mock
+  smoke: true
+  smoke_n_cycles: 1
+  smoke_n_evolve: 2
+  # >= max(train_pool, len(validation), len(test)) = max(21600, 3000, 3000), иначе
+  # subsample_split() сдвинул бы индексы validation/test и сломал d_dev.json/test_fixed.json.
+  smoke_max_examples: 30000
+  force_mock: true
+  verbose: true
+  smoke_validate: true
+  stable_final_repeats: 0
+
+fitness:
+  gba_min_pos: 3
+  gba_min_neg: 3
+
+data_roles:
+  d_select_size: 48    # 6 языков x 2 метки x 4 = 48, делится ровно
+  d_anchor_size: 20
+  d_audit_size: 20
+  d_dev_size: 48        # не влияет на фактический размер — d_dev.json уже существует и грузится как есть (900 строк)
+  balanced_cells: true
+  balanced_per_cell: 4

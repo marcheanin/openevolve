@@ -1,0 +1,131 @@
+# S16 PRIME на MultiNLI. Зеркало experiments/E5_civilcomments/config_prime_main.yaml: те же
+# числа fitness/acquisition/evolution/pareto/active_learning/budget/data_roles, кроме секций,
+# для которых стенд обязан отличаться (dataset, промпт, openevolve-конфиг, fixed_sets_dir,
+# число кластеров — см. комментарии).
+
+includes:
+  - ../../configs/base_v3.yaml
+  - ../../configs/scorer_gemma3.yaml
+
+prompt_path: experiments/S13_mnli/prompts/seed.txt   # тот же сид, что у базовых методов на MNLI
+openevolve_config_path: configs/openevolve_s16_mnli.yaml
+
+experiment:
+  name: S16_prime_mnli
+  results_dir: results
+  smoke: false
+  force_mock: false
+  verbose: true
+  smoke_validate: true
+  stable_final_repeats: 0
+
+fitness:
+  mode: soft_min_lex
+  soft_min_tau: 0.10
+  epsilon_global: 0.01
+  shrink_prior_weight: 40.0
+  class_balanced: true
+  group_acc: balanced_within
+  gba_min_pos: 10
+  gba_min_neg: 10
+  gba_exclude_none: true
+  fail_closed: true
+  max_invalid_rate: 0.02
+  min_pred_pos_rate: 0.02
+  prompt_len_limit: 3000
+  len_penalty_start: 300
+  len_penalty_per_100: 0.025
+
+data_roles:
+  enabled: true
+  stratify: true
+  d_select_size: 720
+  d_anchor_size: 100
+  d_audit_size: 80
+  d_dev_size: 900
+  n_min_per_group: 60
+  d_select_rotate: false
+  d_select_stratify_label: true
+  balanced_cells: true
+  balanced_per_cell: 72     # 5 обучающих жанров x 2 метки x 72 = 720 = d_select_size (train видит только 5 из 10 жанров)
+  balanced_include_none: false
+  anchor_gate_mode: reject
+  anchor_gate_delta: 0.02
+  anchor_gate_alpha: 0.05
+  anchor_max_uncertainty: 0.0
+  dev_gate_mode: reject
+  dev_gate_delta: 0.01
+  d_dev_from_validation: true
+  d_dev_per_cell: 50
+  d_dev_include_none: true
+  build_test_fixed: true
+  test_fixed_per_cell: 100
+  test_fixed_include_none: true
+  fixed_sets_dir: experiments/S16_prime_stands/mnli/fixed_sets
+
+clusters:
+  geometry: oracle
+  n_clusters: 11    # none-заглушка + 10 жанров MNLI (валидация/тест видят все 10, train — только 5)
+  seed: 42
+  control: none
+  descriptors_enabled: true
+  allow_synthetic_fallback: false
+
+acquisition:
+  policy: group_aware
+  batch_size: 24
+  expansion_trigger: 12
+  expansion_batch: 12
+  expansion_policy: uncertainty
+  uncertainty_k: 3
+  uncertainty_temperature: 0.7
+  pool_score_subsample: 400
+
+evolution:
+  n_evolve_iterations: 18
+  population_size: 16
+  mutator_model: deepseek/deepseek-v4-pro
+  mutator_temperature: 0.6
+  mutator_max_tokens: 4096
+  inject_verbatim_fewshot: true
+  enforce_text_triggers: true
+  contrastive_pairs: true
+
+consolidation:
+  enabled: false
+
+pareto:
+  enabled: true
+  champion_margin: 0.01
+  score_consolidated_on_select: true
+  seed_openevolve_from_front: true
+  gate_fallback_down_front: true
+
+active_learning:
+  n_cycles: 4
+  seed: 42
+  selection_mode: lexicographic
+  selection_split: d_dev
+  proxy_tail_metric: CVaR_cluster_shrunk
+  selection_use_shrunk_cvar: true
+  tail_quantile: 0.2
+
+budget:
+  total_calls: 60000
+  scorer_calls: 60000
+  optimizer_calls: 450
+  on_exhausted: stop
+
+ensemble:
+  max_retries: 12
+  timeout: 90
+
+dataset:
+  name: mnli
+  label_space: binary
+  data_root: ./data
+  use_cache: true
+  al_candidate_pool_size: 4000
+  max_train_users: 20000
+  max_val_users: 5000
+  max_test_users: 5000

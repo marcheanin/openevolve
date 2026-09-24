@@ -1,0 +1,3 @@
+2d099fadae2bc0d92ba8a34cfb3e414d44b096ba4f3e3615cd9d673a17d786c0  PREREGISTRATION_S13.md
+записано 2026-09-19 16:53:01
+до скоринга матрицы MultiNLI (каталог scorer_gemma отсутствует: да)

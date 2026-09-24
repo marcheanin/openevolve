@@ -323,6 +323,10 @@ class ExperimentCfg:
     verbose: bool = False
     smoke_validate: bool = False  # write stage checklist + extra demos
     force_mock: bool = False  # skip LLM calls even if API key is set
+    # After final test_fixed eval: re-score seed + final this many times and write
+    # evals/stable_test_fixed/ (mean±SD, McNemar, bootstrap). 0 = skip.
+    # E5 default 3 — single-shot GBA headlines are not variance-aware (M38).
+    stable_final_repeats: int = 0
 
 
 @dataclass
